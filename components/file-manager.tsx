@@ -79,7 +79,71 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
   const closePreview = () => setPreviewFile(null)
 
-  // Add these functions inside the FileManager component
+  // Get current directory information for the details sidebar
+  const getCurrentDirectoryInfo = useCallback(() => {
+    // If at root, create a special Workspace directory info
+    if (currentPath.length === 0) {
+      return {
+        id: "root-directory",
+        name: "Workspace Directory",
+        type: "folder" as const,
+        children: getCurrentItems(),
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        syncStatus: "synced" as const,
+        size: getCurrentItems().reduce((total, item) => total + (item.size || 0), 0),
+      };
+    }
+
+    // Find the current directory in the file system
+    let current = fileSystem;
+    let currentDir: FileSystemItem | null = null;
+
+    for (let i = 0; i < currentPath.length; i++) {
+      const segment = currentPath[i];
+      const folder = current.find(item => item.type === "folder" && item.name === segment);
+
+      if (folder && folder.type === "folder" && folder.children) {
+        current = folder.children;
+        if (i === currentPath.length - 1) {
+          currentDir = folder;
+        }
+      } else {
+        return null;
+      }
+    }
+
+    return currentDir;
+  }, [currentPath, fileSystem]);
+
+  // Update detailsItem with directory info when no item is selected
+  const updateDetailsWithDirectory = useCallback(() => {
+    if (selectedItems.length === 0) {
+      const dirInfo = getCurrentDirectoryInfo();
+      setDetailsItem(dirInfo);
+    }
+  }, [selectedItems, getCurrentDirectoryInfo]);
+
+  // Initialize directory details and update when path changes
+  useEffect(() => {
+    updateDetailsWithDirectory();
+  }, [currentPath, updateDetailsWithDirectory]);
+
+  // Update selectedItems to ensure details sidebar stays open
+  const handleSelectedItemsChange = (items: string[]) => {
+    setSelectedItems(items);
+    if (items.length === 0) {
+      // Show directory details when nothing is selected
+      updateDetailsWithDirectory();
+    } else {
+      // Show details for the selected item
+      const selectedItem = findItemById(items[0]);
+      if (selectedItem) {
+        setDetailsItem(selectedItem);
+      }
+    }
+  };
+
   const navigateTo = (path: string[]) => {
     // Add to navigation history
     if (currentHistoryIndex >= 0) {
@@ -1014,7 +1078,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }, 5000)
   }
 
-  // Update the FileSystemProvider value to include the navigation functions
+  // Update the FileSystemProvider value to include the updated handlers
   return (
     <FileSystemProvider
       value={{
@@ -1026,7 +1090,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         syncPaused,
         canGoBack,
         canGoForward,
-        setSelectedItems,
+        setSelectedItems: handleSelectedItemsChange, // Use updated handler
         setViewMode,
         navigateTo,
         goBack,
@@ -1128,21 +1192,19 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
                     )}
                   </AnimatePresence>
                 </div>
-
-                {/* Reserve space for the details sidebar to prevent CLS */}
-                <AnimatePresence>
-                  {detailsItem && (
-                    <motion.div
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 320, opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="border-l border-border overflow-hidden"
-                    >
-                      <FileDetails item={detailsItem} onClose={() => setDetailsItem(null)} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Always show details sidebar - removed the conditional rendering */}
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 320, opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="border-l border-border overflow-hidden"
+                >
+                  <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={() => {
+                    // Don't close the sidebar, instead show directory info
+                    setSelectedItems([]);
+                    updateDetailsWithDirectory();
+                  }} />
+                </motion.div>
               </div>
             </>
           )}

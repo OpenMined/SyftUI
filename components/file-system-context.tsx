@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect } from "react"
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
 
 interface ClipboardItem {
@@ -50,6 +49,30 @@ export function FileSystemProvider({
   children: React.ReactNode
   value: FileSystemContextType
 }) {
+  // Set up event listener for navigation events
+  useEffect(() => {
+    // Define the handler for the custom navigation event
+    const handleNavigationEvent = (event: CustomEvent) => {
+      const { path, callback } = event.detail;
+
+      // Call the navigate function from the context
+      value.navigateTo(path);
+
+      // Call the callback if provided
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    };
+
+    // Add event listener with type assertion
+    window.addEventListener('navigate-to-path', handleNavigationEvent as EventListener);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('navigate-to-path', handleNavigationEvent as EventListener);
+    };
+  }, [value]);
+
   return <FileSystemContext.Provider value={value}>{children}</FileSystemContext.Provider>
 }
 

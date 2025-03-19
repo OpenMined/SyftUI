@@ -81,9 +81,6 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
     <div className="h-full flex flex-col bg-card">
       <div className="flex items-center justify-between p-4 border-b">
         <h3 className="font-medium">Details</h3>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
       </div>
 
       <div className="flex-1 overflow-auto">

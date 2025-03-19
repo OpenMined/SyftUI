@@ -120,22 +120,31 @@ export function Toolbar() {
           </Tooltip>
         </TooltipProvider>
 
-        <Button variant="outline" size="sm" onClick={() => setIsCreateFolderOpen(true)} className="hidden sm:flex">
-          <FolderPlus className="h-4 w-4 mr-2" />
-          New Folder
-        </Button>
-        <Button variant="outline" size="sm" className="hidden sm:flex">
-          <Upload className="h-4 w-4 mr-2" />
-          Upload
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setIsCreateFolderOpen(true)}>
+                <FolderPlus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>New Folder</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
-        {/* Mobile-friendly buttons */}
-        <Button variant="outline" size="icon" className="h-8 w-8 sm:hidden" onClick={() => setIsCreateFolderOpen(true)}>
-          <FolderPlus className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="icon" className="h-8 w-8 sm:hidden">
-          <Upload className="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <Upload className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Upload</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <TooltipProvider>
           {selectedItems.length > 0 && (
@@ -162,24 +171,21 @@ export function Toolbar() {
                 </TooltipContent>
               </Tooltip>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDelete(selectedItems)}
-                className="hidden sm:flex"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 sm:hidden"
-                onClick={() => handleDelete(selectedItems)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleDelete(selectedItems)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete</p>
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
 

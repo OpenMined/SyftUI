@@ -59,6 +59,9 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
     }))
   }
 
+  // User email for "My datasite" path
+  const userEmail = "user@example.com"
+
   const mainNavItems = [
     { icon: LayoutDashboard, label: "Dashboard", action: () => setActiveItem("Dashboard") },
     {
@@ -66,6 +69,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
+        navigateTo([])
         onNavigateToFiles()
       },
     },
@@ -74,11 +78,19 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
       label: "Datasites",
       action: () => {
         setActiveItem("Datasites")
-        navigateTo([])
+        navigateTo(["datasites"])
         onNavigateToFiles()
       },
     },
-    { icon: FolderHeart, label: "My datasite", action: () => setActiveItem("My datasite") },
+    {
+      icon: FolderHeart,
+      label: "My datasite",
+      action: () => {
+        setActiveItem("My datasite")
+        navigateTo(["datasites", userEmail])
+        onNavigateToFiles()
+      }
+    },
     { icon: AppWindow, label: "Apps", action: () => setActiveItem("Apps") },
     {
       icon: ShoppingBag,
@@ -215,7 +227,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium">User Name</p>
-                <p className="text-xs text-muted-foreground">user@example.com</p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
             </div>
           </DropdownMenuTrigger>
