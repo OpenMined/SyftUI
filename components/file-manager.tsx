@@ -19,6 +19,7 @@ import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
 import { Marketplace } from "@/components/marketplace"
 import { MarketplaceAppDetail } from "@/components/marketplace-app-detail"
+import { Logs } from "@/components/logs"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
@@ -64,12 +65,13 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
   const [syncPaused, setSyncPaused] = useState(false)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
-  const [activeView, setActiveView] = useState<"files" | "marketplace">("files")
+  const [activeView, setActiveView] = useState<"files" | "marketplace" | "logs">("files")
   const [selectedMarketplaceApp, setSelectedMarketplaceApp] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
 
-  const isMobile = useIsMobile()
   const { addOperation, undo, redo } = useHistory()
   const { addNotification } = useNotifications()
   const fileManagerRef = useRef<HTMLDivElement>(null)
@@ -1100,6 +1102,21 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }
   };
 
+  const handleNavigateToMarketplace = () => {
+    setActiveView("marketplace")
+    setSidebarOpen(false)
+  }
+
+  const handleNavigateToFiles = () => {
+    setActiveView("files")
+    setSidebarOpen(false)
+  }
+
+  const handleNavigateToLogs = () => {
+    setActiveView("logs")
+    setSidebarOpen(false)
+  }
+
   // Update the FileSystemProvider value to include the updated handlers
   return (
     <FileSystemProvider
@@ -1167,17 +1184,11 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
           )}
         >
           <Sidebar
-            onNavigateToMarketplace={() => {
-              setActiveView("marketplace")
-              setSelectedMarketplaceApp(null)
-              setSidebarOpen(false)
-            }}
-            onNavigateToFiles={() => {
-              setActiveView("files")
-              setSidebarOpen(false)
-            }}
+            onNavigateToMarketplace={handleNavigateToMarketplace}
+            onNavigateToFiles={handleNavigateToFiles}
+            onNavigateToLogs={handleNavigateToLogs}
             activeView={activeView}
-            closeSidebar={() => setSidebarOpen(false)} // Added prop
+            closeSidebar={() => setSidebarOpen(false)}
           />
         </div>
 
@@ -1233,6 +1244,8 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
               )}
             </>
           )}
+
+          {activeView === "logs" && <Logs />}
         </div>
 
         {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}

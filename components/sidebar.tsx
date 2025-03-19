@@ -38,11 +38,12 @@ import { useTheme } from "next-themes"
 interface SidebarProps {
   onNavigateToMarketplace: () => void
   onNavigateToFiles: () => void
+  onNavigateToLogs: () => void
   activeView: "files" | "marketplace"
   closeSidebar: () => void // Added prop
 }
 
-export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView, closeSidebar }: SidebarProps) {
+export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigateToLogs, activeView, closeSidebar }: SidebarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connected")
@@ -101,7 +102,12 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
         onNavigateToMarketplace()
       },
     },
-    { icon: ScrollText, label: "Logs", action: () => setActiveItem("Logs") },
+    {
+      icon: ScrollText, label: "Logs", action: () => {
+        setActiveItem("Logs")
+        onNavigateToLogs()
+      }
+    },
     { icon: Gauge, label: "Diagnostic", action: () => setActiveItem("Diagnostic") },
   ]
 
