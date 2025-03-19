@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface FileExplorerProps {
   items: FileSystemItem[]
@@ -50,6 +51,8 @@ export function FileExplorer({ items }: FileExplorerProps) {
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [shareItem, setShareItem] = useState<FileSystemItem | null>(null)
 
+  const isMobile = useIsMobile()
+
   const handleItemClick = (item: FileSystemItem, event: React.MouseEvent) => {
     // Single click now selects the item and shows details
     if (event.ctrlKey || event.metaKey) {
@@ -69,7 +72,7 @@ export function FileExplorer({ items }: FileExplorerProps) {
     } else {
       // Single select - show details panel
       setSelectedItems([item.id])
-      setDetailsItem(item)
+      isMobile ? handleItemDoubleClick(item) : setDetailsItem(item)
     }
   }
 
@@ -278,6 +281,11 @@ export function FileExplorer({ items }: FileExplorerProps) {
                   <ContextMenuItem onClick={pasteItems}>
                     Paste
                     <ContextMenuShortcut>⌘V</ContextMenuShortcut>
+                  </ContextMenuItem>
+                )}
+                {isMobile && (
+                  <ContextMenuItem onClick={() => setDetailsItem(item)}>
+                    Details
                   </ContextMenuItem>
                 )}
                 <ContextMenuSeparator />

@@ -23,6 +23,7 @@ import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface FileManagerProps {
   fileSystem: FileSystemItem[]
@@ -66,7 +67,9 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [activeView, setActiveView] = useState<"files" | "marketplace">("files")
   const [selectedMarketplaceApp, setSelectedMarketplaceApp] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
 
+  const isMobile = useIsMobile()
   const { addOperation, undo, redo } = useHistory()
   const { addNotification } = useNotifications()
   const fileManagerRef = useRef<HTMLDivElement>(null)
@@ -1078,6 +1081,25 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }, 5000)
   }
 
+  // Update the FileSystem context handler for the details item
+  const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {
+    setDetailsItem(item);
+    // Show the mobile details panel when an item is selected on mobile
+    if (item && isMobile) {
+      setMobileDetailsOpen(true);
+    }
+  }, [isMobile]);
+
+  // Close the mobile details panel
+  const handleCloseDetails = () => {
+    if (isMobile) {
+      setMobileDetailsOpen(false);
+    } else {
+      setSelectedItems([]);
+      updateDetailsWithDirectory();
+    }
+  };
+
   // Update the FileSystemProvider value to include the updated handlers
   return (
     <FileSystemProvider
@@ -1099,7 +1121,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         handleDelete,
         handleRename,
         setPreviewFile,
-        setDetailsItem,
+        setDetailsItem: handleSetDetailsItem,  // Use the updated handler
         moveItems,
         cutItems,
         copyItems,
@@ -1186,19 +1208,18 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
                     )}
                   </AnimatePresence>
                 </div>
-                {/* Always show details sidebar - removed the conditional rendering */}
-                <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 320, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="border-l border-border overflow-hidden"
-                >
-                  <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={() => {
-                    // Don't close the sidebar, instead show directory info
-                    setSelectedItems([]);
-                    updateDetailsWithDirectory();
-                  }} />
-                </motion.div>
+
+                {/* Desktop: Always show details sidebar, Mobile: Hide by default */}
+                {!isMobile && (
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 320, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="border-l border-border overflow-hidden hidden md:block"
+                  >
+                    <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} />
+                  </motion.div>
+                )}
               </div>
             </>
           )}
@@ -1215,6 +1236,21 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         </div>
 
         {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}
+
+        {/* Mobile: File details shown as a slide-in panel */}
+        <AnimatePresence>
+          {isMobile && mobileDetailsOpen && detailsItem && (
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed inset-0 bg-background z-50"
+            >
+              <FileDetails item={detailsItem} onClose={handleCloseDetails} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence>
           {uploads.length > 0 && (

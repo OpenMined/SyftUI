@@ -8,6 +8,7 @@ import { SyncStatus } from "@/components/sync-status"
 import { ShareDialog } from "@/components/share-dialog"
 import { useFileSystem } from "@/components/file-system-context"
 import { motion } from "framer-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { FileSystemItem } from "@/lib/types"
 import { formatFileSize } from "@/lib/utils"
 
@@ -21,6 +22,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
   const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
+  const isMobile = useIsMobile()
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== item.name) {
@@ -81,6 +83,9 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
     <div className="h-full flex flex-col bg-card">
       <div className="flex items-center justify-between p-4 border-b">
         <h3 className="font-medium">Details</h3>
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 md:hidden">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="flex-1 overflow-auto">
