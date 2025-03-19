@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+import { Toolbar } from "@/components/ui/toolbar"
 
 interface App {
   id: string
@@ -165,12 +166,12 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-wrap items-center justify-between p-4 border-b gap-2">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative flex-1 max-w-md">
+      <Toolbar>
+        <div className="flex items-center gap-2">
+          <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search extensions..."
+              placeholder="Search apps..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -185,9 +186,9 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
         </div>
         <Button onClick={() => setIsPublishDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Publish Extension</span>
+          <span className="hidden sm:inline">Publish App</span>
         </Button>
-      </div>
+      </Toolbar>
 
       <Tabs defaultValue="all" className="flex-1">
         <div className="px-4 pt-2 border-b overflow-x-auto">
@@ -265,7 +266,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
                 ))
               ) : (
                 <div className="col-span-full flex items-center justify-center h-40 text-muted-foreground">
-                  No extensions found matching your search
+                  No apps found matching your search
                 </div>
               )}
             </div>
@@ -274,7 +275,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
 
         <TabsContent value="installed" className="flex-1 p-0">
           <div className="flex items-center justify-center h-40 text-muted-foreground">
-            You haven't installed any extensions yet
+            You haven't installed any apps yet
           </div>
         </TabsContent>
 
@@ -286,7 +287,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
 
         <TabsContent value="popular" className="flex-1 p-0">
           <div className="flex items-center justify-center h-40 text-muted-foreground">
-            Loading popular extensions...
+            Loading popular apps...
           </div>
         </TabsContent>
       </Tabs>
@@ -294,14 +295,14 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
       <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Publish Extension</DialogTitle>
+            <DialogTitle>Publish App</DialogTitle>
           </DialogHeader>
 
           {!isSubmitted ? (
             <>
               <div className="py-4">
                 <p className="text-sm mb-4">
-                  Submit your GitHub repository URL to publish your extension to the marketplace. Our team will review
+                  Submit your GitHub repository URL to publish your app to the marketplace. Our team will review
                   your submission and approve it if it meets our guidelines.
                 </p>
                 <div className="space-y-2">
@@ -315,7 +316,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
                     onChange={(e) => setRepoUrl(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Make sure your repository includes a valid manifest.json file with extension metadata.
+                    Make sure your repository includes a valid manifest.json file with app metadata.
                   </p>
                 </div>
               </div>
@@ -334,7 +335,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
               <div className="text-3xl mb-4">🎉</div>
               <h3 className="text-lg font-medium mb-2">Submission Received!</h3>
               <p className="text-sm text-muted-foreground">
-                Thank you for your submission. Our team will review your extension and get back to you within 2-3
+                Thank you for your submission. Our team will review your app and get back to you within 2-3
                 business days.
               </p>
             </div>

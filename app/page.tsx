@@ -1,40 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { FileManager } from "@/components/file-manager"
-import { mockFileSystem } from "@/lib/mock-data"
-import { HistoryProvider } from "@/components/history-context"
-import { NotificationProvider } from "@/components/notification-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function HomePage() {
-  const [fileSystem, setFileSystem] = useState(mockFileSystem)
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
-    // Try to get the saved view mode from localStorage
-    if (typeof window !== "undefined") {
-      const savedViewMode = localStorage.getItem("viewMode")
-      return savedViewMode === "grid" || savedViewMode === "list" ? savedViewMode : "grid"
-    }
-    return "grid"
-  })
+  const router = useRouter()
 
-  // Save view mode to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem("viewMode", viewMode)
-  }, [viewMode])
+    // Redirect to workspace page by default
+    router.push("/workspace")
+  }, [router])
 
-  return (
-    <div className="min-h-screen bg-background">
-      <HistoryProvider>
-        <NotificationProvider>
-          <FileManager
-            fileSystem={fileSystem}
-            setFileSystem={setFileSystem}
-            initialViewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
-        </NotificationProvider>
-      </HistoryProvider>
-    </div>
-  )
+  return null
 }
 

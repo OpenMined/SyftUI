@@ -5,6 +5,7 @@ import { ChevronLeft, Star, Download, ExternalLink, Heart, Share2, Code, Shield,
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Toolbar } from "@/components/ui/toolbar"
 
 interface MarketplaceAppDetailProps {
   appId: string
@@ -125,12 +126,20 @@ export function MarketplaceAppDetail({ appId, onBack }: MarketplaceAppDetailProp
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center p-4 border-b">
-        <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-xl font-medium">Extension Details</h1>
-      </div>
+      <Toolbar
+        title="App Details"
+        icon={<ChevronLeft className="h-4 w-4 cursor-pointer" onClick={onBack} />}
+      >
+        {!isInstalled ? (
+          <Button onClick={handleInstall} disabled={isInstalling}>
+            {isInstalling ? "Installing..." : "Install"}
+          </Button>
+        ) : (
+          <Button variant="outline" disabled>
+            Installed
+          </Button>
+        )}
+      </Toolbar>
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* Main content */}

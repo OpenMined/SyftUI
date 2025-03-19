@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useFileSystem } from "@/components/file-system-context"
 import {
@@ -14,8 +12,6 @@ import {
   ScrollText,
   Gauge,
   Star,
-  ChevronDown,
-  ChevronRight,
   LogOut,
   Settings,
   User,
@@ -34,25 +30,48 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useTheme } from "next-themes"
+import { useRouter, usePathname } from "next/navigation"
 
 interface SidebarProps {
-  onNavigateToMarketplace: () => void
-  onNavigateToFiles: () => void
-  onNavigateToLogs: () => void
-  activeView: "files" | "marketplace"
-  closeSidebar: () => void // Added prop
+  closeSidebar: () => void
 }
 
-export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigateToLogs, activeView, closeSidebar }: SidebarProps) {
+export function Sidebar({ closeSidebar }: SidebarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connected")
-  const { navigateTo, fileSystem } = useFileSystem()
+  const { navigateTo } = useFileSystem()
   const [favorites, setFavorites] = useState<{ id: string; name: string; path: string[] }[]>([])
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
   })
-  const [activeItem, setActiveItem] = useState(activeView === "files" ? "Workspace" : "Marketplace")
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // User email for "My datasite" path
+  const userEmail = "user@example.com"
+
+  const getActiveItem = (pathname: string) => {
+    if (pathname.startsWith("/marketplace")) return "Marketplace"
+    if (pathname.startsWith("/logs")) return "Logs"
+    if (pathname.startsWith("/workspace")) {
+      const segments = pathname.split("/")
+      if (segments.length >= 3) {
+        if (segments[2] === "datasites") {
+          return segments[3] === userEmail ? "My datasite" : "Datasites"
+        }
+      }
+      return "Workspace"
+    }
+    return "Dashboard"
+  }
+
+  const [activeItem, setActiveItem] = useState(getActiveItem(pathname))
+
+  // Update activeItem when pathname changes
+  useEffect(() => {
+    setActiveItem(getActiveItem(pathname))
+  }, [pathname])
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
@@ -60,9 +79,6 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       [section]: !prev[section],
     }))
   }
-
-  // User email for "My datasite" path
-  const userEmail = "user@example.com"
 
   const mainNavItems = [
     { icon: LayoutDashboard, label: "Dashboard", action: () => setActiveItem("Dashboard") },
@@ -72,7 +88,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       action: () => {
         setActiveItem("Workspace")
         navigateTo([])
-        onNavigateToFiles()
+        router.push("/workspace")
       },
     },
     {
@@ -81,7 +97,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       action: () => {
         setActiveItem("Datasites")
         navigateTo(["datasites"])
-        onNavigateToFiles()
+        router.push("/workspace")
       },
     },
     {
@@ -90,7 +106,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       action: () => {
         setActiveItem("My datasite")
         navigateTo(["datasites", userEmail])
-        onNavigateToFiles()
+        router.push("/workspace")
       }
     },
     { icon: AppWindow, label: "Apps", action: () => setActiveItem("Apps") },
@@ -99,13 +115,15 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       label: "Marketplace",
       action: () => {
         setActiveItem("Marketplace")
-        onNavigateToMarketplace()
+        router.push("/marketplace")
       },
     },
     {
-      icon: ScrollText, label: "Logs", action: () => {
+      icon: ScrollText,
+      label: "Logs",
+      action: () => {
         setActiveItem("Logs")
-        onNavigateToLogs()
+        router.push("/logs")
       }
     },
     { icon: Gauge, label: "Diagnostic", action: () => setActiveItem("Diagnostic") },
@@ -141,7 +159,8 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
     e.dataTransfer.dropEffect = "copy"
   }
 
-  const removeFavorite = (id: string) => {
+  const removeFavorite = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     setFavorites((prev) => prev.filter((fav) => fav.id !== id))
   }
 
@@ -158,41 +177,48 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
 
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
-      <div className="flex justify-between items-center border-b border-border mx-4 py-4 gap-2">
-        <Image src={isDarkTheme ? "./logo-dark.svg" : "./logo-light.svg"} width={180} height={54} alt="SyftBox UI" />
+      <div className="flex justify-between items-center mx-4 pt-4 gap-2">
+        <Image src={isDarkTheme ? "/logo-dark.svg" : "/logo-light.svg"} width={180} height={54} alt="SyftBox UI" />
         <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
           <X className="h-4 w-4" />
         </Button>
+      </div>
+      <div className="flex justify-between items-center mx-4 py-4 border-b border-border">
+        <ConnectionStatus status={connectionStatus} />
       </div>
       <nav className="flex-1 overflow-auto p-2">
         <ul className="space-y-1 mb-4">
           {mainNavItems.map((item, index) => (
             <li key={index}>
-              <button
+              <Button
+                variant="ghost"
                 onClick={item.action}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm",
-                  "hover:bg-accent hover:text-accent-foreground transition-colors",
+                  "w-full flex items-center gap-3 px-3 py-2 justify-start font-normal",
                   activeItem === item.label && "bg-accent text-accent-foreground",
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
 
-        <div className="mb-4">
-          <Collapsible open={openSections.favorites} onOpenChange={() => toggleSection("favorites")}>
-            <CollapsibleTrigger className="flex items-center w-full px-3 py-2 text-sm font-medium">
-              {openSections.favorites ? (
-                <ChevronDown className="h-4 w-4 mr-1" />
-              ) : (
-                <ChevronRight className="h-4 w-4 mr-1" />
-              )}
-              <Star className="h-4 w-4 mr-2" />
-              <span>Favorites</span>
+        <div className="space-y-4">
+          <Collapsible
+            open={openSections.favorites}
+            onOpenChange={() => toggleSection("favorites")}
+            className="space-y-2"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full flex items-center gap-2 px-3 py-2 justify-start font-normal"
+              >
+                <Star className="h-4 w-4 mr-2" />
+                <span>Favorites</span>
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="pl-4 pr-2 py-2 space-y-1" onDrop={handleDrop} onDragOver={handleDragOver}>
@@ -201,24 +227,27 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
                 ) : (
                   favorites.map((fav) => (
                     <div key={fav.id} className="flex items-center justify-between group">
-                      <button
-                        onClick={() => {
-                          navigateTo(fav.path)
-                          onNavigateToFiles()
-                        }}
-                        className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                      >
-                        <FolderHeart className="h-4 w-4" />
-                        <span className="truncate">{fav.name}</span>
-                      </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeFavorite(fav.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      <div className="flex-1 flex gap-2">
+                        <Button
+                          variant="ghost"
+                          className="flex-1 flex items-center gap-2 justify-start font-normal"
+                          onClick={() => {
+                            navigateTo(fav.path)
+                            router.push("/workspace")
+                          }}
+                        >
+                          <FolderHeart className="h-4 w-4" />
+                          <span className="truncate">{fav.name}</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          onClick={(e) => removeFavorite(fav.id, e)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -229,8 +258,8 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
       </nav>
       <div className="p-4 border-t border-border">
         <DropdownMenu>
-          <DropdownMenuTrigger className="w-full">
-            <div className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground rounded-md p-2 transition-colors">
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full flex items-center gap-3 px-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                 U
               </div>
@@ -238,7 +267,7 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, onNavigate
                 <p className="text-sm font-medium">User Name</p>
                 <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
-            </div>
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem>

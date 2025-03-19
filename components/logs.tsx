@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { ScrollText, Download, Trash2, Pause, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Toolbar } from "@/components/ui/toolbar"
 import { cn } from "@/lib/utils"
 
 interface Log {
@@ -75,49 +76,48 @@ export function Logs() {
     }
 
     return (
-        <div className="flex flex-col h-full p-4 gap-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <ScrollText className="h-5 w-5" />
-                    <h1 className="text-2xl font-semibold">System Logs</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setIsPaused(!isPaused)}
-                        title={isPaused ? "Resume" : "Pause"}
-                    >
-                        {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleClear} title="Clear Logs">
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleDownload} title="Download Logs">
-                        <Download className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+        <div className="flex flex-col h-full">
+            <Toolbar
+                title="System Logs"
+                icon={<ScrollText className="h-5 w-5" />}
+            >
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsPaused(!isPaused)}
+                    title={isPaused ? "Resume" : "Pause"}
+                >
+                    {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleClear} title="Clear Logs">
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleDownload} title="Download Logs">
+                    <Download className="h-4 w-4" />
+                </Button>
+            </Toolbar>
 
-            <Card className="flex-1 overflow-hidden">
-                <div className="h-full overflow-auto p-4 font-mono text-sm">
-                    {logs.map((log, index) => (
-                        <div
-                            key={index}
-                            className={cn(
-                                "py-1",
-                                log.level === "error" && "text-red-500",
-                                log.level === "warning" && "text-yellow-500",
-                                log.level === "info" && "text-blue-500"
-                            )}
-                        >
-                            <span className="text-muted-foreground">[{log.timestamp}]</span>{" "}
-                            <span className="font-semibold">{log.level.toUpperCase()}:</span> {log.message}
-                        </div>
-                    ))}
-                    <div ref={logsEndRef} />
-                </div>
-            </Card>
+            <div className="flex-1 p-4">
+                <Card className="flex-1 overflow-hidden h-full">
+                    <div className="h-full overflow-auto p-4 font-mono text-sm">
+                        {logs.map((log, index) => (
+                            <div
+                                key={index}
+                                className={cn(
+                                    "py-1",
+                                    log.level === "error" && "text-red-500",
+                                    log.level === "warning" && "text-yellow-500",
+                                    log.level === "info" && "text-blue-500"
+                                )}
+                            >
+                                <span className="text-muted-foreground">[{log.timestamp}]</span>{" "}
+                                <span className="font-semibold">{log.level.toUpperCase()}:</span> {log.message}
+                            </div>
+                        ))}
+                        <div ref={logsEndRef} />
+                    </div>
+                </Card>
+            </div>
         </div>
     )
-} 
+}

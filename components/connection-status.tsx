@@ -60,7 +60,7 @@ export function ConnectionStatus({ status }: ConnectionStatusProps) {
       <Button
         variant="outline"
         size="sm"
-        className={cn("flex items-center gap-2 py-4 px-2 h-auto font-semibold", getButtonColors())}
+        className={cn("flex items-center gap-2 py-4 px-2 h-auto w-full font-semibold", getButtonColors())}
         onClick={() => setIsDialogOpen(true)}
       >
         {getStatusIcon()}

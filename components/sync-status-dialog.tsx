@@ -11,58 +11,79 @@ import { PauseCircle, PlayCircle, AlertTriangle } from "lucide-react"
 import type { FileSystemItem } from "@/lib/types"
 
 interface SyncStatusDialogProps {
-  fileSystem: FileSystemItem[]
-  syncPaused: boolean
-  onTogglePause: () => void
-  onManualSync: () => void
+  open: boolean
   onClose: () => void
+  isPaused: boolean
+  onPauseChange: (paused: boolean) => void
 }
 
 export function SyncStatusDialog({
-  fileSystem,
-  syncPaused,
-  onTogglePause,
-  onManualSync,
+  open,
   onClose,
+  isPaused,
+  onPauseChange,
 }: SyncStatusDialogProps) {
   const [syncingItems, setSyncingItems] = useState<FileSystemItem[]>([])
   const [pendingItems, setPendingItems] = useState<FileSystemItem[]>([])
   const [errorItems, setErrorItems] = useState<FileSystemItem[]>([])
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
 
-  // Find all items with sync status
+  // Set some mock data for demo purposes
   useEffect(() => {
-    const syncing: FileSystemItem[] = []
-    const pending: FileSystemItem[] = []
-    const errors: FileSystemItem[] = []
-
-    const findItems = (items: FileSystemItem[]) => {
-      items.forEach((item) => {
-        if (item.syncStatus === "syncing") {
-          syncing.push(item)
-        } else if (item.syncStatus === "pending") {
-          pending.push(item)
-        } else if (item.syncStatus === "error" || item.syncStatus === "rejected") {
-          errors.push(item)
+    if (open) {
+      // Mock data for syncing items
+      setSyncingItems([
+        {
+          id: "sync1",
+          name: "document.pdf",
+          type: "file",
+          size: 1024,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          syncStatus: "syncing"
+        },
+        {
+          id: "sync2",
+          name: "images",
+          type: "folder",
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          syncStatus: "syncing"
         }
+      ])
 
-        if (item.type === "folder" && item.children) {
-          findItems(item.children)
+      // Mock data for pending items
+      setPendingItems([
+        {
+          id: "pending1",
+          name: "report.docx",
+          type: "file",
+          size: 2048,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          syncStatus: "pending"
         }
-      })
+      ])
+
+      // Mock data for error items
+      setErrorItems([
+        {
+          id: "error1",
+          name: "corrupted.file",
+          type: "file",
+          size: 512,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          syncStatus: "error"
+        }
+      ])
+
+      // Set a mock last sync time
+      if (!lastSyncTime) {
+        setLastSyncTime(new Date(Date.now() - 1000 * 60 * 15)) // 15 minutes ago
+      }
     }
-
-    findItems(fileSystem)
-
-    setSyncingItems(syncing)
-    setPendingItems(pending)
-    setErrorItems(errors)
-
-    // Set a mock last sync time
-    if (!lastSyncTime) {
-      setLastSyncTime(new Date(Date.now() - 1000 * 60 * 15)) // 15 minutes ago
-    }
-  }, [fileSystem, lastSyncTime])
+  }, [open, lastSyncTime])
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -90,7 +111,7 @@ export function SyncStatusDialog({
   }
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Sync Status</DialogTitle>
@@ -212,8 +233,8 @@ export function SyncStatusDialog({
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          <Button onClick={onTogglePause}>
-            {syncPaused ? (
+          <Button onClick={() => onPauseChange(!isPaused)}>
+            {isPaused ? (
               <>
                 <PlayCircle className="h-4 w-4 mr-2" />
                 Resume Sync

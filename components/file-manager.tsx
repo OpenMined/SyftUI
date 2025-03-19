@@ -1,11 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-
 import type React from "react"
-
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Sidebar } from "@/components/sidebar"
 import { FileExplorer } from "@/components/file-explorer"
 import { Breadcrumb } from "@/components/breadcrumb"
 import { Toolbar } from "@/components/toolbar"
@@ -17,13 +14,8 @@ import { useNotifications } from "@/components/notification-context"
 import { UploadProgress } from "@/components/upload-progress"
 import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
-import { Marketplace } from "@/components/marketplace"
-import { MarketplaceAppDetail } from "@/components/marketplace-app-detail"
-import { Logs } from "@/components/logs"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
-import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
+import type { FileSystemItem, ClipboardItem, UploadItem, ConflictItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 interface FileManagerProps {
@@ -33,27 +25,25 @@ interface FileManagerProps {
   onViewModeChange: (mode: "grid" | "list") => void
 }
 
-interface ClipboardItem {
-  items: FileSystemItem[]
-  sourcePath: string[]
-  operation: "cut" | "copy"
-}
-
-interface UploadItem {
-  id: string
-  name: string
-  progress: number
-  size: number
-  status: "uploading" | "completed" | "error"
-}
-
-interface ConflictItem {
-  file: File
-  existingItem: FileSystemItem
-  path: string[]
-}
-
 export function FileManager({ fileSystem, setFileSystem, initialViewMode, onViewModeChange }: FileManagerProps) {
+  const navigateTo = (path: string[]) => {
+    if (currentHistoryIndex >= 0) {
+      const newHistory = navigationHistory.slice(0, currentHistoryIndex + 1)
+      setNavigationHistory([...newHistory, path])
+      setCurrentHistoryIndex(newHistory.length)
+    } else {
+      setNavigationHistory([path])
+      setCurrentHistoryIndex(0)
+    }
+
+    setCurrentPath(path)
+    setSelectedItems([])
+    setDetailsItem(null)
+
+    setCanGoBack(currentHistoryIndex >= 0)
+    setCanGoForward(false)
+  }
+
   const [currentPath, setCurrentPath] = useState<string[]>([])
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode)
@@ -65,28 +55,20 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
   const [syncPaused, setSyncPaused] = useState(false)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
-  const [activeView, setActiveView] = useState<"files" | "marketplace" | "logs">("files")
-  const [selectedMarketplaceApp, setSelectedMarketplaceApp] = useState<string | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
-
-  const { addOperation, undo, redo } = useHistory()
-  const { addNotification } = useNotifications()
-  const fileManagerRef = useRef<HTMLDivElement>(null)
-
-  // Add to the FileManager component state
   const [navigationHistory, setNavigationHistory] = useState<string[][]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1)
   const [canGoBack, setCanGoBack] = useState(false)
   const [canGoForward, setCanGoForward] = useState(false)
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
+  const isMobile = useIsMobile()
+  const fileManagerRef = useRef<HTMLDivElement>(null)
+
+  const { addOperation, undo, redo } = useHistory()
+  const { addNotification } = useNotifications()
 
   const closePreview = () => setPreviewFile(null)
 
-  // Get current directory information for the details sidebar
   const getCurrentDirectoryInfo = useCallback(() => {
-    // If at root, create a special Workspace directory info
     if (currentPath.length === 0) {
       return {
         id: "root-directory",
@@ -100,7 +82,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       };
     }
 
-    // Find the current directory in the file system
     let current = fileSystem;
     let currentDir: FileSystemItem | null = null;
 
@@ -121,7 +102,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     return currentDir;
   }, [currentPath, fileSystem]);
 
-  // Update detailsItem with directory info when no item is selected
   const updateDetailsWithDirectory = useCallback(() => {
     if (selectedItems.length === 0) {
       const dirInfo = getCurrentDirectoryInfo();
@@ -129,47 +109,21 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }
   }, [selectedItems, getCurrentDirectoryInfo]);
 
-  // Initialize directory details and update when path changes
   useEffect(() => {
     updateDetailsWithDirectory();
   }, [currentPath, updateDetailsWithDirectory]);
 
-  // Update selectedItems to ensure details sidebar stays open
   const handleSelectedItemsChange = (items: string[]) => {
     setSelectedItems(items);
     if (items.length === 0) {
-      // Show directory details when nothing is selected
       updateDetailsWithDirectory();
     } else {
-      // Show details for the selected item
       const selectedItem = findItemById(items[0]);
       if (selectedItem) {
         setDetailsItem(selectedItem);
       }
     }
   };
-
-  const navigateTo = (path: string[]) => {
-    // Add to navigation history
-    if (currentHistoryIndex >= 0) {
-      // If we're navigating from a point in history, truncate the future history
-      const newHistory = navigationHistory.slice(0, currentHistoryIndex + 1)
-      setNavigationHistory([...newHistory, path])
-      setCurrentHistoryIndex(newHistory.length)
-    } else {
-      // First navigation
-      setNavigationHistory([path])
-      setCurrentHistoryIndex(0)
-    }
-
-    setCurrentPath(path)
-    setSelectedItems([])
-    setDetailsItem(null)
-
-    // Update navigation buttons state
-    setCanGoBack(currentHistoryIndex >= 0)
-    setCanGoForward(false)
-  }
 
   const goBack = () => {
     if (currentHistoryIndex > 0) {
@@ -179,7 +133,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       setSelectedItems([])
       setDetailsItem(null)
 
-      // Update navigation buttons state
       setCanGoBack(newIndex > 0)
       setCanGoForward(true)
     }
@@ -193,13 +146,11 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       setSelectedItems([])
       setDetailsItem(null)
 
-      // Update navigation buttons state
       setCanGoBack(true)
       setCanGoForward(newIndex < navigationHistory.length - 1)
     }
   }
 
-  // Update view mode when it changes
   useEffect(() => {
     onViewModeChange(viewMode)
   }, [viewMode, onViewModeChange])
@@ -251,7 +202,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       syncStatus: "pending",
     }
 
-    // Add to history for undo/redo
     addOperation({
       type: "CREATE_FOLDER",
       folder: newFolder,
@@ -281,7 +231,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setFileSystem(updateFileSystem(fileSystem, currentPath, 0))
 
-    // Simulate sync status changes
     setTimeout(() => {
       updateSyncStatus(newFolder.id, "syncing")
 
@@ -297,7 +246,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   }
 
   const handleDelete = (itemIds: string[]) => {
-    // Find the items to be deleted for history
     const itemsToDelete: FileSystemItem[] = []
     const findItems = (items: FileSystemItem[]): FileSystemItem[] => {
       return items.filter((item) => {
@@ -314,7 +262,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       })
     }
 
-    // Add to history for undo/redo
     addOperation({
       type: "DELETE",
       items: itemsToDelete,
@@ -324,7 +271,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     setFileSystem(findItems([...fileSystem]))
     setSelectedItems([])
 
-    // Close details panel if the selected item is deleted
     if (detailsItem && itemIds.includes(detailsItem.id)) {
       setDetailsItem(null)
     }
@@ -362,7 +308,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       })
     }
 
-    // Add to history for undo/redo
     const itemToRename = findItemById(itemId)
     if (itemToRename) {
       addOperation({
@@ -376,7 +321,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setFileSystem(renameItem(fileSystem))
 
-    // Update details panel if the renamed item is selected
     if (detailsItem && detailsItem.id === itemId) {
       setDetailsItem({
         ...detailsItem,
@@ -386,7 +330,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       })
     }
 
-    // Simulate sync status changes
     setTimeout(() => {
       updateSyncStatus(itemId, "syncing")
 
@@ -417,7 +360,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   }
 
   const moveItems = (itemIds: string[], targetPath: string[]) => {
-    // First, find and extract the items to move
     const itemsToMove: FileSystemItem[] = []
     let sourcePath: string[] = []
 
@@ -442,7 +384,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       })
     }
 
-    // Then, add the items to the target location
     const addItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
       if (depth === path.length) {
         return [...items, ...itemsToMove]
@@ -459,7 +400,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       })
     }
 
-    // Add to history for undo/redo
     addOperation({
       type: "MOVE",
       items: [...itemsToMove],
@@ -467,16 +407,13 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       targetPath,
     })
 
-    // Execute the move operation
     const newFileSystem = removeItems([...fileSystem])
     setFileSystem(addItems(newFileSystem, targetPath, 0))
 
-    // Close details panel if the moved item is selected
     if (detailsItem && itemIds.includes(detailsItem.id)) {
       setDetailsItem(null)
     }
 
-    // Simulate sync status changes for moved items
     itemsToMove.forEach((item) => {
       setTimeout(() => {
         updateSyncStatus(item.id, "syncing")
@@ -497,7 +434,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const cutItems = (itemIds: string[]) => {
     const foundItems = findItemsByIds(itemIds)
     if (foundItems.length > 0) {
-      // Use the first found path (in case items are in different locations)
       const { items, path } = foundItems[0]
       setClipboard({
         items: items,
@@ -516,7 +452,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const copyItems = (itemIds: string[]) => {
     const foundItems = findItemsByIds(itemIds)
     if (foundItems.length > 0) {
-      // Use the first found path (in case items are in different locations)
       const { items, path } = foundItems[0]
       setClipboard({
         items: items,
@@ -548,15 +483,12 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     if (!clipboard) return
 
     if (clipboard.operation === "cut") {
-      // For cut operation, move the items
       const itemIds = clipboard.items.map((item) => item.id)
       moveItems(itemIds, currentPath)
       setClipboard(null)
     } else {
-      // For copy operation, clone the items
       const clonedItems = deepCloneItems(clipboard.items)
 
-      // Add to history for undo/redo
       addOperation({
         type: "COPY",
         items: clonedItems,
@@ -564,7 +496,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         targetPath: currentPath,
       })
 
-      // Add the cloned items to the current path
       const addItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
         if (depth === path.length) {
           return [...items, ...clonedItems]
@@ -583,7 +514,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
       setFileSystem(addItems([...fileSystem], currentPath, 0))
 
-      // Simulate sync status changes for copied items
       clonedItems.forEach((item) => {
         setTimeout(() => {
           updateSyncStatus(item.id, "syncing")
@@ -625,7 +555,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setFileSystem(updateStatus(fileSystem))
 
-    // Update details panel if the updated item is selected
     if (detailsItem && detailsItem.id === itemId) {
       setDetailsItem({
         ...detailsItem,
@@ -657,7 +586,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setFileSystem(updateItemPermissions(fileSystem))
 
-    // Update details panel if the updated item is selected
     if (detailsItem && detailsItem.id === itemId) {
       setDetailsItem({
         ...detailsItem,
@@ -672,7 +600,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     })
   }
 
-  // Handle keyboard shortcuts for cut, copy, paste, undo, redo
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -691,18 +618,14 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
           pasteItems()
         } else if (e.key === "z") {
           e.preventDefault()
-          // Handle undo
           const operation = undo()
           if (operation) {
-            // Implement undo logic based on operation type
             handleUndo(operation)
           }
         } else if (e.key === "y" || (e.shiftKey && e.key === "Z")) {
           e.preventDefault()
-          // Handle redo
           const operation = redo()
           if (operation) {
-            // Implement redo logic based on operation type
             handleRedo(operation)
           }
         }
@@ -711,32 +634,26 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     [selectedItems, clipboard, currentPath, undo, redo],
   )
 
-  // Implement undo/redo handlers
   const handleUndo = (operation: any) => {
-    // Implement undo logic based on operation type
     switch (operation.type) {
       case "CREATE_FOLDER":
         handleDelete([operation.folder.id])
         break
       case "DELETE":
-        // Restore deleted items
         restoreItems(operation.items, operation.path)
         break
       case "RENAME":
         handleRename(operation.item.id, operation.oldName)
         break
       case "MOVE":
-        // Move items back to source path
         const itemIds = operation.items.map((item: FileSystemItem) => item.id)
         moveItems(itemIds, operation.sourcePath)
         break
       case "COPY":
-        // Delete copied items
         const copyIds = operation.items.map((item: FileSystemItem) => item.id)
         handleDelete(copyIds)
         break
       case "UPLOAD":
-        // Delete uploaded files
         const uploadIds = operation.files.map((file: FileSystemItem) => file.id)
         handleDelete(uploadIds)
         break
@@ -744,10 +661,8 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   }
 
   const handleRedo = (operation: any) => {
-    // Implement redo logic based on operation type
     switch (operation.type) {
       case "CREATE_FOLDER":
-        // Re-create the folder
         if (operation.path.length === 0) {
           setFileSystem([...fileSystem, operation.folder])
         } else {
@@ -769,21 +684,17 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         }
         break
       case "DELETE":
-        // Delete the items again
         const deleteIds = operation.items.map((item: FileSystemItem) => item.id)
         handleDelete(deleteIds)
         break
       case "RENAME":
-        // Rename the item again
         handleRename(operation.item.id, operation.newName)
         break
       case "MOVE":
-        // Move items to target path again
         const moveIds = operation.items.map((item: FileSystemItem) => item.id)
         moveItems(moveIds, operation.targetPath)
         break
       case "COPY":
-        // Re-copy the items
         const addCopiedItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
           if (depth === path.length) {
             return [...items, ...operation.items]
@@ -801,7 +712,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         setFileSystem(addCopiedItems([...fileSystem], operation.targetPath, 0))
         break
       case "UPLOAD":
-        // Re-upload the files
         const addUploadedFiles = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
           if (depth === path.length) {
             return [...items, ...operation.files]
@@ -841,7 +751,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     setFileSystem(addItems([...fileSystem], path, 0))
   }
 
-  // Add keyboard shortcut event listener
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)
     return () => {
@@ -849,10 +758,8 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }
   }, [handleKeyDown])
 
-  // Handle file drops from OS
   const handleExternalFileDrop = useCallback(
     (files: FileList) => {
-      // Check for name conflicts
       const currentItems = getCurrentItems()
       const conflicts: ConflictItem[] = []
       const nonConflictingFiles: File[] = []
@@ -870,12 +777,10 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         }
       })
 
-      // Set conflicts for resolution
       if (conflicts.length > 0) {
         setConflicts(conflicts)
       }
 
-      // Process non-conflicting files
       if (nonConflictingFiles.length > 0) {
         processFiles(nonConflictingFiles)
       }
@@ -884,7 +789,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   )
 
   const processFiles = (files: File[]) => {
-    // Create upload progress items
     const uploadItems: UploadItem[] = files.map((file) => ({
       id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       name: file.name,
@@ -895,7 +799,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setUploads((prev) => [...prev, ...uploadItems])
 
-    // Simulate upload progress
     uploadItems.forEach((item) => {
       const interval = setInterval(() => {
         setUploads((prev) =>
@@ -914,7 +817,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       }, 300)
     })
 
-    // Create file system items
     const newFiles: FileSystemItem[] = files.map((file) => ({
       id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       name: file.name,
@@ -925,14 +827,12 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       syncStatus: "pending",
     }))
 
-    // Add to history for undo/redo
     addOperation({
       type: "UPLOAD",
       files: newFiles,
       path: currentPath,
     })
 
-    // Add the files to the current path
     const addFiles = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
       if (depth === path.length) {
         return [...items, ...newFiles]
@@ -951,7 +851,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
     setFileSystem(addFiles([...fileSystem], currentPath, 0))
 
-    // Simulate sync status changes
     newFiles.forEach((file) => {
       setTimeout(() => {
         updateSyncStatus(file.id, "syncing")
@@ -962,7 +861,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       }, 1000)
     })
 
-    // Clean up completed uploads after a delay
     setTimeout(() => {
       setUploads((prev) => prev.filter((upload) => upload.status !== "completed"))
     }, 5000)
@@ -976,36 +874,28 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
 
   const handleConflictResolution = (resolution: "replace" | "rename" | "skip", conflict: ConflictItem) => {
     if (resolution === "replace") {
-      // Delete the existing item
       handleDelete([conflict.existingItem.id])
-      // Process the file
       processFiles([conflict.file])
     } else if (resolution === "rename") {
-      // Generate a new name
       const nameParts = conflict.file.name.split(".")
       const extension = nameParts.length > 1 ? nameParts.pop() : ""
       const baseName = nameParts.join(".")
       const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`
 
-      // Create a new file with the new name
       const newFile = new File([conflict.file], newName, { type: conflict.file.type })
       processFiles([newFile])
     }
 
-    // Remove the conflict
     setConflicts((prev) => prev.filter((c) => c.file !== conflict.file))
   }
 
   const handleApplyToAll = (resolution: "replace" | "rename" | "skip") => {
     if (resolution === "replace") {
-      // Delete all existing items
       const itemIds = conflicts.map((conflict) => conflict.existingItem.id)
       handleDelete(itemIds)
-      // Process all files
       const files = conflicts.map((conflict) => conflict.file)
       processFiles(files)
     } else if (resolution === "rename") {
-      // Rename and process all files
       const files = conflicts.map((conflict) => {
         const nameParts = conflict.file.name.split(".")
         const extension = nameParts.length > 1 ? nameParts.pop() : ""
@@ -1016,7 +906,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       processFiles(files)
     }
 
-    // Clear all conflicts
     setConflicts([])
   }
 
@@ -1030,7 +919,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   }
 
   const triggerManualSync = () => {
-    // Find all items with pending sync status
     const pendingItems: FileSystemItem[] = []
 
     const findPendingItems = (items: FileSystemItem[]) => {
@@ -1056,7 +944,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
       return
     }
 
-    // Simulate syncing
     addNotification({
       title: "Sync Started",
       message: `Syncing ${pendingItems.length} item(s)`,
@@ -1083,16 +970,13 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }, 5000)
   }
 
-  // Update the FileSystem context handler for the details item
   const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {
     setDetailsItem(item);
-    // Show the mobile details panel when an item is selected on mobile
     if (item && isMobile) {
       setMobileDetailsOpen(true);
     }
   }, [isMobile]);
 
-  // Close the mobile details panel
   const handleCloseDetails = () => {
     if (isMobile) {
       setMobileDetailsOpen(false);
@@ -1102,22 +986,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     }
   };
 
-  const handleNavigateToMarketplace = () => {
-    setActiveView("marketplace")
-    setSidebarOpen(false)
-  }
-
-  const handleNavigateToFiles = () => {
-    setActiveView("files")
-    setSidebarOpen(false)
-  }
-
-  const handleNavigateToLogs = () => {
-    setActiveView("logs")
-    setSidebarOpen(false)
-  }
-
-  // Update the FileSystemProvider value to include the updated handlers
   return (
     <FileSystemProvider
       value={{
@@ -1129,7 +997,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         syncPaused,
         canGoBack,
         canGoForward,
-        setSelectedItems: handleSelectedItemsChange, // Use updated handler
+        setSelectedItems: handleSelectedItemsChange,
         setViewMode,
         navigateTo,
         goBack,
@@ -1138,117 +1006,52 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         handleDelete,
         handleRename,
         setPreviewFile,
-        setDetailsItem: handleSetDetailsItem,  // Use the updated handler
+        setDetailsItem: handleSetDetailsItem,
         moveItems,
         cutItems,
         copyItems,
         pasteItems,
         updateSyncStatus,
-        updatePermissions,
-        toggleSyncPause,
-        triggerManualSync,
-        setSyncDialogOpen,
       }}
     >
-      <div
-        ref={fileManagerRef}
-        className="flex h-screen overflow-hidden"
-        onDragOver={(e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = "copy"
-          if (!isDraggingOver && e.dataTransfer.types.includes("Files")) {
-            setIsDraggingOver(true)
-          }
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault()
-          // Only set dragging to false if we're leaving the file manager
-          if (e.currentTarget === fileManagerRef.current && !e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsDraggingOver(false)
-          }
-        }}
-        onDrop={(e) => {
-          e.preventDefault()
-          setIsDraggingOver(false)
-          if (e.dataTransfer.files.length > 0) {
-            handleExternalFileDrop(e.dataTransfer.files)
-          }
-        }}
-      >
-        {/* Responsive sidebar */}
-        <div
-          className={cn(
-            "fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-            "md:w-64 flex-shrink-0",
-          )}
-        >
-          <Sidebar
-            onNavigateToMarketplace={handleNavigateToMarketplace}
-            onNavigateToFiles={handleNavigateToFiles}
-            onNavigateToLogs={handleNavigateToLogs}
-            activeView={activeView}
-            closeSidebar={() => setSidebarOpen(false)}
-          />
-        </div>
+      <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>
+        <Toolbar />
+        <Breadcrumb />
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 overflow-auto p-4 relative">
+            <FileExplorer items={getCurrentItems()} />
 
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {activeView === "files" && (
-            <>
-              <Toolbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-              <Breadcrumb />
-              <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 overflow-auto p-4 relative">
-                  <FileExplorer items={getCurrentItems()} />
-
-                  <AnimatePresence>
-                    {isDraggingOver && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10"
-                      >
-                        <div className="bg-card border-2 border-dashed border-primary rounded-lg p-8 text-center">
-                          <div className="text-2xl font-bold mb-2">Drop files here</div>
-                          <div className="text-muted-foreground">
-                            Files will be added to {currentPath.length > 0 ? `/${currentPath.join("/")}` : "root"}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Desktop: Always show details sidebar, Mobile: Hide by default */}
-                {!isMobile && (
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 320, opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="border-l border-border overflow-hidden hidden md:block"
-                  >
-                    <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} />
-                  </motion.div>
-                )}
-              </div>
-            </>
-          )}
-
-          {activeView === "marketplace" && (
-            <>
-              {selectedMarketplaceApp ? (
-                <MarketplaceAppDetail appId={selectedMarketplaceApp} onBack={() => setSelectedMarketplaceApp(null)} />
-              ) : (
-                <Marketplace onSelectApp={(appId) => setSelectedMarketplaceApp(appId)} />
+            <AnimatePresence>
+              {isDraggingOver && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10"
+                >
+                  <div className="bg-card border-2 border-dashed border-primary rounded-lg p-8 text-center">
+                    <div className="text-2xl font-bold mb-2">Drop files here</div>
+                    <div className="text-muted-foreground">
+                      Files will be added to {currentPath.length > 0 ? `/${currentPath.join("/")}` : "root"}
+                    </div>
+                  </div>
+                </motion.div>
               )}
-            </>
+            </AnimatePresence>
+          </div>
+
+          {/* Desktop: Always show details sidebar */}
+          {!isMobile && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className="border-l border-border overflow-hidden hidden md:block"
+            >
+              <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} />
+            </motion.div>
           )}
-
-          {activeView === "logs" && <Logs />}
         </div>
-
-        {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}
 
         {/* Mobile: File details shown as a slide-in panel */}
         <AnimatePresence>
@@ -1271,24 +1074,20 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
           )}
         </AnimatePresence>
 
-        {conflicts.length > 0 && (
-          <FileConflictDialog
-            conflicts={conflicts}
-            onResolve={handleConflictResolution}
-            onApplyToAll={handleApplyToAll}
-            onCancel={() => setConflicts([])}
-          />
-        )}
+        <FileConflictDialog
+          conflicts={conflicts}
+          onResolve={handleConflictResolution}
+          onCancel={() => setConflicts([])}
+        />
 
-        {syncDialogOpen && (
-          <SyncStatusDialog
-            fileSystem={fileSystem}
-            syncPaused={syncPaused}
-            onTogglePause={toggleSyncPause}
-            onManualSync={triggerManualSync}
-            onClose={() => setSyncDialogOpen(false)}
-          />
-        )}
+        <SyncStatusDialog
+          open={syncDialogOpen}
+          onClose={() => setSyncDialogOpen(false)}
+          isPaused={syncPaused}
+          onPauseChange={setSyncPaused}
+        />
+
+        {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}
       </div>
     </FileSystemProvider>
   )
