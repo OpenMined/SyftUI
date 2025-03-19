@@ -19,6 +19,7 @@ import {
   ChevronRight,
   PauseCircle,
   PlayCircle,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,7 +28,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationBell } from "@/components/notification-bell"
 
-export function Toolbar() {
+export function Toolbar({ sidebarOpen, setSidebarOpen }) {
   const {
     viewMode,
     setViewMode,
@@ -90,6 +91,12 @@ export function Toolbar() {
   return (
     <div className="flex flex-wrap items-center justify-between px-2 sm:px-4 py-2 border-b border-border gap-2">
       <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+        {/* Mobile sidebar toggle - only visible on mobile */}
+        <div className="md:hidden">
+          <Button variant="outline" size="icon" className="bg-background" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <Menu className="h-4 w-4" />
+          </Button>
+        </div>
         {/* Sync status button - first item */}
         {renderSyncStatusButton()}
 

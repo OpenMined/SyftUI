@@ -1136,13 +1136,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
           }
         }}
       >
-        {/* Mobile sidebar toggle */}
-        <div className="md:hidden fixed top-2 left-2 z-50">
-          <Button variant="outline" size="icon" className="bg-background" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-
         {/* Responsive sidebar */}
         <div
           className={cn(
@@ -1162,13 +1155,14 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
               setSidebarOpen(false)
             }}
             activeView={activeView}
+            closeSidebar={() => setSidebarOpen(false)} // Added prop
           />
         </div>
 
         <div className="flex flex-col flex-1 overflow-hidden">
           {activeView === "files" && (
             <>
-              <Toolbar />
+              <Toolbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
               <Breadcrumb />
               <div className="flex flex-1 overflow-hidden">
                 <div className="flex-1 overflow-auto p-4 relative">

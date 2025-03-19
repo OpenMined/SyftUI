@@ -66,6 +66,15 @@ export const mockFileSystem: FileSystemItem[] = [
     syncStatus: "syncing",
     children: [
       {
+        id: "folder-9",
+        name: "user@example.com",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
+        syncStatus: "synced",
+        children: [],
+      },
+      {
         id: "file-5",
         name: "Product Photo.jpg",
         type: "file",

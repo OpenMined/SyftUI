@@ -39,9 +39,10 @@ interface SidebarProps {
   onNavigateToMarketplace: () => void
   onNavigateToFiles: () => void
   activeView: "files" | "marketplace"
+  closeSidebar: () => void // Added prop
 }
 
-export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView }: SidebarProps) {
+export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView, closeSidebar }: SidebarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connected")
@@ -151,9 +152,11 @@ export function Sidebar({ onNavigateToMarketplace, onNavigateToFiles, activeView
 
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
-      <div className="flex flex-col border-b border-border mx-4 py-4 gap-2">
+      <div className="flex justify-between items-center border-b border-border mx-4 py-4 gap-2">
         <Image src={isDarkTheme ? "./logo-dark.svg" : "./logo-light.svg"} width={180} height={54} alt="SyftBox UI" />
-        <ConnectionStatus status={connectionStatus} />
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
       <nav className="flex-1 overflow-auto p-2">
         <ul className="space-y-1 mb-4">
