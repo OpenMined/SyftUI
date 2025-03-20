@@ -15,6 +15,7 @@ import { UploadProvider, useUpload } from "@/components/contexts/upload-context"
 import { ClipboardProvider, useClipboard } from "@/components/contexts/clipboard-context"
 import { motion, AnimatePresence } from "framer-motion"
 import { FileSystemProvider, ClipboardItem } from "@/components/contexts/file-system-context"
+import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -34,6 +35,90 @@ interface FileManagerContentProps extends FileManagerProps {
   setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
   previewFile: FileSystemItem | null;
   setPreviewFile: React.Dispatch<React.SetStateAction<FileSystemItem | null>>;
+}
+
+// Create a wrapper component that will have access to all providers and be able to initialize file operations
+function FileSystemProviderContent({
+  fileSystem,
+  setFileSystem,
+  currentPath,
+  selectedItems,
+  viewMode,
+  clipboard,
+  syncPaused,
+  setSelectedItems,
+  navigateTo,
+  setPreviewFile,
+  setDetailsItem,
+  setViewMode,
+  setSyncDialogOpen,
+  children
+}: {
+  fileSystem: FileSystemItem[],
+  setFileSystem: React.Dispatch<React.SetStateAction<FileSystemItem[]>>,
+  currentPath: string[],
+  selectedItems: string[],
+  viewMode: "grid" | "list",
+  clipboard: ClipboardItem | null,
+  syncPaused: boolean,
+  setSelectedItems: (items: string[]) => void, 
+  navigateTo: (path: string[]) => void,
+  setPreviewFile: (file: FileSystemItem | null) => void,
+  setDetailsItem: (item: FileSystemItem | null) => void,
+  setViewMode: (mode: "grid" | "list") => void,
+  setSyncDialogOpen: (open: boolean) => void,
+  children: React.ReactNode
+}) {
+  // Initialize file operations service - now with all contexts available
+  const fileOperations = useFileOperations(fileSystem, setFileSystem, currentPath);
+  const { cutItems, copyItems, pasteItems } = useClipboard();
+
+  return (
+    <FileSystemProvider
+      value={{
+        fileSystem,
+        setFileSystem,
+        currentPath,
+        selectedItems,
+        viewMode,
+        clipboard,
+        syncPaused,
+        setSelectedItems,
+        setViewMode,
+        navigateTo,
+        handleCreateFolder: (name) => {
+          fileOperations.handleCreateFolder(name);
+        },
+        handleDelete: (itemIds) => {
+          fileOperations.handleDelete(itemIds, setSelectedItems, setDetailsItem);
+        },
+        handleRename: (itemId, newName) => {
+          fileOperations.handleRename(itemId, newName, setDetailsItem);
+        },
+        setPreviewFile,
+        setDetailsItem,
+        moveItems: (itemIds, targetPath) => {
+          fileOperations.moveItems(itemIds, targetPath, setDetailsItem);
+        },
+        cutItems,
+        copyItems,
+        pasteItems,
+        updateSyncStatus: (itemId, status) => {
+          // This will be handled by the sync context
+        },
+        updatePermissions: (itemId, permissions) => {
+          fileOperations.updatePermissions(itemId, permissions);
+        },
+        toggleSyncPause: () => setSyncPaused(!syncPaused),
+        triggerManualSync: () => {
+          // This would trigger a manual sync if implemented
+        },
+        setSyncDialogOpen
+      }}
+    >
+      {children}
+    </FileSystemProvider>
+  );
 }
 
 function FileManagerContent({ 
@@ -63,6 +148,50 @@ function FileManagerContent({
   
   const isMobile = useIsMobile()
   const fileManagerRef = useRef<HTMLDivElement>(null)
+  
+  // Set up the drag and drop detection for OS files
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      // Check if files are being dragged (from OS)
+      if (e.dataTransfer && e.dataTransfer.types.includes('Files')) {
+        setIsDraggingOver(true);
+      }
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      // Only set to false if we're leaving the file manager area 
+      // and not entering a child element
+      if (!e.relatedTarget || !fileManagerRef.current?.contains(e.relatedTarget as Node)) {
+        setIsDraggingOver(false);
+      }
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      setIsDraggingOver(false);
+      
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        handleExternalFileDrop(e.dataTransfer.files);
+      }
+    };
+
+    const element = fileManagerRef.current;
+    if (element) {
+      element.addEventListener('dragover', handleDragOver);
+      element.addEventListener('dragleave', handleDragLeave);
+      element.addEventListener('drop', handleDrop);
+    }
+
+    return () => {
+      if (element) {
+        element.removeEventListener('dragover', handleDragOver);
+        element.removeEventListener('dragleave', handleDragLeave);
+        element.removeEventListener('drop', handleDrop);
+      }
+    };
+  }, [fileManagerRef, handleExternalFileDrop]);
   
   // Navigation function
   const navigateTo = (path: string[]) => {
@@ -305,6 +434,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
+  const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null);
   
   useEffect(() => {
     onViewModeChange(viewMode);
@@ -314,73 +444,23 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
     <SyncProvider fileSystem={fileSystem} setFileSystem={setFileSystem}>
       <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={currentPath}>
         <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={currentPath}>
-          <FileSystemProvider
-            value={{
-              fileSystem,
-              setFileSystem,
-              currentPath,
-              selectedItems,
-              viewMode,
-              clipboard,
-              syncPaused,
-              setSelectedItems,
-              setViewMode,
-              navigateTo: (path) => {
-                setCurrentPath(path);
-                setSelectedItems([]);
-              },
-              handleCreateFolder: (name) => {
-                if (name && name.trim()) {
-                  const newFolder = {
-                    id: `folder-${Date.now()}`,
-                    name: name.trim(),
-                    type: "folder",
-                    children: [],
-                    createdAt: new Date().toISOString(),
-                    modifiedAt: new Date().toISOString(),
-                    syncStatus: "pending",
-                  };
-                  
-                  // Simple folder creation without the service
-                  setFileSystem(prev => [...prev, newFolder]);
-                }
-              },
-              handleDelete: (itemIds) => {
-                // Simple delete implementation
-                setFileSystem(prev => {
-                  const filterItems = (items) => {
-                    return items.filter(item => {
-                      const shouldKeep = !itemIds.includes(item.id);
-                      if (!shouldKeep) return false;
-                      
-                      if (item.type === "folder" && item.children) {
-                        item.children = filterItems(item.children);
-                      }
-                      return true;
-                    });
-                  };
-                  
-                  return filterItems([...prev]);
-                });
-                
-                // Clear selection after delete
-                setSelectedItems([]);
-              },
-              handleRename: () => {},
-              setPreviewFile: (file) => {
-                setPreviewFile(file);
-              },
-              setDetailsItem: () => {},
-              moveItems: () => {},
-              cutItems: (items) => {},
-              copyItems: (items) => {},
-              pasteItems: () => {},
-              updateSyncStatus: () => {},
-              updatePermissions: () => {},
-              toggleSyncPause: () => setSyncPaused(!syncPaused),
-              triggerManualSync: () => {},
-              setSyncDialogOpen
+          <FileSystemProviderContent
+            fileSystem={fileSystem}
+            setFileSystem={setFileSystem}
+            currentPath={currentPath}
+            selectedItems={selectedItems}
+            viewMode={viewMode}
+            clipboard={clipboard}
+            syncPaused={syncPaused}
+            setSelectedItems={setSelectedItems}
+            navigateTo={(path) => {
+              setCurrentPath(path);
+              setSelectedItems([]);
             }}
+            setPreviewFile={setPreviewFile}
+            setDetailsItem={setDetailsItem}
+            setViewMode={setViewMode}
+            setSyncDialogOpen={setSyncDialogOpen}
           >
             <FileManagerContent 
               fileSystem={fileSystem}
@@ -396,7 +476,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
               previewFile={previewFile}
               setPreviewFile={setPreviewFile}
             />
-          </FileSystemProvider>
+          </FileSystemProviderContent>
         </ClipboardProvider>
       </UploadProvider>
     </SyncProvider>

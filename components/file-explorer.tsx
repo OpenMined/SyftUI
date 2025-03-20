@@ -25,25 +25,44 @@ import { useIsMobile } from "@/hooks/use-mobile"
 
 interface FileExplorerProps {
   items: FileSystemItem[]
+  selectedItems?: string[]
+  onSelectedItemsChange?: (items: string[]) => void
+  onNavigate?: (path: string[]) => void
+  setPreviewFile?: (file: FileSystemItem | null) => void
+  currentPath?: string[]
+  viewMode?: "grid" | "list"
 }
 
-export function FileExplorer({ items }: FileExplorerProps) {
+export function FileExplorer({ 
+  items, 
+  selectedItems: externalSelectedItems, 
+  onSelectedItemsChange,
+  onNavigate,
+  setPreviewFile: externalSetPreviewFile,
+  currentPath: externalCurrentPath,
+  viewMode: externalViewMode
+}: FileExplorerProps) {
+  const fileSystemContext = useFileSystem()
+  
+  // Use either provided props or context values
+  const viewMode = externalViewMode || fileSystemContext.viewMode
+  const currentPath = externalCurrentPath || fileSystemContext.currentPath
+  const selectedItems = externalSelectedItems || fileSystemContext.selectedItems
+  const setSelectedItems = onSelectedItemsChange || fileSystemContext.setSelectedItems
+  const navigateTo = onNavigate || fileSystemContext.navigateTo
+  const setPreviewFile = externalSetPreviewFile || fileSystemContext.setPreviewFile
+  
+  // Always use these from context
   const {
-    viewMode,
-    currentPath,
-    selectedItems,
-    setSelectedItems,
-    navigateTo,
     handleDelete,
     handleRename,
-    setPreviewFile,
     setDetailsItem,
     moveItems,
     cutItems,
     copyItems,
     pasteItems,
     clipboard,
-  } = useFileSystem()
+  } = fileSystemContext
 
   const [renameItem, setRenameItem] = useState<FileSystemItem | null>(null)
   const [newName, setNewName] = useState("")
@@ -186,7 +205,7 @@ export function FileExplorer({ items }: FileExplorerProps) {
   if (items.length === 0) {
     return (
       <div
-        className="flex flex-col items-center justify-center h-64 text-muted-foreground"
+        className="flex flex-col items-center justify-center h-64 text-muted-foreground w-full"
         onDragOver={(e) => handleDragOver(e)}
         onDrop={(e) => handleDrop(e)}
         onClick={handleBackgroundClick}
@@ -200,14 +219,18 @@ export function FileExplorer({ items }: FileExplorerProps) {
   return (
     <>
       <div
-        className={cn(
-          "grid gap-4 min-h-[300px]",
-          viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6" : "grid-cols-1",
-        )}
+        className="w-full h-full"
+        onClick={handleBackgroundClick}
         onDragOver={(e) => handleDragOver(e)}
         onDrop={(e) => handleDrop(e)}
-        onClick={handleBackgroundClick}
       >
+        <div
+          className={cn(
+            "grid gap-4 min-h-[300px]",
+            viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6" : "grid-cols-1",
+          )}
+          onClick={handleBackgroundClick}
+        >
         <AnimatePresence>
           {items.map((item) => (
             <ContextMenu key={item.id}>
@@ -302,6 +325,7 @@ export function FileExplorer({ items }: FileExplorerProps) {
             </ContextMenu>
           ))}
         </AnimatePresence>
+        </div>
       </div>
 
       <Dialog open={!!renameItem} onOpenChange={(open) => !open && setRenameItem(null)}>
