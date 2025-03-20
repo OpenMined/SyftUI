@@ -3,7 +3,6 @@
 import "./globals.css"
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
-import { HistoryProvider } from "@/components/history-context"
 import { NotificationProvider } from "@/components/notification-context"
 import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
@@ -20,8 +19,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
-          <HistoryProvider>
-            <NotificationProvider>
+          <NotificationProvider>
               <div className="flex h-screen">
                 <div className={`fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
                   } md:w-64 flex-shrink-0`}>
@@ -32,8 +30,7 @@ export default function RootLayout({
                 </div>
               </div>
             </NotificationProvider>
-          </HistoryProvider>
-        </ThemeProvider>
+          </ThemeProvider>
       </body>
     </html>
   )

@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useFileSystem } from "@/components/file-system-context"
-import { useHistory } from "@/components/history-context"
+import { useClipboard } from "@/components/contexts/clipboard-context"
+import { useSync } from "@/components/contexts/sync-context"
 import {
   FolderPlus,
   Upload,
@@ -13,10 +14,6 @@ import {
   Scissors,
   Copy,
   Clipboard,
-  Undo2,
-  Redo2,
-  ChevronLeft,
-  ChevronRight,
   PauseCircle,
   PlayCircle,
   Menu,
@@ -29,26 +26,25 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationBell } from "@/components/notification-bell"
 
 export function Toolbar({ sidebarOpen, setSidebarOpen }) {
+  // Updated to use the useClipboard hook directly
+  const clipboardContext = useClipboard();
   const {
     viewMode,
     setViewMode,
     selectedItems,
     handleCreateFolder,
     handleDelete,
-    cutItems,
-    copyItems,
-    pasteItems,
-    clipboard,
-    syncPaused,
-    setSyncDialogOpen,
-    canGoBack,
-    canGoForward,
-    goBack,
-    goForward,
-    toggleSyncPause,
   } = useFileSystem()
-
-  const { canUndo, canRedo, undo, redo } = useHistory()
+  
+  const { syncPaused, setSyncDialogOpen } = useSync()
+  
+  const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
+  
+  // No more history management - these are all removed
+  const canUndo = false; 
+  const canRedo = false;
+  const undo = () => {};
+  const redo = () => {};
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
@@ -61,13 +57,7 @@ export function Toolbar({ sidebarOpen, setSidebarOpen }) {
     }
   }
 
-  const handleUndo = () => {
-    undo()
-  }
-
-  const handleRedo = () => {
-    redo()
-  }
+  // No more undo/redo handlers needed
 
   // Simplified sync status button
   const renderSyncStatusButton = () => {
@@ -99,33 +89,6 @@ export function Toolbar({ sidebarOpen, setSidebarOpen }) {
         </div>
         {/* Sync status button - first item */}
         {renderSyncStatusButton()}
-
-        {/* Navigation buttons */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={goBack} disabled={!canGoBack}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Back</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={goForward} disabled={!canGoForward}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Forward</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
 
         <TooltipProvider>
           <Tooltip>
@@ -208,28 +171,6 @@ export function Toolbar({ sidebarOpen, setSidebarOpen }) {
               </TooltipContent>
             </Tooltip>
           )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleUndo} disabled={!canUndo}>
-                <Undo2 className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Undo (Ctrl+Z)</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRedo} disabled={!canRedo}>
-                <Redo2 className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Redo (Ctrl+Y)</p>
-            </TooltipContent>
-          </Tooltip>
         </TooltipProvider>
       </div>
       <div className="flex items-center gap-1 sm:gap-2">

@@ -17,13 +17,9 @@ interface FileSystemContextType {
   viewMode: "grid" | "list"
   clipboard: ClipboardItem | null
   syncPaused: boolean
-  canGoBack: boolean
-  canGoForward: boolean
   setSelectedItems: (items: string[]) => void
   setViewMode: (mode: "grid" | "list") => void
   navigateTo: (path: string[]) => void
-  goBack: () => void
-  goForward: () => void
   handleCreateFolder: (name: string) => void
   handleDelete: (itemIds: string[]) => void
   handleRename: (itemId: string, newName: string) => void

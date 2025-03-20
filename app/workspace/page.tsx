@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { mockFileSystem } from "@/lib/mock-data"
-import { HistoryProvider } from "@/components/history-context"
 import { NotificationProvider } from "@/components/notification-context"
 import { FileManager } from "@/components/file-manager"
 
@@ -19,8 +18,7 @@ export default function FilesPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <HistoryProvider>
-                <NotificationProvider>
+            <NotificationProvider>
                     <FileManager
                         fileSystem={fileSystem}
                         setFileSystem={setFileSystem}
@@ -31,7 +29,6 @@ export default function FilesPage() {
                         }}
                     />
                 </NotificationProvider>
-            </HistoryProvider>
         </div>
     )
 }
