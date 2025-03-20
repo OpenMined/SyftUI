@@ -18,7 +18,7 @@ import {
   User,
   X,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getAssetPath } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,7 +189,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
       <div className="flex justify-between items-center mx-4 pt-4 gap-2">
-        <Image src={isDarkTheme ? "/logo-dark.svg" : "/logo-light.svg"} width={180} height={54} alt="SyftBox UI" />
+        <Image src={getAssetPath(isDarkTheme ? "/logo-dark.svg" : "/logo-light.svg")} width={180} height={54} alt="SyftBox UI" />
         <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
           <X className="h-4 w-4" />
         </Button>

@@ -8,6 +8,9 @@ import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { usePathname, useRouter } from "next/navigation"
 
+// Import metadata values
+import { metadata } from './metadata'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -17,6 +20,11 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Static title and meta tags for export */}
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+      </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NotificationProvider>

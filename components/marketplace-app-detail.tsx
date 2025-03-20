@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import { ChevronLeft, Star, Download, ExternalLink, Heart, Share2, Code, Shield, MessageSquare } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -21,56 +24,55 @@ export function MarketplaceAppDetail({ appId, onBack }: MarketplaceAppDetailProp
     id: appId,
     name: "Inbox",
     description: "Send, receive and broadcast API requests between datasites",
-    longDescription: `
-      # Inbox API
+    longDescription: `# Inbox API
 
-      The Inbox API is a component of the SyftBox ecosystem designed to send and receive API requests between datasites. This app is compatible with MacOS and Linux.
+The Inbox API is a component of the SyftBox ecosystem designed to send and receive API requests between datasites. This app is compatible with MacOS and Linux.
 
-      ## Features
+## Features
 
-      * Receive and process API requests from others.
-      * Send API requests to any datasite.
-      * Broadcast API requests to all datasites.
-      * Send email and desktop notifications for new API requests.
+* Receive and process API requests from others.
+* Send API requests to any datasite.
+* Broadcast API requests to all datasites.
+* Send email and desktop notifications for new API requests.
 
-      ## Usage
+## Usage
 
-      ### What is an API?
+### What is an API?
 
-      An API is any folder containing a \`run.sh\` entry script.
+An API is any folder containing a \`run.sh\` entry script.
 
-      ### Sending API Requests
+### Sending API Requests
 
-      You can share your API with datasites in two ways:
+You can share your API with datasites in two ways:
 
-      1. **Send to a Single Datasite**
-        Copy your API folder into the target datasite's \`inbox/\` directory.
+1. **Send to a Single Datasite**  
+   Copy your API folder into the target datasite's \`inbox/\` directory.
 
-      2. **Broadcast to All Datasites**
-        Place your API folder in the \`/SyftBox/apis/broadcast/\` directory.
-        The system will:
-        * Validate your API.
-        * Send it to all datasites with the Inbox API installed.
+2. **Broadcast to All Datasites**  
+   Place your API folder in the \`/SyftBox/apis/broadcast/\` directory.
+   The system will:
+   * Validate your API.
+   * Send it to all datasites with the Inbox API installed.
 
-      After an API is sent, datasite owners will receive notifications (desktop and email). They can then review the code of your API request and choose to **approve** or **reject** it. Approved requests execute automatically if the recipient's SyftBox client is active.
+After an API is sent, datasite owners will receive notifications (desktop and email). They can then review the code of your API request and choose to **approve** or **reject** it. Approved requests execute automatically if the recipient's SyftBox client is active.
 
-      ### Managing Incoming API Requests
+### Managing Incoming API Requests
 
-      Incoming API requests appear in your datasite's \`inbox/\` folder. Here's how to handle them:
+Incoming API requests appear in your datasite's \`inbox/\` folder. Here's how to handle them:
 
-  1. ** Folder Structure **
-    The \`inbox/\` folder contains two symlinked subfolders:
-      * \`approved\`: Links to \`/SyftBox/apis/\`, where approved APIs start executing automatically.
-      * \`rejected\`: Serves as a temporary bin. Rejected APIs remain here for 7 days before being deleted.
+1. **Folder Structure**
+   The \`inbox/\` folder contains two symlinked subfolders:
+   * \`approved\`: Links to \`/SyftBox/apis/\`, where approved APIs start executing automatically.
+   * \`rejected\`: Serves as a temporary bin. Rejected APIs remain here for 7 days before being deleted.
 
-    2. ** Review Process **
-      * Inspect the code of new API requests in the \`inbox/\` folder.
-      * After reviewing, move the API folder to either \`approved\` or \`rejected\`.
+2. **Review Process**
+   * Inspect the code of new API requests in the \`inbox/\` folder.
+   * After reviewing, move the API folder to either \`approved\` or \`rejected\`.
 
-    ### Uninstalling the Inbox API
+### Uninstalling the Inbox API
 
-    The Inbox API is an API in itself and can be uninstalled if needed. To uninstall, simply delete the \`/SyftBox/apis/inbox/\` directory along with its contents.
-    `,
+The Inbox API is an API in itself and can be uninstalled if needed. To uninstall, simply delete the \`/SyftBox/apis/inbox/\` directory along with its contents.
+`,
     author: "OpenMined",
     publisher: "OpenMined Organization",
     version: "0.1.2",
@@ -202,19 +204,37 @@ export function MarketplaceAppDetail({ appId, onBack }: MarketplaceAppDetailProp
               </TabsList>
 
               <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6">
+                  <div className="col-span-2">
                     <h3 className="text-lg font-medium mb-2">Description</h3>
-                    <div className="prose prose-sm max-w-none">
-                      {app.longDescription.split("\n").map((paragraph, index) => (
-                        <p key={index} className="mb-2">
-                          {paragraph}
-                        </p>
-                      ))}
+                    <div className="prose prose-sm prose-slate max-w-none dark:prose-invert">
+                      <ReactMarkdown
+                        components={{
+                          code({ node, inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '')
+                            return !inline && match ? (
+                              <SyntaxHighlighter
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                {...props}
+                              >
+                                {String(children).replace(/\n$/, '')}
+                              </SyntaxHighlighter>
+                            ) : (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            )
+                          }
+                        }}
+                      >
+                        {app.longDescription}
+                      </ReactMarkdown>
                     </div>
                   </div>
 
-                  <div>
+                  <div className="lg:w-80 lg:border-l lg:pl-6">
                     <h3 className="text-lg font-medium mb-2">Details</h3>
                     <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                       <dt className="text-muted-foreground">Version</dt>
@@ -239,7 +259,7 @@ export function MarketplaceAppDetail({ appId, onBack }: MarketplaceAppDetailProp
                       </dd>
 
                       <dt className="text-muted-foreground">Links</dt>
-                      <dd className="flex gap-2">
+                      <dd className="flex flex-wrap gap-2">
                         <a
                           href={app.website}
                           target="_blank"
