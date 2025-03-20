@@ -7,7 +7,7 @@ import { useFileSystem } from "@/components/contexts/file-system-context"
 import type { FileSystemItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
-import { ShareDialog } from "@/components/share-dialog"
+import { PermissionsDialog } from "@/components/permissions-dialog"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -39,9 +39,9 @@ interface BackgroundContextMenuContentProps {
   syncPaused?: boolean
 }
 
-function BackgroundContextMenuContent({ 
-  currentPath, 
-  sortConfig, 
+function BackgroundContextMenuContent({
+  currentPath,
+  sortConfig,
   setSortConfig,
   setViewMode,
   viewMode,
@@ -69,11 +69,11 @@ function BackgroundContextMenuContent({
   return (
     <>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => {}} className="text-muted-foreground">
+        <ContextMenuItem onClick={() => { }} className="text-muted-foreground">
           {currentDirName}
         </ContextMenuItem>
         <ContextMenuSeparator />
-        
+
         {/* New menu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>New</ContextMenuSubTrigger>
@@ -82,24 +82,24 @@ function BackgroundContextMenuContent({
             <ContextMenuItem>File</ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        
+
         <ContextMenuItem>Upload File</ContextMenuItem>
         <ContextMenuItem>Download as ZIP</ContextMenuItem>
         <ContextMenuSeparator />
-        
+
         <ContextMenuItem>Activity</ContextMenuItem>
-        <ContextMenuItem>Share & Permissions</ContextMenuItem>
+        <ContextMenuItem>Permissions</ContextMenuItem>
         <ContextMenuItem>Refresh</ContextMenuItem>
         <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
         </ContextMenuItem>
         <ContextMenuSeparator />
-        
+
         {/* View mode submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>View</ContextMenuSubTrigger>
           <ContextMenuSubContent>
-            <ContextMenuRadioGroup 
+            <ContextMenuRadioGroup
               value={viewMode}
               onValueChange={(value) => setViewMode && setViewMode(value as "grid" | "list")}
             >
@@ -108,14 +108,14 @@ function BackgroundContextMenuContent({
             </ContextMenuRadioGroup>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        
+
         {/* Sort by submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>Sort by</ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
-            <ContextMenuRadioGroup 
+            <ContextMenuRadioGroup
               value={sortConfig.sortBy}
-              onValueChange={(value) => 
+              onValueChange={(value) =>
                 setSortConfig({ ...sortConfig, sortBy: value as "name" | "date" | "size" | "type" })
               }
             >
@@ -125,9 +125,9 @@ function BackgroundContextMenuContent({
               <ContextMenuRadioItem value="type">Type</ContextMenuRadioItem>
             </ContextMenuRadioGroup>
             <ContextMenuSeparator />
-            <ContextMenuRadioGroup 
+            <ContextMenuRadioGroup
               value={sortConfig.direction}
-              onValueChange={(value) => 
+              onValueChange={(value) =>
                 setSortConfig({ ...sortConfig, direction: value as "asc" | "desc" })
               }
             >
@@ -137,7 +137,7 @@ function BackgroundContextMenuContent({
           </ContextMenuSubContent>
         </ContextMenuSub>
       </ContextMenuContent>
-      
+
       {/* New folder dialog */}
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
         <DialogContent>
@@ -175,9 +175,9 @@ interface FileExplorerProps {
   getCurrentDirectoryInfo?: () => FileSystemItem | null
 }
 
-export function FileExplorer({ 
-  items, 
-  selectedItems: externalSelectedItems, 
+export function FileExplorer({
+  items,
+  selectedItems: externalSelectedItems,
   onSelectedItemsChange,
   onNavigate,
   setPreviewFile: externalSetPreviewFile,
@@ -186,7 +186,7 @@ export function FileExplorer({
   getCurrentDirectoryInfo
 }: FileExplorerProps) {
   const fileSystemContext = useFileSystem()
-  
+
   // Use either provided props or context values
   const viewMode = externalViewMode || fileSystemContext.viewMode
   const currentPath = externalCurrentPath || fileSystemContext.currentPath
@@ -195,7 +195,7 @@ export function FileExplorer({
   const navigateTo = onNavigate || fileSystemContext.navigateTo
   const setPreviewFile = externalSetPreviewFile || fileSystemContext.setPreviewFile
   const sortConfig = fileSystemContext.sortConfig || { sortBy: "name", direction: "asc" }
-  
+
   // Always use these from context
   const {
     handleDelete,
@@ -360,7 +360,7 @@ export function FileExplorer({
     // Always show folders before files regardless of sort option
     if (a.type === "folder" && b.type === "file") return -1;
     if (a.type === "file" && b.type === "folder") return 1;
-    
+
     // If both are the same type (folder or file), then sort by the selected criteria
     let compareResult = 0;
 
@@ -472,30 +472,30 @@ export function FileExplorer({
                         onDrop={(e) => handleDrop(e, item.id)}
                       >
                         <div className={cn("flex", viewMode === "grid" ? "flex-col items-center gap-2 w-full" : "flex-row items-center w-full")}>
-                            <div className={cn("relative", viewMode === "grid" ? "h-16 w-16" : "h-10 w-10 flex-shrink-0")}>
-                              <FileIcon
-                                type={item.type}
-                                extension={item.type === "file" ? item.name.split(".").pop() : undefined}
-                              />
-                              {item.syncStatus && (
-                                <div className="absolute -bottom-1 -right-1">
-                                  <SyncStatus status={item.syncStatus} />
-                                </div>
-                              )}
-                            </div>
-                            <div className={cn(
-                              "truncate", 
-                              viewMode === "grid" ? "w-full text-center mt-2" : "flex-1 text-left ml-2"
-                            )}>
-                              <p className="truncate text-sm">{item.name}</p>
-                              {viewMode === "list" && (
-                                <div className="flex items-center justify-between">
-                                  <p className="text-xs text-muted-foreground">
-                                    {new Date(item.modifiedAt).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                          <div className={cn("relative", viewMode === "grid" ? "h-16 w-16" : "h-10 w-10 flex-shrink-0")}>
+                            <FileIcon
+                              type={item.type}
+                              extension={item.type === "file" ? item.name.split(".").pop() : undefined}
+                            />
+                            {item.syncStatus && (
+                              <div className="absolute -bottom-1 -right-1">
+                                <SyncStatus status={item.syncStatus} />
+                              </div>
+                            )}
+                          </div>
+                          <div className={cn(
+                            "truncate",
+                            viewMode === "grid" ? "w-full text-center mt-2" : "flex-1 text-left ml-2"
+                          )}>
+                            <p className="truncate text-sm">{item.name}</p>
+                            {viewMode === "list" && (
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(item.modifiedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                           {viewMode === "list" && item.syncStatus && (
                             <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 flex-shrink-0" />
                           )}
@@ -527,7 +527,7 @@ export function FileExplorer({
                       )}
                       <ContextMenuSeparator />
                       <ContextMenuItem onClick={() => openRenameDialog(item)}>Rename</ContextMenuItem>
-                      <ContextMenuItem onClick={() => openShareDialog(item)}>Share & Permissions</ContextMenuItem>
+                      <ContextMenuItem onClick={() => openShareDialog(item)}>Permissions</ContextMenuItem>
                       <ContextMenuSeparator />
                       <ContextMenuItem
                         onClick={() => handleDelete([item.id])}
@@ -577,7 +577,7 @@ export function FileExplorer({
         </DialogContent>
       </Dialog>
 
-      {shareItem && <ShareDialog item={shareItem} onClose={() => setShareItem(null)} />}
+      {shareItem && <PermissionsDialog item={shareItem} onClose={() => setShareItem(null)} />}
     </>
   )
 }

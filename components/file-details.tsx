@@ -5,7 +5,7 @@ import { X, Share2, Download, Trash2, Edit, Clock, Lock, Info } from "lucide-rea
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SyncStatus } from "@/components/sync-status"
-import { ShareDialog } from "@/components/share-dialog"
+import { PermissionsDialog } from "@/components/permissions-dialog"
 import { useFileSystem } from "@/components/contexts/file-system-context"
 import { motion } from "framer-motion"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -18,7 +18,7 @@ interface FileDetailsProps {
 }
 
 export function FileDetails({ item, onClose }: FileDetailsProps) {
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
   const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
@@ -245,7 +245,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
                 )}
               </div>
 
-              <Button variant="outline" size="sm" className="w-full" onClick={() => setIsShareDialogOpen(true)}>
+              <Button variant="outline" size="sm" className="w-full" onClick={() => setIsPermissionsDialogOpen(true)}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Manage Permissions
               </Button>
@@ -279,7 +279,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
         </div>
       </div>
 
-      {isShareDialogOpen && <ShareDialog item={item} onClose={() => setIsShareDialogOpen(false)} />}
+      {isPermissionsDialogOpen && <PermissionsDialog item={item} onClose={() => setIsPermissionsDialogOpen(false)} />}
     </div>
   )
 }

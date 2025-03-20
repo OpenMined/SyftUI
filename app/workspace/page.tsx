@@ -17,18 +17,18 @@ export default function FilesPage() {
     })
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background flex">
             <NotificationProvider>
-                    <FileManager
-                        fileSystem={fileSystem}
-                        setFileSystem={setFileSystem}
-                        initialViewMode={viewMode}
-                        onViewModeChange={(mode) => {
-                            setViewMode(mode)
-                            localStorage.setItem("viewMode", mode)
-                        }}
-                    />
-                </NotificationProvider>
+                <FileManager
+                    fileSystem={fileSystem}
+                    setFileSystem={setFileSystem}
+                    initialViewMode={viewMode}
+                    onViewModeChange={(mode) => {
+                        setViewMode(mode)
+                        localStorage.setItem("viewMode", mode)
+                    }}
+                />
+            </NotificationProvider>
         </div>
     )
 }

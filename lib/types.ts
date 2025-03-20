@@ -1,5 +1,5 @@
 export type SyncStatus = "synced" | "syncing" | "pending" | "rejected" | "error"
-export type PermissionType = "view" | "edit" | "comment" | "share" | "owner"
+export type PermissionType = "read" | "write" | "admin"
 
 export interface Permission {
   id: string
