@@ -11,6 +11,8 @@ import {
   ScrollText,
   Gauge,
   Star,
+  ChevronDown,
+  ChevronRight,
   LogOut,
   Settings,
   User,
@@ -50,17 +52,13 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const userEmail = "user@example.com"
 
   const getActiveItem = (pathname: string) => {
-    if (pathname.startsWith("/marketplace")) return "Marketplace"
+    if (pathname.startsWith("/diagnostic")) return "Diagnostic"
     if (pathname.startsWith("/logs")) return "Logs"
-    if (pathname.startsWith("/workspace")) {
-      const segments = pathname.split("/")
-      if (segments.length >= 3) {
-        if (segments[2] === "datasites") {
-          return segments[3] === userEmail ? "My datasite" : "Datasites"
-        }
-      }
-      return "Workspace"
-    }
+    if (pathname.startsWith("/marketplace")) return "Marketplace"
+    if (pathname.startsWith("/apps")) return "Apps"
+    if (pathname.startsWith(`/workspace/?path=/datasites/${userEmail}`)) return "My datasite"
+    if (pathname.startsWith("/workspace/?path=/datasites")) return "Datasites"
+    if (pathname.startsWith("/workspace")) return "Workspace"
     return "Dashboard"
   }
 
@@ -79,14 +77,19 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   }
 
   const mainNavItems = [
-    { icon: LayoutDashboard, label: "Dashboard", action: () => setActiveItem("Dashboard") },
+    {
+      icon: LayoutDashboard, label: "Dashboard", action: () => {
+        setActiveItem("Dashboard")
+        router.push("/")
+      }
+    },
     {
       icon: Briefcase,
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
         // navigateTo([])
-        router.push("/workspace")
+        router.push("/workspace/")
       },
     },
     {
@@ -95,7 +98,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("Datasites")
         // navigateTo(["datasites"])
-        router.push("/workspace")
+        router.push("/workspace/?path=/datasites/")
       },
     },
     {
@@ -104,16 +107,21 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("My datasite")
         // navigateTo(["datasites", userEmail])
-        router.push("/workspace")
+        router.push(`/workspace/?path=/datasites/${userEmail}/`)
       }
     },
-    { icon: AppWindow, label: "Apps", action: () => setActiveItem("Apps") },
+    {
+      icon: AppWindow, label: "Apps", action: () => {
+        setActiveItem("Apps")
+        router.push("/apps/")
+      }
+    },
     {
       icon: ShoppingBag,
       label: "Marketplace",
       action: () => {
         setActiveItem("Marketplace")
-        router.push("/marketplace")
+        router.push("/marketplace/")
       },
     },
     {
@@ -121,10 +129,15 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Logs",
       action: () => {
         setActiveItem("Logs")
-        router.push("/logs")
+        router.push("/logs/")
       }
     },
-    { icon: Gauge, label: "Diagnostic", action: () => setActiveItem("Diagnostic") },
+    {
+      icon: Gauge, label: "Diagnostic", action: () => {
+        setActiveItem("Diagnostic")
+        router.push("/diagnostic/")
+      }
+    },
   ]
 
   const handleDrop = (e: React.DragEvent) => {
@@ -158,7 +171,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   }
 
   const removeFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+    e?.stopPropagation()
     setFavorites((prev) => prev.filter((fav) => fav.id !== id))
   }
 
@@ -181,7 +194,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <div className="flex justify-between items-center mx-4 py-4 border-b border-border">
+      <div className="flex justify-between items-center mx-4 pt-2 pb-4 border-b border-border">
         <ConnectionStatus status={connectionStatus} />
       </div>
       <nav className="flex-1 overflow-auto p-2">
@@ -190,6 +203,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             <li key={index}>
               <Button
                 variant="ghost"
+                size="small"
                 onClick={item.action}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2 justify-start font-normal",
@@ -203,20 +217,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           ))}
         </ul>
 
-        <div className="space-y-4">
-          <Collapsible
-            open={openSections.favorites}
-            onOpenChange={() => toggleSection("favorites")}
-            className="space-y-2"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full flex items-center gap-2 px-3 py-2 justify-start font-normal"
-              >
-                <Star className="h-4 w-4 mr-2" />
-                <span>Favorites</span>
-              </Button>
+        <div className="mb-4">
+          <Collapsible open={openSections.favorites} onOpenChange={() => toggleSection("favorites")}>
+            <CollapsibleTrigger className="flex items-center w-full px-3 py-2 text-sm font-medium">
+              {openSections.favorites ? (
+                <ChevronDown className="h-4 w-4 mr-1" />
+              ) : (
+                <ChevronRight className="h-4 w-4 mr-1" />
+              )}
+              <Star className="h-4 w-4 mr-2" />
+              <span>Favorites</span>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="pl-4 pr-2 py-2 space-y-1" onDrop={handleDrop} onDragOver={handleDragOver}>
@@ -225,27 +235,24 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                 ) : (
                   favorites.map((fav) => (
                     <div key={fav.id} className="flex items-center justify-between group">
-                      <div className="flex-1 flex gap-2">
-                        <Button
-                          variant="ghost"
-                          className="flex-1 flex items-center gap-2 justify-start font-normal"
-                          onClick={() => {
-                            // navigateTo(fav.path)
-                            router.push("/workspace")
-                          }}
-                        >
-                          <FolderHeart className="h-4 w-4" />
-                          <span className="truncate">{fav.name}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          onClick={(e) => removeFavorite(fav.id, e)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          navigateTo(fav.path)
+                          onNavigateToFiles()
+                        }}
+                        className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <FolderHeart className="h-4 w-4" />
+                        <span className="truncate">{fav.name}</span>
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeFavorite(fav.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   ))
                 )}
@@ -256,8 +263,8 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       </nav>
       <div className="p-4 border-t border-border">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full flex items-center gap-3 px-2">
+          <DropdownMenuTrigger className="w-full">
+            <div className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground rounded-md p-2 transition-colors">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                 U
               </div>
@@ -265,7 +272,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                 <p className="text-sm font-medium">User Name</p>
                 <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
-            </Button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem>

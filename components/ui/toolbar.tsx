@@ -23,13 +23,13 @@ interface ToolbarProps {
     searchPlaceholder?: string
 }
 
-export function Toolbar({ 
-    title, 
-    icon, 
-    children, 
-    className, 
-    onToggleSidebar, 
-    leftSection, 
+export function Toolbar({
+    title,
+    icon,
+    children,
+    className,
+    onToggleSidebar,
+    leftSection,
     rightSection,
     sidebarOpen,
     setSidebarOpen,
@@ -47,16 +47,16 @@ export function Toolbar({
     };
 
     return (
-        <div className={cn("flex items-center justify-between p-2 sm:p-4 border-b border-border gap-2", className)}>
+        <div className={cn("flex items-center justify-between p-2 sm:px-4 sm:py-2 border-b border-border gap-2", className)}>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                 {/* Mobile sidebar toggle - only visible on mobile */}
                 <Button variant="ghost" size="icon" className="md:hidden" onClick={handleSidebarToggle}>
                     <Menu className="h-5 w-5" />
                 </Button>
-                
+
                 {icon && <span>{icon}</span>}
                 {title && <h1 className="text-xl font-medium">{title}</h1>}
-                
+
                 {/* Custom left section */}
                 {leftSection}
             </div>
@@ -65,21 +65,21 @@ export function Toolbar({
                 {/* Search input if requested */}
                 {searchInput && (
                     <div className="relative hidden sm:block">
-                        <Input 
-                            type="search" 
-                            placeholder={searchPlaceholder} 
-                            className="w-40 md:w-64" 
+                        <Input
+                            type="search"
+                            placeholder={searchPlaceholder}
+                            className="w-40 md:w-64"
                             onChange={(e) => onSearch && onSearch(e.target.value)}
                         />
                     </div>
                 )}
-                
+
                 {/* Main toolbar content */}
                 {children}
-                
+
                 {/* Custom right section */}
                 {rightSection}
-                
+
                 {/* Standard elements */}
                 <NotificationBell />
                 <ThemeToggle />

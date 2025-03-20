@@ -166,24 +166,27 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <Toolbar>
-        <div className="flex items-center gap-2">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search apps..."
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <Toolbar
+        leftSection={
+          <div className="flex items-center gap-2">
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search apps..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon" className="hidden sm:flex">
+              <Filter className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="hidden sm:flex">
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="outline" size="icon" className="hidden sm:flex">
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="hidden sm:flex">
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
-        </div>
+        }
+      >
         <Button onClick={() => setIsPublishDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">Publish App</span>
@@ -194,9 +197,10 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
         <div className="px-4 pt-2 border-b overflow-x-auto">
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="installed">Installed</TabsTrigger>
+            {/* <TabsTrigger value="installed">Installed</TabsTrigger> */}
             <TabsTrigger value="recommended">Recommended</TabsTrigger>
             <TabsTrigger value="popular">Popular</TabsTrigger>
+            <TabsTrigger value="recent">Recent</TabsTrigger>
           </TabsList>
         </div>
 
@@ -273,11 +277,11 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="installed" className="flex-1 p-0">
+        {/* <TabsContent value="installed" className="flex-1 p-0">
           <div className="flex items-center justify-center h-40 text-muted-foreground">
             You haven't installed any apps yet
           </div>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="recommended" className="flex-1 p-0">
           <div className="flex items-center justify-center h-40 text-muted-foreground">
@@ -288,6 +292,12 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
         <TabsContent value="popular" className="flex-1 p-0">
           <div className="flex items-center justify-center h-40 text-muted-foreground">
             Loading popular apps...
+          </div>
+        </TabsContent>
+
+        <TabsContent value="recent" className="flex-1 p-0">
+          <div className="flex items-center justify-center h-40 text-muted-foreground">
+            Loading recently added and updated apps...
           </div>
         </TabsContent>
       </Tabs>
@@ -335,8 +345,7 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
               <div className="text-3xl mb-4">🎉</div>
               <h3 className="text-lg font-medium mb-2">Submission Received!</h3>
               <p className="text-sm text-muted-foreground">
-                Thank you for your submission. Our team will review your app and get back to you within 2-3
-                business days.
+                Thank you for your submission. Our team will review your app and get back to you soon.
               </p>
             </div>
           )}
