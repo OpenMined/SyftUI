@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { FileExplorer } from "@/components/file-explorer"
 import { Breadcrumb } from "@/components/breadcrumb"
-import { Toolbar } from "@/components/toolbar"
+import { FileToolbar } from "@/components/file-toolbar"
 import { FilePreview } from "@/components/file-preview"
 import { FileDetails } from "@/components/file-details"
 import { useNotifications } from "@/components/notification-context"
@@ -14,7 +14,7 @@ import { SyncProvider, useSync } from "@/components/contexts/sync-context"
 import { UploadProvider, useUpload } from "@/components/contexts/upload-context"
 import { ClipboardProvider, useClipboard } from "@/components/contexts/clipboard-context"
 import { motion, AnimatePresence } from "framer-motion"
-import { FileSystemProvider } from "@/components/file-system-context"
+import { FileSystemProvider, ClipboardItem } from "@/components/contexts/file-system-context"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -212,7 +212,7 @@ function FileManagerContent({
   
   return (
     <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>
-      <Toolbar sidebarOpen={false} setSidebarOpen={() => {}} />
+      <FileToolbar sidebarOpen={false} setSidebarOpen={() => {}} />
       <Breadcrumb currentPath={currentPath} navigateTo={navigateTo} />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-auto p-4 relative">
@@ -303,7 +303,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
   const [syncPaused, setSyncPaused] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const [clipboard, setClipboard] = useState<any>(null);
+  const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
   
   useEffect(() => {

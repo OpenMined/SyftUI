@@ -1,10 +1,13 @@
 "use client"
 
+// Configuration constants for timing
+const SYNC_DELAY_MS = 1000;
+const SYNC_COMPLETION_MS = 2000;
+const NOTIFICATION_DELAY_MS = 5000;
+
 import React, { createContext, useContext, useState } from "react"
 import { useNotifications } from "@/components/notification-context"
-import type { FileSystemItem } from "@/lib/types"
-
-type SyncStatus = "pending" | "syncing" | "synced" | "error"
+import type { FileSystemItem, SyncStatus } from "@/lib/types"
 
 interface SyncContextType {
   syncPaused: boolean
@@ -93,7 +96,7 @@ export function SyncProvider({
         () => {
           updateSyncStatus(item.id, "synced")
         },
-        2000 + Math.random() * 3000,
+        SYNC_COMPLETION_MS + Math.random() * 3000,
       )
     })
 
@@ -103,7 +106,7 @@ export function SyncProvider({
         message: `${pendingItems.length} item(s) have been synced`,
         type: "success",
       })
-    }, 5000)
+    }, NOTIFICATION_DELAY_MS)
   }
 
   const toggleSyncPause = () => {

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import type { FileSystemItem, Permission, PermissionType } from "@/lib/types"
-import { useFileSystem } from "@/components/file-system-context"
+import { useFileSystem } from "@/components/contexts/file-system-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

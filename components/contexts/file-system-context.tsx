@@ -4,13 +4,13 @@ import type React from "react"
 import { createContext, useContext, useEffect } from "react"
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
 
-interface ClipboardItem {
+export interface ClipboardItem {
   items: FileSystemItem[]
   sourcePath: string[]
   operation: "cut" | "copy"
 }
 
-interface FileSystemContextType {
+export interface FileSystemContextType {
   fileSystem: FileSystemItem[]
   currentPath: string[]
   selectedItems: string[]
@@ -79,4 +79,3 @@ export function useFileSystem() {
   }
   return context
 }
-

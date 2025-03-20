@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useFileSystem } from "@/components/file-system-context"
+import { useFileSystem } from "@/components/contexts/file-system-context"
 import type { FileSystemItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
