@@ -1012,6 +1012,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
         copyItems,
         pasteItems,
         updateSyncStatus,
+        setSyncDialogOpen,
       }}
     >
       <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>

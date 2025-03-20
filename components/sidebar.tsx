@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useFileSystem } from "@/components/file-system-context"
 import {
   LayoutDashboard,
   Briefcase,
@@ -40,7 +39,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connected")
-  const { navigateTo } = useFileSystem()
   const [favorites, setFavorites] = useState<{ id: string; name: string; path: string[] }[]>([])
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
@@ -87,7 +85,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
-        navigateTo([])
+        // navigateTo([])
         router.push("/workspace")
       },
     },
@@ -96,7 +94,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Datasites",
       action: () => {
         setActiveItem("Datasites")
-        navigateTo(["datasites"])
+        // navigateTo(["datasites"])
         router.push("/workspace")
       },
     },
@@ -105,7 +103,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "My datasite",
       action: () => {
         setActiveItem("My datasite")
-        navigateTo(["datasites", userEmail])
+        // navigateTo(["datasites", userEmail])
         router.push("/workspace")
       }
     },
@@ -232,7 +230,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                           variant="ghost"
                           className="flex-1 flex items-center gap-2 justify-start font-normal"
                           onClick={() => {
-                            navigateTo(fav.path)
+                            // navigateTo(fav.path)
                             router.push("/workspace")
                           }}
                         >
