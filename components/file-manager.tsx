@@ -35,6 +35,8 @@ interface FileManagerContentProps extends FileManagerProps {
   setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
   previewFile: FileSystemItem | null;
   setPreviewFile: React.Dispatch<React.SetStateAction<FileSystemItem | null>>;
+  sortConfig?: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" };
+  setSortConfig?: React.Dispatch<React.SetStateAction<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>>;
 }
 
 // Create a wrapper component that will have access to all providers and be able to initialize file operations
@@ -44,6 +46,7 @@ function FileSystemProviderContent({
   currentPath,
   selectedItems,
   viewMode,
+  sortConfig,
   clipboard,
   syncPaused,
   setSelectedItems,
@@ -51,6 +54,7 @@ function FileSystemProviderContent({
   setPreviewFile,
   setDetailsItem,
   setViewMode,
+  setSortConfig,
   setSyncDialogOpen,
   children
 }: {
@@ -59,6 +63,7 @@ function FileSystemProviderContent({
   currentPath: string[],
   selectedItems: string[],
   viewMode: "grid" | "list",
+  sortConfig: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" },
   clipboard: ClipboardItem | null,
   syncPaused: boolean,
   setSelectedItems: (items: string[]) => void, 
@@ -66,6 +71,7 @@ function FileSystemProviderContent({
   setPreviewFile: (file: FileSystemItem | null) => void,
   setDetailsItem: (item: FileSystemItem | null) => void,
   setViewMode: (mode: "grid" | "list") => void,
+  setSortConfig: (config: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }) => void,
   setSyncDialogOpen: (open: boolean) => void,
   children: React.ReactNode
 }) {
@@ -81,10 +87,12 @@ function FileSystemProviderContent({
         currentPath,
         selectedItems,
         viewMode,
+        sortConfig,
         clipboard,
         syncPaused,
         setSelectedItems,
         setViewMode,
+        setSortConfig,
         navigateTo,
         handleCreateFolder: (name) => {
           fileOperations.handleCreateFolder(name);
@@ -430,6 +438,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
+  const [sortConfig, setSortConfig] = useState<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>({ sortBy: "name", direction: "asc" });
   const [syncPaused, setSyncPaused] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
@@ -450,6 +459,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
             currentPath={currentPath}
             selectedItems={selectedItems}
             viewMode={viewMode}
+            sortConfig={sortConfig}
             clipboard={clipboard}
             syncPaused={syncPaused}
             setSelectedItems={setSelectedItems}
@@ -460,6 +470,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
             setPreviewFile={setPreviewFile}
             setDetailsItem={setDetailsItem}
             setViewMode={setViewMode}
+            setSortConfig={setSortConfig}
             setSyncDialogOpen={setSyncDialogOpen}
           >
             <FileManagerContent 
@@ -475,6 +486,8 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
               setViewMode={setViewMode}
               previewFile={previewFile}
               setPreviewFile={setPreviewFile}
+              sortConfig={sortConfig}
+              setSortConfig={setSortConfig}
             />
           </FileSystemProviderContent>
         </ClipboardProvider>

@@ -51,13 +51,13 @@ export function SyncStatus({ status, className, variant = "icon" }: SyncStatusPr
       case "syncing":
         return "Syncing..."
       case "pending":
-        return "Pending"
+        return "Sync pending"
       case "rejected":
-        return "Rejected"
+        return "Sync rejected"
       case "error":
-        return "Error"
+        return "Sync error"
       case "ignored":
-        return "Ignored"
+        return "Sync ignored"
     }
   }
 

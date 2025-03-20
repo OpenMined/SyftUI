@@ -104,7 +104,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
 
           <TabsContent value="details" className="p-4 space-y-6">
             <div className="flex flex-col items-center text-center p-4">
-              <div className="h-20 w-20 mb-4">
+              <div className="h-20 w-20 mb-4 text-6xl">
                 <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>
                   {fileTypeInfo.icon}
                 </motion.div>

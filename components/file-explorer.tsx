@@ -51,6 +51,7 @@ export function FileExplorer({
   const setSelectedItems = onSelectedItemsChange || fileSystemContext.setSelectedItems
   const navigateTo = onNavigate || fileSystemContext.navigateTo
   const setPreviewFile = externalSetPreviewFile || fileSystemContext.setPreviewFile
+  const sortConfig = fileSystemContext.sortConfig || { sortBy: "name", direction: "asc" }
   
   // Always use these from context
   const {
@@ -202,6 +203,48 @@ export function FileExplorer({
     }
   }
 
+  // Apply sorting to items based on sort configuration
+  const sortedItems = [...items].sort((a, b) => {
+    // Always show folders before files regardless of sort option
+    if (a.type === "folder" && b.type === "file") return -1;
+    if (a.type === "file" && b.type === "folder") return 1;
+    
+    // If both are the same type (folder or file), then sort by the selected criteria
+    let compareResult = 0;
+
+    switch (sortConfig.sortBy) {
+      case "name":
+        compareResult = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+        break;
+      case "date":
+        compareResult = new Date(a.modifiedAt).getTime() - new Date(b.modifiedAt).getTime();
+        break;
+      case "size":
+        compareResult = (a.size || 0) - (b.size || 0);
+        break;
+      case "type":
+        // For files, compare by extension
+        if (a.type === "file" && b.type === "file") {
+          const aExt = a.name.split('.').pop() || '';
+          const bExt = b.name.split('.').pop() || '';
+          compareResult = aExt.localeCompare(bExt);
+          // If same extension, sort by name
+          if (compareResult === 0) {
+            compareResult = a.name.localeCompare(b.name);
+          }
+        } else {
+          // For folders, sort by name
+          compareResult = a.name.localeCompare(b.name);
+        }
+        break;
+      default:
+        compareResult = a.name.localeCompare(b.name);
+    }
+
+    // Apply sorting direction
+    return sortConfig.direction === "asc" ? compareResult : -compareResult;
+  });
+
   if (items.length === 0) {
     return (
       <div
@@ -232,7 +275,7 @@ export function FileExplorer({
           onClick={handleBackgroundClick}
         >
         <AnimatePresence>
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <ContextMenu key={item.id}>
               <ContextMenuTrigger>
                 <motion.div

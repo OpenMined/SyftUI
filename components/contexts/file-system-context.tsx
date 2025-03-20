@@ -10,15 +10,25 @@ export interface ClipboardItem {
   operation: "cut" | "copy"
 }
 
+export type SortOption = "name" | "date" | "size" | "type"
+export type SortDirection = "asc" | "desc"
+
+export interface SortConfig {
+  sortBy: SortOption
+  direction: SortDirection
+}
+
 export interface FileSystemContextType {
   fileSystem: FileSystemItem[]
   currentPath: string[]
   selectedItems: string[]
   viewMode: "grid" | "list"
+  sortConfig: SortConfig
   clipboard: ClipboardItem | null
   syncPaused: boolean
   setSelectedItems: (items: string[]) => void
   setViewMode: (mode: "grid" | "list") => void
+  setSortConfig: (config: SortConfig) => void
   navigateTo: (path: string[]) => void
   handleCreateFolder: (name: string) => void
   handleDelete: (itemIds: string[]) => void
