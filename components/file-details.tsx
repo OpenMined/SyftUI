@@ -8,7 +8,6 @@ import { SyncStatus } from "@/components/sync-status"
 import { PermissionsDialog } from "@/components/permissions-dialog"
 import { useFileSystem } from "@/components/contexts/file-system-context"
 import { motion } from "framer-motion"
-import { useIsMobile } from "@/hooks/use-mobile"
 import type { FileSystemItem } from "@/lib/types"
 import { formatFileSize } from "@/lib/utils"
 
@@ -22,7 +21,6 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
   const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
-  const isMobile = useIsMobile()
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== item.name) {

@@ -400,7 +400,7 @@ export function FileExplorer({
   if (items.length === 0) {
     return (
       <ContextMenu>
-        <ContextMenuTrigger className="w-full h-full">
+        <ContextMenuTrigger asChild>
           <div
             className="flex flex-col items-center justify-center h-64 text-muted-foreground w-full"
             onDragOver={(e) => handleDragOver(e)}
@@ -429,7 +429,7 @@ export function FileExplorer({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger className="w-full h-full">
+        <ContextMenuTrigger asChild>
           <div
             className="w-full h-full"
             onClick={handleBackgroundClick}
@@ -439,15 +439,15 @@ export function FileExplorer({
           >
             <div
               className={cn(
-                "grid gap-4 min-h-[300px]",
-                viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6" : "grid-cols-1",
+                "min-h-[300px] p-2 w-full",
+                viewMode === "grid" ? "flex flex-wrap gap-4 items-start" : "flex flex-col gap-2"
               )}
               onClick={handleBackgroundClick}
             >
               <AnimatePresence>
                 {sortedItems.map((item) => (
                   <ContextMenu key={item.id}>
-                    <ContextMenuTrigger className="w-full h-full">
+                    <ContextMenuTrigger asChild>
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -455,7 +455,8 @@ export function FileExplorer({
                         transition={{ duration: 0.2 }}
                         layout
                         className={cn(
-                          "group cursor-pointer rounded-lg p-2 transition-colors relative w-full h-full flex items-center justify-center",
+                          "group cursor-pointer rounded-lg p-2 transition-colors relative flex items-center justify-center",
+                          viewMode === "grid" ? "w-32 h-32 flex-shrink-0 flex-grow-0" : "w-full",
                           selectedItems.includes(item.id) ? "bg-accent" : "hover:bg-muted",
                           dropTarget === item.id && "ring-2 ring-primary",
                           viewMode === "list" && "justify-start gap-3",
@@ -471,7 +472,7 @@ export function FileExplorer({
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, item.id)}
                       >
-                        <div className={cn("flex", viewMode === "grid" ? "flex-col items-center gap-2 w-full" : "flex-row items-center w-full")}>
+                        <div className={cn("flex", viewMode === "grid" ? "flex-col items-center gap-2 w-full" : "flex-row items-center w-full", viewMode === "grid" && "overflow-hidden")}>
                           <div className={cn("relative", viewMode === "grid" ? "h-16 w-16" : "h-10 w-10 flex-shrink-0")}>
                             <FileIcon
                               type={item.type}
@@ -485,7 +486,7 @@ export function FileExplorer({
                           </div>
                           <div className={cn(
                             "truncate",
-                            viewMode === "grid" ? "w-full text-center mt-2" : "flex-1 text-left ml-2"
+                            viewMode === "grid" ? "w-full text-center mt-2 px-1" : "flex-1 text-left ml-2"
                           )}>
                             <p className="truncate text-sm">{item.name}</p>
                             {viewMode === "list" && (
