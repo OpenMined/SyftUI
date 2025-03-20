@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useFileSystem } from "@/components/contexts/file-system-context"
 import { useClipboard } from "@/components/contexts/clipboard-context"
 import { useSync } from "@/components/contexts/sync-context"
@@ -13,20 +13,32 @@ import {
   Clipboard,
   PauseCircle,
   PlayCircle,
+  RefreshCw,
+  ArrowUpDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleDelete } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleDelete, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [sortMenuOpen, setSortMenuOpen] = useState(false)
 
   const handleCreateFolderSubmit = () => {
     if (newFolderName.trim()) {
@@ -34,6 +46,16 @@ export function FileActions() {
       setNewFolderName("")
       setIsCreateFolderOpen(false)
     }
+  }
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    refreshFileSystem();
+    
+    // Simulate a minimum refresh time for better visual feedback
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 750); // Show refreshing state for at least 750ms
   }
 
   // Sync status button
@@ -59,6 +81,60 @@ export function FileActions() {
     <>
       {/* Sync status button */}
       {renderSyncStatusButton()}
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRefresh} disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Refresh</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Sort dropdown with tooltip */}
+      <DropdownMenu open={sortMenuOpen} onOpenChange={setSortMenuOpen}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8">
+                  <ArrowUpDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent className="select-none">
+              <p>Sort by</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <DropdownMenuContent align="start" className="w-40">
+          <DropdownMenuRadioGroup 
+            value={sortConfig?.sortBy || "name"}
+            onValueChange={(value) => 
+              setSortConfig?.({ ...(sortConfig || { direction: "asc" }), sortBy: value as "name" | "date" | "size" | "type" })
+            }
+          >
+            <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="date">Date Modified</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="type">Type</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup 
+            value={sortConfig?.direction || "asc"}
+            onValueChange={(value) => 
+              setSortConfig?.({ ...(sortConfig || { sortBy: "name" }), direction: value as "asc" | "desc" })
+            }
+          >
+            <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <TooltipProvider>
         <Tooltip>

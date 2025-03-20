@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Toolbar } from "@/components/ui/toolbar"
 import { FileActions } from "@/components/file-toolbar/file-actions"
 import { ViewToggle } from "@/components/file-toolbar/view-toggle"
-import { SortOptions } from "@/components/file-toolbar/sort-options"
 import { useState } from "react"
 
 interface FileToolbarProps {
@@ -43,12 +42,7 @@ export function FileToolbar({ sidebarOpen, setSidebarOpen, onSearch }: FileToolb
       sidebarOpen={sidebarOpen}
       setSidebarOpen={setSidebarOpen}
       leftSection={<FileActions />}
-      rightSection={(
-        <div className="flex items-center gap-2">
-          <SortOptions />
-          <ViewToggle />
-        </div>
-      )}
+      rightSection={<ViewToggle />}
     >
       {searchInput}
     </Toolbar>

@@ -55,6 +55,7 @@ function FileSystemProviderContent({
   setDetailsItem,
   setViewMode,
   setSortConfig,
+  setSyncPaused,
   setSyncDialogOpen,
   children
 }: {
@@ -72,6 +73,7 @@ function FileSystemProviderContent({
   setDetailsItem: (item: FileSystemItem | null) => void,
   setViewMode: (mode: "grid" | "list") => void,
   setSortConfig: (config: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }) => void,
+  setSyncPaused: (paused: boolean) => void,
   setSyncDialogOpen: (open: boolean) => void,
   children: React.ReactNode
 }) {
@@ -117,9 +119,16 @@ function FileSystemProviderContent({
         updatePermissions: (itemId, permissions) => {
           fileOperations.updatePermissions(itemId, permissions);
         },
-        toggleSyncPause: () => setSyncPaused(!syncPaused),
+        toggleSyncPause: () => {
+          setSyncPaused(!syncPaused);
+        },
         triggerManualSync: () => {
           // This would trigger a manual sync if implemented
+        },
+        refreshFileSystem: () => {
+          // This performs a refresh of the file system
+          // For now, we just re-set the file system to itself to trigger a re-render
+          setFileSystem([...fileSystem]);
         },
         setSyncDialogOpen
       }}
@@ -361,6 +370,7 @@ function FileManagerContent({
             setPreviewFile={setPreviewFile}
             currentPath={currentPath}
             viewMode={viewMode}
+            getCurrentDirectoryInfo={getCurrentDirectoryInfo}
           />
 
           <AnimatePresence>
@@ -471,6 +481,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
             setDetailsItem={setDetailsItem}
             setViewMode={setViewMode}
             setSortConfig={setSortConfig}
+            setSyncPaused={setSyncPaused}
             setSyncDialogOpen={setSyncDialogOpen}
           >
             <FileManagerContent 
