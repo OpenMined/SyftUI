@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import { useFileSystem } from "@/components/contexts/file-system-context"
 import type { FileSystemItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
@@ -175,6 +173,204 @@ interface FileExplorerProps {
   getCurrentDirectoryInfo?: () => FileSystemItem | null
 }
 
+// Interface for FileExplorerItem props
+interface FileExplorerItemProps {
+  item: FileSystemItem
+  viewMode: "grid" | "list"
+  selectedItems: string[]
+  handleItemClick: (item: FileSystemItem, event: React.MouseEvent) => void
+  handleItemDoubleClick: (item: FileSystemItem) => void
+  handleDragStart: (e: React.DragEvent, item: FileSystemItem) => void
+  handleDragOver: (e: React.DragEvent, targetId?: string) => void
+  handleDragLeave: () => void
+  handleDrop: (e: React.DragEvent, targetId?: string) => void
+  dropTarget: string | null
+  cutItems: (ids: string[]) => void
+  copyItems: (ids: string[]) => void
+  pasteItems: () => void
+  clipboard: any
+  setDetailsItem: (item: FileSystemItem | null) => void
+  openRenameDialog: (item: FileSystemItem) => void
+  openShareDialog: (item: FileSystemItem) => void
+  handleDelete: (ids: string[]) => void
+  isMobile: boolean
+}
+
+// Extracted file explorer item component for better organization
+const FileExplorerItem = React.memo(function FileExplorerItem({
+  item,
+  viewMode,
+  selectedItems,
+  handleItemClick,
+  handleItemDoubleClick,
+  handleDragStart,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+  dropTarget,
+  cutItems,
+  copyItems,
+  pasteItems,
+  clipboard,
+  setDetailsItem,
+  openRenameDialog,
+  openShareDialog,
+  handleDelete,
+  isMobile
+}: FileExplorerItemProps) {
+  // Extract common class names for better readability
+  const itemClasses = cn(
+    `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
+    viewMode === "grid" ? `${GRID_ITEM_SIZE} flex-shrink-0 flex-grow-0` : "w-full",
+    selectedItems.includes(item.id) ? "bg-accent" : "hover:bg-muted",
+    dropTarget === item.id && "ring-2 ring-primary",
+    viewMode === "list" && "justify-start gap-3"
+  )
+
+  const contentClasses = cn(
+    "flex",
+    viewMode === "grid" ? "flex-col items-center gap-2 w-full overflow-hidden" : "flex-row items-center w-full"
+  )
+
+  const iconClasses = cn(
+    "relative",
+    viewMode === "grid" ? GRID_ICON_SIZE : `${LIST_ICON_SIZE} flex-shrink-0`
+  )
+
+  const textClasses = cn(
+    "truncate",
+    viewMode === "grid" ? "w-full text-center mt-2 px-1" : "flex-1 text-left ml-2"
+  )
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.2 }}
+          layout
+          className={itemClasses}
+          onClick={(e) => {
+            e.stopPropagation() // Prevent event from bubbling to background
+            handleItemClick(item, e)
+          }}
+          onDoubleClick={() => handleItemDoubleClick(item)}
+          draggable
+          onDragStart={(e) => handleDragStart(e, item)}
+          onDragOver={(e) => handleDragOver(e, item.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, item.id)}
+        >
+          <div className={contentClasses}>
+            <div className={iconClasses}>
+              <FileIcon
+                type={item.type}
+                extension={item.type === "file" ? item.name.split(".").pop() : undefined}
+              />
+              {item.syncStatus && (
+                <div className="absolute -bottom-1 -right-1">
+                  <SyncStatus status={item.syncStatus} />
+                </div>
+              )}
+            </div>
+            <div className={textClasses}>
+              <p className="truncate text-sm">{item.name}</p>
+              {viewMode === "list" && (
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(item.modifiedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+            {viewMode === "list" && item.syncStatus && (
+              <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 flex-shrink-0" />
+            )}
+          </div>
+        </motion.div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => handleItemDoubleClick(item)}>
+          {item.type === "folder" ? "Open" : "Preview"}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => cutItems([item.id])}>
+          Cut
+          <ContextMenuShortcut>⌘X</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => copyItems([item.id])}>
+          Copy
+          <ContextMenuShortcut>⌘C</ContextMenuShortcut>
+        </ContextMenuItem>
+        {clipboard && (
+          <ContextMenuItem onClick={pasteItems}>
+            Paste
+            <ContextMenuShortcut>⌘V</ContextMenuShortcut>
+          </ContextMenuItem>
+        )}
+        {isMobile && (
+          <ContextMenuItem onClick={() => setDetailsItem(item)}>
+            Details
+          </ContextMenuItem>
+        )}
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={() => openRenameDialog(item)}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={() => openShareDialog(item)}>Permissions</ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={() => handleDelete([item.id])}
+          className="text-destructive focus:text-destructive"
+        >
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  )
+})
+
+// Common style variables to improve consistency
+const GRID_ITEM_SIZE = "w-32 h-32"
+const GRID_ICON_SIZE = "h-16 w-16"
+const LIST_ICON_SIZE = "h-10 w-10"
+const ITEM_PADDING = "p-2"
+const GRID_GAP = "gap-4"
+const LIST_GAP = "gap-2"
+
+// RenameDialog component for better organization
+const RenameDialog = React.memo(({ open, onOpenChange, name, setName, onSubmit }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  name: string
+  setName: (name: string) => void
+  onSubmit: () => void
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rename Item</DialogTitle>
+        </DialogHeader>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="mt-4"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSubmit()
+          }}
+        />
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={onSubmit}>Rename</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+})
+
 export function FileExplorer({
   items,
   selectedItems: externalSelectedItems,
@@ -208,6 +404,7 @@ export function FileExplorer({
     clipboard,
   } = fileSystemContext
 
+  // Group all state variables together for better readability
   const [renameItem, setRenameItem] = useState<FileSystemItem | null>(null)
   const [newName, setNewName] = useState("")
   const [draggedItem, setDraggedItem] = useState<FileSystemItem | null>(null)
@@ -216,7 +413,15 @@ export function FileExplorer({
 
   const isMobile = useIsMobile()
 
-  const handleItemClick = (item: FileSystemItem, event: React.MouseEvent) => {
+  const handleItemDoubleClick = useCallback((item: FileSystemItem) => {
+    if (item.type === "folder") {
+      navigateTo([...currentPath, item.name])
+    } else {
+      setPreviewFile(item)
+    }
+  }, [navigateTo, currentPath, setPreviewFile])
+
+  const handleItemClick = useCallback((item: FileSystemItem, event: React.MouseEvent) => {
     // Single click now selects the item and shows details
     if (event.ctrlKey || event.metaKey) {
       // Multi-select with Ctrl/Cmd
@@ -237,29 +442,21 @@ export function FileExplorer({
       setSelectedItems([item.id])
       isMobile ? handleItemDoubleClick(item) : setDetailsItem(item)
     }
-  }
+  }, [setSelectedItems, selectedItems, isMobile, handleItemDoubleClick, setDetailsItem, items])
 
-  const handleItemDoubleClick = (item: FileSystemItem) => {
-    if (item.type === "folder") {
-      navigateTo([...currentPath, item.name])
-    } else {
-      setPreviewFile(item)
-    }
-  }
-
-  const openRenameDialog = (item: FileSystemItem) => {
+  const openRenameDialog = useCallback((item: FileSystemItem) => {
     setRenameItem(item)
     setNewName(item.name)
-  }
+  }, [])
 
-  const handleRenameSubmit = () => {
+  const handleRenameSubmit = useCallback(() => {
     if (renameItem && newName.trim() && newName !== renameItem.name) {
       handleRename(renameItem.id, newName.trim())
     }
     setRenameItem(null)
-  }
+  }, [renameItem, newName, handleRename, setRenameItem])
 
-  const handleDragStart = (e: React.DragEvent, item: FileSystemItem) => {
+  const handleDragStart = useCallback((e: React.DragEvent, item: FileSystemItem) => {
     setDraggedItem(item)
 
     // Add path information to the dragged item for sidebar favorites
@@ -270,9 +467,9 @@ export function FileExplorer({
 
     e.dataTransfer.setData("application/json", JSON.stringify(itemWithPath))
     e.dataTransfer.effectAllowed = "copyMove"
-  }
+  }, [setDraggedItem, currentPath])
 
-  const handleDragOver = (e: React.DragEvent, targetId?: string) => {
+  const handleDragOver = useCallback((e: React.DragEvent, targetId?: string) => {
     e.preventDefault()
 
     // Only allow dropping on folders
@@ -289,13 +486,13 @@ export function FileExplorer({
       e.dataTransfer.dropEffect = "move"
       setDropTarget(null)
     }
-  }
+  }, [items, draggedItem, setDropTarget])
 
-  const handleDragLeave = () => {
+  const handleDragLeave = useCallback(() => {
     setDropTarget(null)
-  }
+  }, [setDropTarget])
 
-  const handleDrop = (e: React.DragEvent, targetId?: string) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetId?: string) => {
     e.preventDefault()
     setDropTarget(null)
 
@@ -331,32 +528,32 @@ export function FileExplorer({
     }
 
     setDraggedItem(null)
-  }
+  }, [setDropTarget, items, currentPath, moveItems, setDraggedItem])
 
-  const openShareDialog = (item: FileSystemItem) => {
+  const openShareDialog = useCallback((item: FileSystemItem) => {
     setShareItem(item)
-  }
+  }, [setShareItem])
 
   // Handle click on empty space to deselect items
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
     // Only deselect if clicking directly on the background (not on an item)
     if (e.currentTarget === e.target) {
       setSelectedItems([])
       setDetailsItem(null)
     }
-  }
+  }, [setSelectedItems, setDetailsItem])
 
   // Handle right-click on empty space
-  const handleBackgroundContextMenu = (e: React.MouseEvent) => {
+  const handleBackgroundContextMenu = useCallback((e: React.MouseEvent) => {
     // Only show context menu if clicking directly on the background (not on an item)
     if (e.currentTarget === e.target) {
       // The context menu will be shown automatically by the ContextMenu component
       // We just need to make sure we don't prevent the default context menu from showing
     }
-  }
+  }, [])
 
-  // Apply sorting to items based on sort configuration
-  const sortedItems = [...items].sort((a, b) => {
+  // Apply sorting to items based on sort configuration - memoized to prevent unnecessary re-sorting
+  const sortedItems = useMemo(() => [...items].sort((a, b) => {
     // Always show folders before files regardless of sort option
     if (a.type === "folder" && b.type === "file") return -1;
     if (a.type === "file" && b.type === "folder") return 1;
@@ -395,35 +592,38 @@ export function FileExplorer({
 
     // Apply sorting direction
     return sortConfig.direction === "asc" ? compareResult : -compareResult;
-  });
+  }), [items, sortConfig]);
+
+  // Extract empty state UI into a component for reuse
+  const renderEmptyState = useCallback(() => (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          className="flex flex-col items-center justify-center h-64 text-muted-foreground w-full"
+          onDragOver={(e) => handleDragOver(e)}
+          onDrop={(e) => handleDrop(e)}
+          onClick={handleBackgroundClick}
+          onContextMenu={handleBackgroundContextMenu}
+        >
+          <p>This folder is empty</p>
+          <p className="text-sm mt-2">Drag files here to upload</p>
+        </div>
+      </ContextMenuTrigger>
+      <BackgroundContextMenuContent
+        currentPath={currentPath}
+        sortConfig={sortConfig}
+        setSortConfig={fileSystemContext.setSortConfig}
+        setViewMode={fileSystemContext.setViewMode}
+        viewMode={viewMode}
+        handleCreateFolder={fileSystemContext.handleCreateFolder}
+        toggleSyncPause={fileSystemContext.toggleSyncPause}
+        syncPaused={fileSystemContext.syncPaused}
+      />
+    </ContextMenu>
+  ), [handleDragOver, handleDrop, handleBackgroundClick, handleBackgroundContextMenu, currentPath, sortConfig, fileSystemContext, viewMode])
 
   if (items.length === 0) {
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div
-            className="flex flex-col items-center justify-center h-64 text-muted-foreground w-full"
-            onDragOver={(e) => handleDragOver(e)}
-            onDrop={(e) => handleDrop(e)}
-            onClick={handleBackgroundClick}
-            onContextMenu={handleBackgroundContextMenu}
-          >
-            <p>This folder is empty</p>
-            <p className="text-sm mt-2">Drag files here to upload</p>
-          </div>
-        </ContextMenuTrigger>
-        <BackgroundContextMenuContent
-          currentPath={currentPath}
-          sortConfig={sortConfig}
-          setSortConfig={fileSystemContext.setSortConfig}
-          setViewMode={fileSystemContext.setViewMode}
-          viewMode={viewMode}
-          handleCreateFolder={fileSystemContext.handleCreateFolder}
-          toggleSyncPause={fileSystemContext.toggleSyncPause}
-          syncPaused={fileSystemContext.syncPaused}
-        />
-      </ContextMenu>
-    )
+    return renderEmptyState()
   }
 
   return (
@@ -440,104 +640,34 @@ export function FileExplorer({
             <div
               className={cn(
                 "min-h-[300px] p-2 w-full",
-                viewMode === "grid" ? "flex flex-wrap gap-4 items-start" : "flex flex-col gap-2"
+                viewMode === "grid" ? `flex flex-wrap ${GRID_GAP} items-start` : `flex flex-col ${LIST_GAP}`
               )}
               onClick={handleBackgroundClick}
             >
               <AnimatePresence>
                 {sortedItems.map((item) => (
-                  <ContextMenu key={item.id}>
-                    <ContextMenuTrigger asChild>
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.2 }}
-                        layout
-                        className={cn(
-                          "group cursor-pointer rounded-lg p-2 transition-colors relative flex items-center justify-center",
-                          viewMode === "grid" ? "w-32 h-32 flex-shrink-0 flex-grow-0" : "w-full",
-                          selectedItems.includes(item.id) ? "bg-accent" : "hover:bg-muted",
-                          dropTarget === item.id && "ring-2 ring-primary",
-                          viewMode === "list" && "justify-start gap-3",
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation() // Prevent event from bubbling to background
-                          handleItemClick(item, e)
-                        }}
-                        onDoubleClick={() => handleItemDoubleClick(item)}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item)}
-                        onDragOver={(e) => handleDragOver(e, item.id)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, item.id)}
-                      >
-                        <div className={cn("flex", viewMode === "grid" ? "flex-col items-center gap-2 w-full" : "flex-row items-center w-full", viewMode === "grid" && "overflow-hidden")}>
-                          <div className={cn("relative", viewMode === "grid" ? "h-16 w-16" : "h-10 w-10 flex-shrink-0")}>
-                            <FileIcon
-                              type={item.type}
-                              extension={item.type === "file" ? item.name.split(".").pop() : undefined}
-                            />
-                            {item.syncStatus && (
-                              <div className="absolute -bottom-1 -right-1">
-                                <SyncStatus status={item.syncStatus} />
-                              </div>
-                            )}
-                          </div>
-                          <div className={cn(
-                            "truncate",
-                            viewMode === "grid" ? "w-full text-center mt-2 px-1" : "flex-1 text-left ml-2"
-                          )}>
-                            <p className="truncate text-sm">{item.name}</p>
-                            {viewMode === "list" && (
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(item.modifiedAt).toLocaleDateString()}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                          {viewMode === "list" && item.syncStatus && (
-                            <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 flex-shrink-0" />
-                          )}
-                        </div>
-                      </motion.div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem onClick={() => handleItemDoubleClick(item)}>
-                        {item.type === "folder" ? "Open" : "Preview"}
-                      </ContextMenuItem>
-                      <ContextMenuItem onClick={() => cutItems([item.id])}>
-                        Cut
-                        <ContextMenuShortcut>⌘X</ContextMenuShortcut>
-                      </ContextMenuItem>
-                      <ContextMenuItem onClick={() => copyItems([item.id])}>
-                        Copy
-                        <ContextMenuShortcut>⌘C</ContextMenuShortcut>
-                      </ContextMenuItem>
-                      {clipboard && (
-                        <ContextMenuItem onClick={pasteItems}>
-                          Paste
-                          <ContextMenuShortcut>⌘V</ContextMenuShortcut>
-                        </ContextMenuItem>
-                      )}
-                      {isMobile && (
-                        <ContextMenuItem onClick={() => setDetailsItem(item)}>
-                          Details
-                        </ContextMenuItem>
-                      )}
-                      <ContextMenuSeparator />
-                      <ContextMenuItem onClick={() => openRenameDialog(item)}>Rename</ContextMenuItem>
-                      <ContextMenuItem onClick={() => openShareDialog(item)}>Permissions</ContextMenuItem>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        onClick={() => handleDelete([item.id])}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        Delete
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
+                  <FileExplorerItem
+                    key={item.id}
+                    item={item}
+                    viewMode={viewMode}
+                    selectedItems={selectedItems}
+                    handleItemClick={handleItemClick}
+                    handleItemDoubleClick={handleItemDoubleClick}
+                    handleDragStart={handleDragStart}
+                    handleDragOver={handleDragOver}
+                    handleDragLeave={handleDragLeave}
+                    handleDrop={handleDrop}
+                    dropTarget={dropTarget}
+                    cutItems={cutItems}
+                    copyItems={copyItems}
+                    pasteItems={pasteItems}
+                    clipboard={clipboard}
+                    setDetailsItem={setDetailsItem}
+                    openRenameDialog={openRenameDialog}
+                    openShareDialog={openShareDialog}
+                    handleDelete={handleDelete}
+                    isMobile={isMobile}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -555,28 +685,13 @@ export function FileExplorer({
         />
       </ContextMenu>
 
-      <Dialog open={!!renameItem} onOpenChange={(open) => !open && setRenameItem(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename Item</DialogTitle>
-          </DialogHeader>
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="mt-4"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleRenameSubmit()
-            }}
-          />
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setRenameItem(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRenameSubmit}>Rename</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RenameDialog
+        open={!!renameItem}
+        onOpenChange={(open) => !open && setRenameItem(null)}
+        name={newName}
+        setName={setNewName}
+        onSubmit={handleRenameSubmit}
+      />
 
       {shareItem && <PermissionsDialog item={shareItem} onClose={() => setShareItem(null)} />}
     </>

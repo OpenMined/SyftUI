@@ -127,11 +127,11 @@ export function Marketplace({ onSelectApp }: MarketplaceProps) {
     {
       id: "9",
       name: "Ring",
-      description: "Perform Homomorphic Encryption on SyftBox network",
+      description: "Perform Homomorphic Encryption over the SyftBox network",
       author: "OpenMined",
       stars: 1,
       downloads: 4517,
-      tags: ["ring", "syftbox", "he", "homomorphic-encryption", "encryption"],
+      tags: ["ring", "he", "homomorphic-encryption", "encryption"],
       verified: true,
       icon: "💍",
     },
