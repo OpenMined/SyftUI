@@ -18,11 +18,13 @@ import { FileSystemProvider, ClipboardItem } from "@/components/contexts/file-sy
 import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { updateUrlWithPath, getPathFromUrl, processPath, findFileInPath } from "@/lib/utils/url"
 
 interface FileManagerProps {
   fileSystem: FileSystemItem[]
   setFileSystem: React.Dispatch<React.SetStateAction<FileSystemItem[]>>
   initialViewMode: "grid" | "list"
+  initialPath?: string[]
   onViewModeChange: (mode: "grid" | "list") => void
 }
 
@@ -215,10 +217,13 @@ function FileManagerContent({
     setCurrentPath(path)
     setSelectedItems([])
     setDetailsItem(null)
+    
+    // Update URL with the new path
+    updateUrlWithPath(path);
   }
   
-  // Get current directory items
-  const getCurrentItems = (): FileSystemItem[] => {
+  // Get current directory items - changed to use the function in dependencies
+  const getCurrentItems = useCallback((): FileSystemItem[] => {
     let current = fileSystem
 
     for (const segment of currentPath) {
@@ -231,7 +236,7 @@ function FileManagerContent({
     }
 
     return current
-  }
+  }, [fileSystem, currentPath])
   
   // Get current directory info for details panel
   const getCurrentDirectoryInfo = useCallback(() => {
@@ -266,7 +271,7 @@ function FileManagerContent({
     }
 
     return currentDir;
-  }, [currentPath, fileSystem]);
+  }, [currentPath, fileSystem, getCurrentItems]);
   
   // Update details when directory changes
   const updateDetailsWithDirectory = useCallback(() => {
@@ -444,8 +449,8 @@ function FileManagerContent({
   )
 }
 
-export function FileManager({ fileSystem, setFileSystem, initialViewMode, onViewModeChange }: FileManagerProps) {
-  const [currentPath, setCurrentPath] = useState<string[]>([]);
+export function FileManager({ fileSystem, setFileSystem, initialViewMode, initialPath = [], onViewModeChange }: FileManagerProps) {
+  const [currentPath, setCurrentPath] = useState<string[]>(initialPath);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
   const [sortConfig, setSortConfig] = useState<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>({ sortBy: "name", direction: "asc" });
@@ -455,9 +460,52 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
   const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
   const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null);
   
+  // Check for file in path on initial load
+  useEffect(() => {
+    const pathFromUrl = getPathFromUrl();
+    const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
+    
+    if (fileName) {
+      const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
+      if (fileToOpen) {
+        setPreviewFile(fileToOpen);
+      }
+    }
+  }, [fileSystem, setPreviewFile]);
+  
+  
   useEffect(() => {
     onViewModeChange(viewMode);
   }, [viewMode, onViewModeChange]);
+  
+  // Listen for popstate events (when browser back/forward buttons are used)
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathSegments = getPathFromUrl();
+      const { dirPath, fileName } = processPath(pathSegments, fileSystem);
+      
+      // Update directory path
+      setCurrentPath(dirPath);
+      
+      // If there's a file in the path, find and open it
+      if (fileName) {
+        setTimeout(() => {
+          const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
+          if (fileToOpen) {
+            setPreviewFile(fileToOpen);
+          }
+        }, 100); // Allow time for path change to complete
+      } else {
+        // If no file in path, close any open preview
+        setPreviewFile(null);
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [setPreviewFile, fileSystem]);
   
   return (
     <SyncProvider fileSystem={fileSystem} setFileSystem={setFileSystem}>
@@ -476,6 +524,9 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, onView
             navigateTo={(path) => {
               setCurrentPath(path);
               setSelectedItems([]);
+              
+              // Update URL with the new path
+              updateUrlWithPath(path);
             }}
             setPreviewFile={setPreviewFile}
             setDetailsItem={setDetailsItem}

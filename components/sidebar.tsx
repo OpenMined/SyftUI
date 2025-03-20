@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react"
 import { cn, getAssetPath } from "@/lib/utils"
+import { navigateToPath } from "@/lib/utils/url"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +89,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
-        // navigateTo([])
+        navigateToPath([])
         router.push("/workspace/")
       },
     },
@@ -97,8 +98,8 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Datasites",
       action: () => {
         setActiveItem("Datasites")
-        // navigateTo(["datasites"])
-        router.push("/workspace/?path=/datasites/")
+        navigateToPath(["datasites"])
+        router.push("/workspace/?path=datasites/")
       },
     },
     {
@@ -106,8 +107,8 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "My datasite",
       action: () => {
         setActiveItem("My datasite")
-        // navigateTo(["datasites", userEmail])
-        router.push(`/workspace/?path=/datasites/${userEmail}/`)
+        navigateToPath(["datasites", userEmail])
+        router.push(`/workspace/?path=datasites/${userEmail}/`)
       }
     },
     {
@@ -149,12 +150,15 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         if (item.type === "folder") {
           // Check if already in favorites
           if (!favorites.some((fav) => fav.id === item.id)) {
+            // Make sure path is properly formatted
+            const itemPath = item.path || []
+
             setFavorites((prev) => [
               ...prev,
               {
                 id: item.id,
                 name: item.name,
-                path: [...item.path],
+                path: [...item.path, item.name],
               },
             ])
           }
@@ -237,8 +241,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                     <div key={fav.id} className="flex items-center justify-between group">
                       <button
                         onClick={() => {
-                          navigateTo(fav.path)
-                          onNavigateToFiles()
+                          navigateToPath(fav.path)
+                          // Need to push to router as well for it to work across other pages like /marketplace, /logs, etc
+                          router.push(`/workspace/?path=${fav.path.join('/')}`)
                         }}
                         className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                       >

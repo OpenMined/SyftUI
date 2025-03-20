@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { updateUrlWithPath } from "@/lib/utils/url"
 
 // Background context menu component
 interface BackgroundContextMenuContentProps {
@@ -415,9 +416,14 @@ export function FileExplorer({
 
   const handleItemDoubleClick = useCallback((item: FileSystemItem) => {
     if (item.type === "folder") {
+      // Navigate to folder and update URL
       navigateTo([...currentPath, item.name])
     } else {
+      // Open file preview
       setPreviewFile(item)
+
+      // Add file parameter to URL
+      updateUrlWithPath([...currentPath, item.name]);
     }
   }, [navigateTo, currentPath, setPreviewFile])
 

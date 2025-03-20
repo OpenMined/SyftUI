@@ -12,7 +12,8 @@ export function Breadcrumb() {
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
 
   const handleNavigate = (index: number) => {
-    navigateTo(currentPath.slice(0, index))
+    const newPath = currentPath.slice(0, index);
+    navigateTo(newPath);
   }
 
   const handleDragOver = (e: React.DragEvent, index: number) => {

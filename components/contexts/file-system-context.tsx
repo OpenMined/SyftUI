@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect } from "react"
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
+import { getPathFromUrl, processPath, findFileInPath } from "@/lib/utils/url"
 
 export interface ClipboardItem {
   items: FileSystemItem[]
@@ -59,26 +60,54 @@ export function FileSystemProvider({
   // Set up event listener for navigation events
   useEffect(() => {
     // Define the handler for the custom navigation event
-    const handleNavigationEvent = (event: CustomEvent) => {
-      const { path, callback } = event.detail;
+    const handleNavigationEvent = (event: Event) => {
+      // Cast the event to any to access detail
+      const detail = (event as any).detail;
+      const path = detail?.path;
+      const callback = detail?.callback;
 
-      // Call the navigate function from the context
-      value.navigateTo(path);
+      if (path) {
+        // Call the navigate function from the context
+        value.navigateTo(path);
 
-      // Call the callback if provided
-      if (callback && typeof callback === 'function') {
-        callback();
+        // Call the callback if provided
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
       }
     };
 
     // Add event listener with type assertion
-    window.addEventListener('navigate-to-path', handleNavigationEvent as EventListener);
+    window.addEventListener('navigate-to-path', handleNavigationEvent);
 
     // Clean up event listener
     return () => {
-      window.removeEventListener('navigate-to-path', handleNavigationEvent as EventListener);
+      window.removeEventListener('navigate-to-path', handleNavigationEvent);
     };
   }, [value]);
+
+  // Parse URL path parameter on initial load
+  useEffect(() => {
+    const pathSegments = getPathFromUrl();
+    const { dirPath, fileName } = processPath(pathSegments, value.fileSystem);
+
+    // First navigate to the correct directory
+    if (dirPath.length > 0) {
+      value.navigateTo(dirPath);
+    }
+
+    // If there's a file in the path, we need to find it and open it
+    if (fileName) {
+      // Find the file using our utility function
+      const fileToOpen = findFileInPath(value.fileSystem, dirPath, fileName);
+      if (fileToOpen) {
+        // Schedule setting the preview file after the navigate completes
+        setTimeout(() => {
+          value.setPreviewFile(fileToOpen);
+        }, 100);
+      }
+    }
+  }, []);
 
   return <FileSystemContext.Provider value={value}>{children}</FileSystemContext.Provider>
 }

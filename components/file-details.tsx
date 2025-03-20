@@ -17,6 +17,15 @@ interface FileDetailsProps {
 }
 
 export function FileDetails({ item, onClose }: FileDetailsProps) {
+  // Ensure we have a valid item to display
+  if (!item) {
+    return (
+      <div className="h-full flex flex-col bg-card items-center justify-center">
+        <p className="text-muted-foreground">No item selected</p>
+      </div>
+    );
+  }
+
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
   const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
