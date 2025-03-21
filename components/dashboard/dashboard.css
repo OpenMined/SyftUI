@@ -1,0 +1,141 @@
+/* Dashboard Styles */
+
+/* Animations for widget interactions */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+.widget-container {
+  transition: all 0.2s ease;
+}
+
+.widget-container:hover {
+  z-index: 1;
+}
+
+/* Editing mode styles */
+.dashboard-editing .react-grid-item {
+  border: 2px dashed #e5e7eb;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-editing .widget-container:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Placeholder styles during dragging */
+.react-grid-item.react-grid-placeholder {
+  background: #3b82f6;
+  opacity: 0.2;
+  border-radius: 8px;
+  transition-duration: 100ms;
+}
+
+/* Resizable handle styles */
+.react-resizable-handle {
+  transition: opacity 0.2s;
+  background-position: bottom right;
+  padding: 0 3px 3px 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .react-grid-item {
+    touch-action: none;
+  }
+  
+  .react-resizable-handle {
+    transform: scale(1.5);
+    transform-origin: bottom right;
+  }
+}
+
+/* Visual feedback for interactions */
+.widget-adding-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.widget-adding-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.widget-removing-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.widget-removing-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Make widget headers look like iOS/Android widget title bars */
+.widget-header {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.dark .widget-header {
+  background-color: rgba(30, 41, 59, 0.8);
+}
+
+.light .widget-header {
+  background-color: rgba(241, 245, 249, 0.8);
+}
+
+/* Widget content styles */
+.widget-content {
+  overflow: hidden;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Add animation for widget adding */
+.widget-new {
+  animation: pulse 0.5s ease;
+}
+
+/* iOS-like widget appearance */
+.ios-widget-style .widget-container {
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.dark .ios-widget-style .widget-container {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Add/remove indicators */
+.widget-add-indicator,
+.widget-remove-indicator {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.widget-add-indicator {
+  background-color: #10b981;
+  color: white;
+  top: -8px;
+  right: -8px;
+}
+
+.widget-remove-indicator {
+  background-color: #ef4444;
+  color: white;
+  top: -8px;
+  right: -8px;
+}
