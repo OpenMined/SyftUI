@@ -28,7 +28,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           color: #333;
           background: #f9fafb;
         }
-        .dark body {
+        body.dark {
           background: #1f2937;
           color: #f3f4f6;
         }
@@ -46,7 +46,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           justify-content: space-between;
           align-items: flex-start;
         }
-        .dark .request-item {
+        body.dark .request-item {
           background: #2d3748;
         }
         .request-info {
@@ -62,7 +62,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           color: #666;
           margin: 0;
         }
-        .dark .request-meta {
+        body.dark .request-meta {
           color: #9ca3af;
         }
         .status {
@@ -77,7 +77,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           background: #fef3c7;
           color: #92400e;
         }
-        .dark .status-pending {
+        body.dark .status-pending {
           background: #78350f;
           color: #fde68a;
         }
@@ -85,7 +85,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           background: #d1fae5;
           color: #065f46;
         }
-        .dark .status-success {
+        body.dark .status-success {
           background: #065f46;
           color: #a7f3d0;
         }
@@ -93,7 +93,7 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
           background: #fee2e2;
           color: #b91c1c;
         }
-        .dark .status-failed {
+        body.dark .status-failed {
           background: #b91c1c;
           color: #fecaca;
         }
@@ -125,10 +125,30 @@ export function getQueueRpcContent(widget: WidgetDefinition): string {
         `}
       </div>
       <script>
-        // Check parent theme and apply to iframe
-        const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        if (parentTheme === 'dark') {
-          document.documentElement.classList.add('dark');
+        // Apply theme based on parent document
+        function applyTheme() {
+          try {
+            const isDarkMode = window.parent.document.documentElement.classList.contains('dark');
+            document.body.classList.toggle('dark', isDarkMode);
+          } catch (e) {
+            console.error('Error applying theme:', e);
+          }
+        }
+        
+        // Initial theme application
+        applyTheme();
+        
+        // Watch for theme changes in parent document
+        try {
+          const themeObserver = new MutationObserver(() => {
+            applyTheme();
+          });
+          
+          themeObserver.observe(window.parent.document.documentElement, {
+            attributes: true
+          });
+        } catch (e) {
+          console.error('Error setting up theme observer:', e);
         }
         
         // Simulate status changes

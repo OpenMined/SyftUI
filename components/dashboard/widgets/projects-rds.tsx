@@ -28,7 +28,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           color: #333;
           background: #f9fafb;
         }
-        .dark body {
+        body.dark {
           background: #1f2937;
           color: #f3f4f6;
         }
@@ -46,7 +46,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           justify-content: space-between;
           align-items: center;
         }
-        .dark .project-item {
+        body.dark .project-item {
           background: #2d3748;
         }
         .project-name {
@@ -65,7 +65,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           background: #e5e7eb;
           color: #4b5563;
         }
-        .dark .status-draft {
+        body.dark .status-draft {
           background: #4b5563;
           color: #e5e7eb;
         }
@@ -73,7 +73,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           background: #fef3c7;
           color: #92400e;
         }
-        .dark .status-awaiting {
+        body.dark .status-awaiting {
           background: #78350f;
           color: #fde68a;
         }
@@ -81,7 +81,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           background: #dbeafe;
           color: #1e40af;
         }
-        .dark .status-processing {
+        body.dark .status-processing {
           background: #1e40af;
           color: #bfdbfe;
         }
@@ -89,7 +89,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           background: #fee2e2;
           color: #b91c1c;
         }
-        .dark .status-rejected {
+        body.dark .status-rejected {
           background: #b91c1c;
           color: #fecaca;
         }
@@ -97,7 +97,7 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
           background: #d1fae5;
           color: #065f46;
         }
-        .dark .status-result {
+        body.dark .status-result {
           background: #065f46;
           color: #a7f3d0;
         }
@@ -124,10 +124,30 @@ export function getProjectsRdsContent(widget: WidgetDefinition): string {
         `}
       </div>
       <script>
-        // Check parent theme and apply to iframe
-        const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        if (parentTheme === 'dark') {
-          document.documentElement.classList.add('dark');
+        // Apply theme based on parent document
+        function applyTheme() {
+          try {
+            const isDarkMode = window.parent.document.documentElement.classList.contains('dark');
+            document.body.classList.toggle('dark', isDarkMode);
+          } catch (e) {
+            console.error('Error applying theme:', e);
+          }
+        }
+        
+        // Initial theme application
+        applyTheme();
+        
+        // Watch for theme changes in parent document
+        try {
+          const themeObserver = new MutationObserver(() => {
+            applyTheme();
+          });
+          
+          themeObserver.observe(window.parent.document.documentElement, {
+            attributes: true
+          });
+        } catch (e) {
+          console.error('Error setting up theme observer:', e);
         }
       </script>
     </body>

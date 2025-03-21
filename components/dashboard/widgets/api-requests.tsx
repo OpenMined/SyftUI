@@ -83,7 +83,7 @@ export function getApiRequestsContent(widget: WidgetDefinition): string {
         .btn:hover {
           background: #f0f0f0;
         }
-        .dark .btn:hover {
+        body.dark .btn:hover {
           background: #4b5563;
         }
         .btn-accept {
@@ -128,11 +128,32 @@ export function getApiRequestsContent(widget: WidgetDefinition): string {
         `}
       </div>
       <script>
-        // Check parent theme and apply to iframe
-        const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        if (parentTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        }
+        // Function to update theme based on parent document
+        const updateTheme = () => {
+          const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+          if (parentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        };
+        
+        // Set initial theme
+        updateTheme();
+        
+        // Watch for theme changes in parent document
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+              updateTheme();
+            }
+          });
+        });
+        
+        // Start observing
+        observer.observe(window.parent.document.documentElement, {
+          attributes: true
+        });
         
         // Add event listeners for buttons
         document.querySelectorAll('.btn').forEach(btn => {
