@@ -1,46 +1,53 @@
 <div class="request-list">
   <div class="request-item">
     <div class="request-info">
-      <h3 class="request-url">/api/process/image</h3>
+      <div class="request-url-container">
+        <h3 class="request-url">/api/process/image</h3>
+        <div class="status status-success">Success</div>
+      </div>
       <p class="request-meta">
-        f8c3de3d-1fea... · 15:30:00
+        <span class="request-id">f8c3de3d-1fea...</span>
+        <span class="request-time">15:30:00</span>
       </p>
-    </div>
-    <div class="status status-success">
-      success
     </div>
   </div>
+
   <div class="request-item">
     <div class="request-info">
-      <h3 class="request-url">/api/analyze/data</h3>
+      <div class="request-url-container">
+        <h3 class="request-url">/api/analyze/data</h3>
+        <div class="status status-pending">Pending</div>
+      </div>
       <p class="request-meta">
-        a1b2c3d4-e5f6... · 15:45:00
+        <span class="request-id">a1b2c3d4-e5f6...</span>
+        <span class="request-time">15:45:00</span>
       </p>
-    </div>
-    <div class="status status-pending">
-      pending
     </div>
   </div>
+
   <div class="request-item">
     <div class="request-info">
-      <h3 class="request-url">/api/transform/json</h3>
+      <div class="request-url-container">
+        <h3 class="request-url">/api/transform/json</h3>
+        <div class="status status-failed">Failed</div>
+      </div>
       <p class="request-meta">
-        i9j0k1l2-m3n4... · 16:00:00
+        <span class="request-id">i9j0k1l2-m3n4...</span>
+        <span class="request-time">16:00:00</span>
       </p>
-    </div>
-    <div class="status status-failed">
-      failed
     </div>
   </div>
+
   <div class="request-item">
     <div class="request-info">
-      <h3 class="request-url">/api/generate/report</h3>
+      <div class="request-url-container">
+        <h3 class="request-url">/api/generate/report</h3>
+        <div class="status status-pending">Pending</div>
+      </div>
       <p class="request-meta">
-        q7r8s9t0-u1v2... · 16:15:00
+        <span class="request-id">q7r8s9t0-u1v2...</span>
+        <span class="request-time">16:15:00</span>
       </p>
-    </div>
-    <div class="status status-pending">
-      pending
     </div>
   </div>
 </div>
@@ -49,59 +56,83 @@
   .request-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .request-item {
     padding: 12px;
-    border-radius: 6px;
-    background: var(--widget-bg);
-    border: 1px solid var(--widget-border);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    border-radius: 8px;
+    background: var(--widget-bg, #ffffff);
+    border: 1px solid var(--widget-border, #e5e7eb);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+
+  .request-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
   }
 
   .request-info {
-    flex-grow: 1;
+    width: 100%;
+  }
+
+  .request-url-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
   }
 
   .request-url {
     font-weight: 600;
-    margin: 0 0 4px 0;
+    margin: 0;
+    font-size: 15px;
+    color: var(--widget-text, #1f2937);
     word-break: break-all;
-    color: var(--widget-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
   .request-meta {
-    font-size: 12px;
-    color: var(--widget-muted);
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--widget-muted, #6b7280);
     margin: 0;
   }
 
+  .request-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    opacity: 0.8;
+  }
+
+  .request-time {
+    font-weight: 500;
+  }
+
   .status {
-    padding: 4px 8px;
-    border-radius: 12px;
+    padding: 4px 10px;
+    border-radius: 16px;
     font-size: 12px;
     font-weight: 500;
     text-transform: capitalize;
-    margin-left: 8px;
+    letter-spacing: 0.02em;
   }
 
   .status-pending {
-    background: var(--widget-warning);
-    color: var(--widget-bg);
+    background: var(--widget-warning, #f59e0b);
+    color: white;
   }
 
   .status-success {
-    background: var(--widget-success);
-    color: var(--widget-bg);
+    background: var(--widget-success, #10b981);
+    color: white;
   }
 
   .status-failed {
-    background: var(--widget-danger);
-    color: var(--widget-bg);
+    background: var(--widget-danger, #ef4444);
+    color: white;
   }
 </style>
 
@@ -116,7 +147,7 @@
 
       item.classList.remove('status-pending');
       item.classList.add(`status-${newStatus}`);
-      item.textContent = newStatus;
+      item.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
     }
   }, 5000);
 </script>

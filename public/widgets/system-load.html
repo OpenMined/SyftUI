@@ -1,24 +1,84 @@
-<div class="chart-container">
-  <h3 class="chart-title">CPU Load Average (%)</h3>
-  <canvas id="cpuChart"></canvas>
-</div>
-<div class="chart-container">
-  <h3 class="chart-title">RAM Usage (%)</h3>
-  <canvas id="ramChart"></canvas>
+<div class="chart-wrapper">
+  <div class="chart-container">
+    <div class="chart-header">
+      <h3 class="chart-title">CPU Load Average (%)</h3>
+      <div class="chart-legend">
+        <span class="legend-dot cpu-dot"></span>
+        <span class="legend-label">Last hour</span>
+      </div>
+    </div>
+    <canvas id="cpuChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-header">
+      <h3 class="chart-title">RAM Usage (%)</h3>
+      <div class="chart-legend">
+        <span class="legend-dot ram-dot"></span>
+        <span class="legend-label">Last hour</span>
+      </div>
+    </div>
+    <canvas id="ramChart"></canvas>
+  </div>
 </div>
 
 <style>
+  .chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: 100%;
+  }
+
   .chart-container {
     position: relative;
-    height: calc(50% - 15px);
-    margin-bottom: 20px;
+    height: calc(50% - 12px);
+    background: var(--widget-bg, #ffffff);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--widget-border, #e5e7eb);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
   }
 
   .chart-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    margin: 0 0 10px 0;
-    color: var(--widget-text);
+    margin: 0;
+    color: var(--widget-text, #1f2937);
+  }
+
+  .chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .cpu-dot {
+    background-color: var(--widget-primary, #3b82f6);
+  }
+
+  .ram-dot {
+    background-color: var(--widget-secondary, #10b981);
+  }
+
+  .legend-label {
+    font-size: 13px;
+    color: var(--widget-muted, #6b7280);
   }
 </style>
 
@@ -56,7 +116,8 @@
       primary: getCSSVariableValue('--widget-primary', '#3b82f6'),
       secondary: getCSSVariableValue('--widget-secondary', '#10b981'),
       primaryTransparent: hexToRgba(getCSSVariableValue('--widget-primary', '#3b82f6'), 0.2),
-      secondaryTransparent: hexToRgba(getCSSVariableValue('--widget-secondary', '#10b981'), 0.2)
+      secondaryTransparent: hexToRgba(getCSSVariableValue('--widget-secondary', '#10b981'), 0.2),
+      gridColor: getCSSVariableValue('--widget-border', '#e5e7eb')
     };
   }
 
@@ -97,15 +158,43 @@
       tooltip: {
         mode: 'index',
         intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: 10,
+        cornerRadius: 4,
+        titleFont: {
+          size: 13,
+          weight: 'bold'
+        },
+        bodyFont: {
+          size: 12
+        },
+        callbacks: {
+          label: function (context) {
+            return context.dataset.label + ': ' + context.raw + '%';
+          }
+        }
       }
     },
     scales: {
       y: {
         beginAtZero: true,
         max: 100,
+        grid: {
+          color: function (context) {
+            const colors = getThemeColors();
+            return colors.gridColor;
+          },
+          drawBorder: false
+        },
         ticks: {
           callback: function (value) {
             return value + '%';
+          },
+          font: {
+            size: 11
+          },
+          color: function (context) {
+            return getCSSVariableValue('--widget-muted', '#6b7280');
           }
         }
       },
@@ -113,10 +202,17 @@
         ticks: {
           maxRotation: 0,
           autoSkip: true,
-          maxTicksLimit: 10
+          maxTicksLimit: 6,
+          font: {
+            size: 11
+          },
+          color: function (context) {
+            return getCSSVariableValue('--widget-muted', '#6b7280');
+          }
         },
         grid: {
-          display: false
+          display: false,
+          drawBorder: false
         }
       }
     },
@@ -126,8 +222,17 @@
         hoverRadius: 4
       },
       line: {
-        tension: 0.2
+        tension: 0.3,
+        borderWidth: 2
       }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    },
+    animation: {
+      duration: 1000
     }
   };
 
@@ -145,6 +250,7 @@
       data: {
         labels: labels,
         datasets: [{
+          label: 'CPU Load',
           data: cpuData,
           borderColor: colors.primary,
           backgroundColor: colors.primaryTransparent,
@@ -162,6 +268,7 @@
       data: {
         labels: labels,
         datasets: [{
+          label: 'RAM Usage',
           data: ramData,
           borderColor: colors.secondary,
           backgroundColor: colors.secondaryTransparent,
@@ -204,8 +311,8 @@
       ramData.shift();
 
       // Update charts
-      cpuChart.update();
-      ramChart.update();
+      cpuChart.update('none'); // Use 'none' to disable animations for updates
+      ramChart.update('none');
     }, 5000);
   });
 

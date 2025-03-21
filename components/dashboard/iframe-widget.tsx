@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getAssetPath } from "@/lib/utils"
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 import {
   Dialog,
@@ -40,16 +41,18 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
         const widgetType = widget.contentUrl.split('/').pop().split('.')[0];
 
         // Fetch the widget HTML
-        const widgetResponse = await fetch(`/widgets/${widgetType}.html`);
+        const widgetPath = getAssetPath(`/widgets/${widgetType}.html`);
+        const widgetResponse = await fetch(widgetPath);
         const widgetHtml = await widgetResponse.text();
 
         // Construct the full HTML document
         const fullHtml = `
           <!DOCTYPE html>
-          <html lang="en">
+          <html lang="en" color-scheme="${theme || 'light'}">
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="color-scheme" content="${theme || 'light'}">
             <title>${widget.title}</title>
             <style>
               * {
@@ -72,15 +75,15 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
                 color: var(--widget-text);
                 background-color: var(--widget-bg);
-                margin: 0;
+                margin: 8px;
                 padding: 0;
-                height: 100vh;
-                overflow: hidden;
+                height: 90vh;
+                overflow: auto;
               }
 
               /* Dark theme styles */
               body.dark-theme {
-                --widget-bg: #1f2937;
+                --widget-bg: #0a0a0a;
                 --widget-text: #f3f4f6;
                 --widget-muted: #9ca3af;
                 --widget-border: #4b5563;
@@ -121,8 +124,8 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
   return (
     <>
-      <Card className="h-full w-full overflow-hidden shadow-sm border-2 border-transparent hover:border-gray-200 transition-all duration-200">
-        <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-white dark:bg-gray-900 border-b select-none`}>
+      <Card className="h-full w-full overflow-hidden shadow-sm border hover:border-gray-300 transition-all duration-200">
+        <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-accent border-b select-none`}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium truncate">{widget.title}</CardTitle>
             <div className="flex items-center space-x-1">
@@ -165,7 +168,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
       {/* Full-screen dialog */}
       <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-        <DialogContent className="sm:max-w-[90vw] h-[90vh] max-h-[90vh]">
+        <DialogContent className="w-[90vw] md:max-w-[60%] h-[90vh] md:max-h-[60%] flex flex-col">
           <DialogHeader>
             <DialogTitle>{widget.title}</DialogTitle>
           </DialogHeader>
