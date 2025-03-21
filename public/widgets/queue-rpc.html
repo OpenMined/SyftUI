@@ -1,0 +1,122 @@
+<div class="request-list">
+  <div class="request-item">
+    <div class="request-info">
+      <h3 class="request-url">/api/process/image</h3>
+      <p class="request-meta">
+        f8c3de3d-1fea... · 15:30:00
+      </p>
+    </div>
+    <div class="status status-success">
+      success
+    </div>
+  </div>
+  <div class="request-item">
+    <div class="request-info">
+      <h3 class="request-url">/api/analyze/data</h3>
+      <p class="request-meta">
+        a1b2c3d4-e5f6... · 15:45:00
+      </p>
+    </div>
+    <div class="status status-pending">
+      pending
+    </div>
+  </div>
+  <div class="request-item">
+    <div class="request-info">
+      <h3 class="request-url">/api/transform/json</h3>
+      <p class="request-meta">
+        i9j0k1l2-m3n4... · 16:00:00
+      </p>
+    </div>
+    <div class="status status-failed">
+      failed
+    </div>
+  </div>
+  <div class="request-item">
+    <div class="request-info">
+      <h3 class="request-url">/api/generate/report</h3>
+      <p class="request-meta">
+        q7r8s9t0-u1v2... · 16:15:00
+      </p>
+    </div>
+    <div class="status status-pending">
+      pending
+    </div>
+  </div>
+</div>
+
+<style>
+  .request-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .request-item {
+    padding: 12px;
+    border-radius: 6px;
+    background: var(--widget-bg);
+    border: 1px solid var(--widget-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .request-info {
+    flex-grow: 1;
+  }
+
+  .request-url {
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    word-break: break-all;
+    color: var(--widget-text);
+  }
+
+  .request-meta {
+    font-size: 12px;
+    color: var(--widget-muted);
+    margin: 0;
+  }
+
+  .status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+    margin-left: 8px;
+  }
+
+  .status-pending {
+    background: var(--widget-warning);
+    color: var(--widget-bg);
+  }
+
+  .status-success {
+    background: var(--widget-success);
+    color: var(--widget-bg);
+  }
+
+  .status-failed {
+    background: var(--widget-danger);
+    color: var(--widget-bg);
+  }
+</style>
+
+<script>
+  // Simulate status changes
+  setInterval(() => {
+    const pendingItems = document.querySelectorAll('.status-pending');
+    if (pendingItems.length > 0) {
+      const randomIndex = Math.floor(Math.random() * pendingItems.length);
+      const item = pendingItems[randomIndex];
+      const newStatus = Math.random() > 0.3 ? 'success' : 'failed';
+
+      item.classList.remove('status-pending');
+      item.classList.add(`status-${newStatus}`);
+      item.textContent = newStatus;
+    }
+  }, 5000);
+</script>

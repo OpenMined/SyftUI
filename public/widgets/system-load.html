@@ -1,0 +1,235 @@
+<div class="chart-container">
+  <h3 class="chart-title">CPU Load Average (%)</h3>
+  <canvas id="cpuChart"></canvas>
+</div>
+<div class="chart-container">
+  <h3 class="chart-title">RAM Usage (%)</h3>
+  <canvas id="ramChart"></canvas>
+</div>
+
+<style>
+  .chart-container {
+    position: relative;
+    height: calc(50% - 15px);
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--widget-text);
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+  // Function to get computed CSS variable values
+  function getCSSVariableValue(variableName, fallbackColor) {
+    return getComputedStyle(document.body).getPropertyValue(variableName).trim() || fallbackColor;
+  }
+
+  // Function to create rgba color from hex
+  function hexToRgba(hex, alpha = 0.2) {
+    if (hex.trim() === '') return `rgba(59, 130, 246, ${alpha})`;  // Default to blue if empty
+
+    // Remove # if present
+    hex = hex.replace('#', '');
+
+    // Convert 3-digit hex to 6-digit
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+
+    // Parse the hex values
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Return rgba value
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // Function to get theme colors
+  function getThemeColors() {
+    return {
+      primary: getCSSVariableValue('--widget-primary', '#3b82f6'),
+      secondary: getCSSVariableValue('--widget-secondary', '#10b981'),
+      primaryTransparent: hexToRgba(getCSSVariableValue('--widget-primary', '#3b82f6'), 0.2),
+      secondaryTransparent: hexToRgba(getCSSVariableValue('--widget-secondary', '#10b981'), 0.2)
+    };
+  }
+
+  // Generate sample data
+  function generateData() {
+    const data = [];
+    const now = new Date();
+
+    for (let i = 60; i >= 0; i--) {
+      const time = new Date(now.getTime() - i * 60000);
+      data.push({
+        time: time.toISOString(),
+        cpu: Math.floor(Math.random() * 30) + 10, // Random CPU load between 10-40%
+        ram: Math.floor(Math.random() * 40) + 30, // Random RAM usage between 30-70%
+      });
+    }
+    return data;
+  }
+
+  // Format data for charts
+  const data = generateData();
+  const labels = data.map(entry => {
+    const date = new Date(entry.time);
+    return date.getHours() + ':' + date.getMinutes().toString().padStart(2, '0');
+  });
+
+  const cpuData = data.map(entry => entry.cpu);
+  const ramData = data.map(entry => entry.ram);
+
+  // Common chart options
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: function (value) {
+            return value + '%';
+          }
+        }
+      },
+      x: {
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 10
+        },
+        grid: {
+          display: false
+        }
+      }
+    },
+    elements: {
+      point: {
+        radius: 0,
+        hoverRadius: 4
+      },
+      line: {
+        tension: 0.2
+      }
+    }
+  };
+
+  let cpuChart, ramChart;
+
+  // Initialize charts
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get theme colors
+    const colors = getThemeColors();
+
+    // CPU Chart
+    const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    cpuChart = new Chart(cpuCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: cpuData,
+          borderColor: colors.primary,
+          backgroundColor: colors.primaryTransparent,
+          fill: true,
+          borderWidth: 2
+        }]
+      },
+      options: JSON.parse(JSON.stringify(commonOptions))
+    });
+
+    // RAM Chart
+    const ramCtx = document.getElementById('ramChart').getContext('2d');
+    ramChart = new Chart(ramCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: ramData,
+          borderColor: colors.secondary,
+          backgroundColor: colors.secondaryTransparent,
+          fill: true,
+          borderWidth: 2
+        }]
+      },
+      options: JSON.parse(JSON.stringify(commonOptions))
+    });
+
+    // Simulate real-time updates
+    setInterval(() => {
+      // Generate new data point
+      const lastLabelParts = labels[labels.length - 1].split(':');
+      const lastHour = parseInt(lastLabelParts[0]);
+      const lastMinute = parseInt(lastLabelParts[1]);
+
+      let newHour = lastHour;
+      let newMinute = lastMinute + 1;
+
+      if (newMinute >= 60) {
+        newMinute = 0;
+        newHour = (newHour + 1) % 24;
+      }
+
+      const newLabel = newHour + ':' + newMinute.toString().padStart(2, '0');
+
+      // Add new data points
+      const newCpuValue = Math.max(5, Math.min(95, cpuData[cpuData.length - 1] + (Math.random() * 10 - 5)));
+      const newRamValue = Math.max(10, Math.min(90, ramData[ramData.length - 1] + (Math.random() * 8 - 4)));
+
+      // Update chart data
+      labels.push(newLabel);
+      cpuData.push(newCpuValue);
+      ramData.push(newRamValue);
+
+      // Remove oldest data point
+      labels.shift();
+      cpuData.shift();
+      ramData.shift();
+
+      // Update charts
+      cpuChart.update();
+      ramChart.update();
+    }, 5000);
+  });
+
+  // Update chart colors when theme changes
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      if (mutation.attributeName === 'class') {
+        if (cpuChart && ramChart) {
+          const colors = getThemeColors();
+
+          // Update CPU chart colors
+          cpuChart.data.datasets[0].borderColor = colors.primary;
+          cpuChart.data.datasets[0].backgroundColor = colors.primaryTransparent;
+          cpuChart.update();
+
+          // Update RAM chart colors
+          ramChart.data.datasets[0].borderColor = colors.secondary;
+          ramChart.data.datasets[0].backgroundColor = colors.secondaryTransparent;
+          ramChart.update();
+        }
+      }
+    });
+  });
+
+  // Start observing theme changes
+  observer.observe(document.body, { attributes: true });
+</script>

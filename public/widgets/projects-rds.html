@@ -1,0 +1,85 @@
+<div class="project-list">
+  <div class="project-item">
+    <h3 class="project-name">Customer Segmentation</h3>
+    <div class="status status-result">
+      result available
+    </div>
+  </div>
+  <div class="project-item">
+    <h3 class="project-name">Sales Forecasting</h3>
+    <div class="status status-processing">
+      processing
+    </div>
+  </div>
+  <div class="project-item">
+    <h3 class="project-name">Anomaly Detection</h3>
+    <div class="status status-awaiting">
+      awaiting approval
+    </div>
+  </div>
+  <div class="project-item">
+    <h3 class="project-name">Text Classification</h3>
+    <div class="status status-draft">
+      draft
+    </div>
+  </div>
+</div>
+
+<style>
+  .project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .project-item {
+    padding: 12px;
+    border-radius: 6px;
+    background: var(--widget-bg);
+    border: 1px solid var(--widget-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .project-name {
+    font-weight: 600;
+    margin: 0;
+    color: var(--widget-text);
+  }
+
+  .status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+
+  .status-draft {
+    background: var(--widget-muted);
+    color: var(--widget-bg);
+  }
+
+  .status-awaiting {
+    background: var(--widget-warning);
+    color: var(--widget-bg);
+  }
+
+  .status-processing {
+    background: var(--widget-info);
+    color: var(--widget-bg);
+  }
+
+  .status-rejected {
+    background: var(--widget-danger);
+    color: var(--widget-bg);
+  }
+
+  .status-result {
+    background: var(--widget-success);
+    color: var(--widget-bg);
+  }
+</style>
