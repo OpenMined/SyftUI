@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getAssetPath } from "@/lib/utils"
-import { X, Maximize2, Minimize2 } from 'lucide-react';
+import { Trash2, Maximize2, Minimize2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -193,27 +193,35 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
   return (
     <>
       <Card className="h-full w-full overflow-hidden shadow-sm border transition-all duration-200">
-        <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-accent border-b select-none`}>
+        <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-accent border-b select-none`} data-no-drag={isEditing ? 'true' : 'false'}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium truncate">{widget.title}</CardTitle>
             <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={toggleExpand}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-              {isEditing && (
+              {!isEditing && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-600"
-                  onClick={() => onRemove(widget.id)}
+                  className="h-6 w-6"
+                  onClick={toggleExpand}
                 >
-                  <X className="h-4 w-4" />
+                  <Maximize2 className="h-4 w-4" />
                 </Button>
+              )}
+              {isEditing && (
+                <div className="remove-handle">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      onRemove(widget.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>

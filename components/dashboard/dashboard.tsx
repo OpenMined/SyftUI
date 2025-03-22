@@ -281,6 +281,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
             containerPadding={[0, 0]}
             onLayoutChange={handleLayoutChange}
             draggableHandle=".handle"
+            draggableCancel=".remove-handle"
             isDraggable={isEditing}
             isResizable={isEditing}
             useCSSTransforms={true}
