@@ -8,12 +8,13 @@ import { ViewToggle } from "@/components/file-toolbar/view-toggle"
 import { useState } from "react"
 
 interface FileToolbarProps {
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
+  // TODO remove after testing
+  // sidebarOpen?: boolean
+  // setSidebarOpen?: (open: boolean) => void
   onSearch?: (query: string) => void
 }
 
-export function FileToolbar({ sidebarOpen, setSidebarOpen, onSearch }: FileToolbarProps) {
+export function FileToolbar({ onSearch }: FileToolbarProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const handleSearch = (query: string) => {
@@ -27,10 +28,10 @@ export function FileToolbar({ sidebarOpen, setSidebarOpen, onSearch }: FileToolb
   const searchInput = (
     <div className="relative hidden sm:block">
       <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-muted-foreground" />
-      <Input 
-        type="search" 
-        placeholder="Search files..." 
-        className="w-40 md:w-64 pl-8" 
+      <Input
+        type="search"
+        placeholder="Search files..."
+        className="w-40 md:w-64 pl-8"
         value={searchQuery}
         onChange={(e) => handleSearch(e.target.value)}
       />
@@ -39,8 +40,6 @@ export function FileToolbar({ sidebarOpen, setSidebarOpen, onSearch }: FileToolb
 
   return (
     <Toolbar
-      sidebarOpen={sidebarOpen}
-      setSidebarOpen={setSidebarOpen}
       leftSection={<FileActions />}
       rightSection={<ViewToggle />}
     >

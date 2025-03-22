@@ -4,20 +4,36 @@ import "./globals.css"
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { NotificationProvider } from "@/components/notification-context"
-import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { usePathname, useRouter } from "next/navigation"
+import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
 
 // Import metadata values
 import { metadata } from './metadata'
+
+// Create an internal layout component that can use sidebar context
+function MainLayout({ children }: { children: React.ReactNode }) {
+  // Access sidebar state from context
+  const { sidebarOpen, setSidebarOpen } = useSidebar()
+
+  return (
+    <div className="flex h-screen">
+      <div className={`fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } md:w-64 flex-shrink-0`}>
+        <Sidebar closeSidebar={() => setSidebarOpen(false)} />
+      </div>
+      <div className="flex-1 overflow-hidden">
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -28,17 +44,11 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NotificationProvider>
-              <div className="flex h-screen">
-                <div className={`fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-                  } md:w-64 flex-shrink-0`}>
-                  <Sidebar closeSidebar={() => setSidebarOpen(false)} />
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  {children}
-                </div>
-              </div>
-            </NotificationProvider>
-          </ThemeProvider>
+            <SidebarProvider>
+              <MainLayout>{children}</MainLayout>
+            </SidebarProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

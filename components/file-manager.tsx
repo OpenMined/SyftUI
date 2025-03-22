@@ -363,7 +363,7 @@ function FileManagerContent({
   
   return (
     <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>
-      <FileToolbar sidebarOpen={false} setSidebarOpen={() => {}} />
+      <FileToolbar />
       <Breadcrumb currentPath={currentPath} navigateTo={navigateTo} />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-auto p-4 relative">

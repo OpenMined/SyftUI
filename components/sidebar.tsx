@@ -82,6 +82,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       icon: LayoutDashboard, label: "Dashboard", action: () => {
         setActiveItem("Dashboard")
         router.push("/")
+        closeSidebar()
       }
     },
     {
@@ -91,6 +92,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         setActiveItem("Workspace")
         navigateToPath([])
         router.push("/workspace/")
+        closeSidebar()
       },
     },
     {
@@ -100,6 +102,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         setActiveItem("Datasites")
         navigateToPath(["datasites"])
         router.push("/workspace/?path=datasites/")
+        closeSidebar()
       },
     },
     {
@@ -109,12 +112,14 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         setActiveItem("My datasite")
         navigateToPath(["datasites", userEmail])
         router.push(`/workspace/?path=datasites/${userEmail}/`)
+        closeSidebar()
       }
     },
     {
       icon: AppWindow, label: "Apps", action: () => {
         setActiveItem("Apps")
         router.push("/apps/")
+        closeSidebar()
       }
     },
     {
@@ -123,6 +128,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("Marketplace")
         router.push("/marketplace/")
+        closeSidebar()
       },
     },
     {
@@ -131,12 +137,14 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("Logs")
         router.push("/logs/")
+        closeSidebar()
       }
     },
     {
       icon: Gauge, label: "Diagnostic", action: () => {
         setActiveItem("Diagnostic")
         router.push("/diagnostic/")
+        closeSidebar()
       }
     },
   ]
@@ -244,6 +252,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                           navigateToPath(fav.path)
                           // Need to push to router as well for it to work across other pages like /marketplace, /logs, etc
                           router.push(`/workspace/?path=${fav.path.join('/')}`)
+                          closeSidebar()
                         }}
                         className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
@@ -280,16 +289,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={closeSidebar}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={closeSidebar}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={closeSidebar}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
