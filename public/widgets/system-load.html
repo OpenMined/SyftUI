@@ -1,7 +1,7 @@
 <div class="chart-wrapper">
   <div class="chart-container">
     <div class="chart-header">
-      <h3 class="chart-title">CPU Load Average (%)</h3>
+      <p class="chart-title">CPU Load Average (%)</p>
       <div class="chart-legend">
         <span class="legend-dot cpu-dot"></span>
         <span class="legend-label">Last hour</span>
@@ -12,7 +12,7 @@
 
   <div class="chart-container">
     <div class="chart-header">
-      <h3 class="chart-title">RAM Usage (%)</h3>
+      <p class="chart-title">RAM Usage (%)</p>
       <div class="chart-legend">
         <span class="legend-dot ram-dot"></span>
         <span class="legend-label">Last hour</span>
@@ -26,17 +26,17 @@
   .chart-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    gap: 2rem;
+    min-height: 280px;
     height: 100%;
   }
 
   .chart-container {
     position: relative;
-    height: calc(50% - 12px);
+    height: calc(50% - 0.75rem);
     background: var(--widget-bg, #ffffff);
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 0.5rem;
+    padding: 1rem;
     border: 1px solid var(--widget-border, #e5e7eb);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
@@ -45,20 +45,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
   }
 
   .chart-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0;
     color: var(--widget-text, #1f2937);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    word-break: break-all;
   }
 
   .chart-legend {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.5rem;
   }
 
   .legend-dot {

@@ -55,14 +55,81 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
             <meta name="color-scheme" content="${theme || 'light'}">
             <title>${widget.title}</title>
             <style>
-              * {
+              /* ############### START CSS RESETS ############### */
+              /* Box sizing rules */
+              *, *::before, *::after {
                 box-sizing: border-box;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              }
+
+              /* Prevent font size inflation */
+              html {
+                -moz-text-size-adjust: none;
+                -webkit-text-size-adjust: none;
+                text-size-adjust: none;
+              }
+
+              /* Remove default margin in favour of better control in authored CSS */
+              body, h1, h2, h3, h4, p, figure, blockquote, dl, dd {
+                margin: 0;
+              }
+
+              /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+              ul[role='list'], ol[role='list'] {
+                list-style: none;
+              }
+
+              /* Set core body defaults */
+              body {
+                line-height: 1.5;
+              }
+
+              /* Set shorter line heights on headings and interactive elements */
+              h1, h2, h3, h4, button, input, label {
+                line-height: 1.1;
+              }
+
+              /* Balance text wrapping on headings */
+              h1, h2, h3, h4 {
+                text-wrap: balance;
+              }
+
+              /* A elements that don't have a class get default styles */
+              a:not([class]) {
+                text-decoration-skip-ink: auto;
+                color: currentColor;
+              }
+
+              /* Make images easier to work with */
+              img, picture {
+                max-width: 100%;
+                display: block;
+              }
+
+              /* Inherit fonts for inputs and buttons */
+              input, button, textarea, select {
+                font-family: inherit;
+                font-size: inherit;
+              }
+
+              /* Make sure textareas without a rows attribute are not tiny */
+              textarea:not([rows]) {
+                min-height: 10em;
+              }
+
+              /* Anything that has been anchored to should have extra scroll margin */
+              :target {
+                scroll-margin-block: 5ex;
+              }
+              /* ############### END CSS RESETS ############### */
+
+              * {
+                font-family: Arial, Helvetica, sans-serif;
               }
 
               /* Light theme variables */
               body {
                 --widget-bg: #ffffff;
+                --widget-bg-muted: #f5f5f5;
                 --widget-text: #333333;
                 --widget-muted: #6b7280;
                 --widget-border: #e5e7eb;
@@ -75,8 +142,8 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
                 color: var(--widget-text);
                 background-color: var(--widget-bg);
-                margin: 8px;
-                padding: 0;
+                margin: 0;
+                padding: 0.5rem;
                 height: 90vh;
                 overflow: auto;
               }
@@ -84,6 +151,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
               /* Dark theme styles */
               body.dark-theme {
                 --widget-bg: #0a0a0a;
+                --widget-bg-muted: #262626;
                 --widget-text: #f3f4f6;
                 --widget-muted: #9ca3af;
                 --widget-border: #4b5563;
@@ -124,7 +192,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
   return (
     <>
-      <Card className="h-full w-full overflow-hidden shadow-sm border hover:border-gray-300 transition-all duration-200">
+      <Card className="h-full w-full overflow-hidden shadow-sm border transition-all duration-200">
         <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-accent border-b select-none`}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium truncate">{widget.title}</CardTitle>

@@ -1,54 +1,89 @@
 <div class="request-list">
   <div class="request-item">
     <div class="request-info">
-      <div class="request-url-container">
-        <h3 class="request-url">/api/process/image</h3>
-        <div class="status status-success">Success</div>
-      </div>
-      <p class="request-meta">
-        <span class="request-id">f8c3de3d-1fea...</span>
-        <span class="request-time">15:30:00</span>
+      <p class="request-url">syft://tauquir@openmined.org/rpc/ping</p>
+      <p class="request-desc">
+        <span class="request-id">f6633ac8-2e06-41ba-9daa-fa9979ef18ef</span>
+        <span class="request-time">04:30:21 PM</span>
       </p>
     </div>
+    <div class="status status-success">Success</div>
   </div>
 
   <div class="request-item">
     <div class="request-info">
-      <div class="request-url-container">
-        <h3 class="request-url">/api/analyze/data</h3>
-        <div class="status status-pending">Pending</div>
-      </div>
-      <p class="request-meta">
-        <span class="request-id">a1b2c3d4-e5f6...</span>
-        <span class="request-time">15:45:00</span>
+      <p class="request-url">syft://andrew@openmined.org/rpc/profile</p>
+      <p class="request-desc">
+        <span class="request-id">86ca0b7e-46e5-47cd-a5f5-2f1af6e6c0a0</span>
+        <span class="request-time">04:30:19 PM</span>
       </p>
     </div>
+    <div class="status status-pending">Pending</div>
   </div>
 
   <div class="request-item">
     <div class="request-info">
-      <div class="request-url-container">
-        <h3 class="request-url">/api/transform/json</h3>
-        <div class="status status-failed">Failed</div>
-      </div>
-      <p class="request-meta">
-        <span class="request-id">i9j0k1l2-m3n4...</span>
-        <span class="request-time">16:00:00</span>
+      <p class="request-url">syft://madhava@openmined.org/rpc/cpu_info</p>
+      <p class="request-desc">
+        <span class="request-id">b3f1b030-73a9-4f15-805f-56e3a8a8c153</span>
+        <span class="request-time">04:30:15 PM</span>
       </p>
     </div>
+    <div class="status status-failed">Failed</div>
   </div>
 
   <div class="request-item">
     <div class="request-info">
-      <div class="request-url-container">
-        <h3 class="request-url">/api/generate/report</h3>
-        <div class="status status-pending">Pending</div>
-      </div>
-      <p class="request-meta">
-        <span class="request-id">q7r8s9t0-u1v2...</span>
-        <span class="request-time">16:15:00</span>
+      <p class="request-url">syft://khoa@openmined.org/rpc/ram_info</p>
+      <p class="request-desc">
+        <span class="request-id">97bf4772-3b90-4a7a-8ef9-27c28884f907</span>
+        <span class="request-time">04:29:59 PM</span>
       </p>
     </div>
+    <div class="status status-failed">Failed</div>
+  </div>
+  <div class="request-item">
+    <div class="request-info">
+      <p class="request-url">syft://yash@openmined.org/rpc/ping</p>
+      <p class="request-desc">
+        <span class="request-id">f6633ac8-2e06-41ba-9daa-fa9979ef18ef</span>
+        <span class="request-time">04:29:19 PM</span>
+      </p>
+    </div>
+    <div class="status status-success">Success</div>
+  </div>
+
+  <div class="request-item">
+    <div class="request-info">
+      <p class="request-url">syft://shubham@openmined.org/rpc/profile</p>
+      <p class="request-desc">
+        <span class="request-id">86ca0b7e-46e5-47cd-a5f5-2f1af6e6c0a0</span>
+        <span class="request-time">04:28:55 PM</span>
+      </p>
+    </div>
+    <div class="status status-pending">Pending</div>
+  </div>
+
+  <div class="request-item">
+    <div class="request-info">
+      <p class="request-url">syft://rasswanth@openmined.org/rpc/cpu_info</p>
+      <p class="request-desc">
+        <span class="request-id">b3f1b030-73a9-4f15-805f-56e3a8a8c153</span>
+        <span class="request-time">04:28:27 PM</span>
+      </p>
+    </div>
+    <div class="status status-failed">Failed</div>
+  </div>
+
+  <div class="request-item">
+    <div class="request-info">
+      <p class="request-url">syft://irina@openmined.org/rpc/ram_info</p>
+      <p class="request-desc">
+        <span class="request-id">97bf4772-3b90-4a7a-8ef9-27c28884f907</span>
+        <span class="request-time">04:28:01 PM</span>
+      </p>
+    </div>
+    <div class="status status-failed">Failed</div>
   </div>
 </div>
 
@@ -56,98 +91,88 @@
   .request-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    gap: 0.5rem;
   }
 
   .request-item {
-    padding: 12px;
-    border-radius: 8px;
     background: var(--widget-bg, #ffffff);
-    border: 1px solid var(--widget-border, #e5e7eb);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    justify-content: flex-start;
+    position: relative;
+    width: 100%;
+    padding: 0.5rem;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
 
   .request-item:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transform: translateY(-1px);
+    background: var(--widget-bg-muted);
   }
 
   .request-info {
-    width: 100%;
-  }
-
-  .request-url-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+    flex-grow: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .request-url {
-    font-weight: 600;
-    margin: 0;
-    font-size: 15px;
     color: var(--widget-text, #1f2937);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
     word-break: break-all;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
-  .request-meta {
-    display: flex;
-    gap: 12px;
-    font-size: 13px;
+  .request-desc {
     color: var(--widget-muted, #6b7280);
-    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    display: flex;
+    gap: 0.75rem;
   }
 
   .request-id {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    opacity: 0.8;
-  }
-
-  .request-time {
-    font-weight: 500;
   }
 
   .status {
-    padding: 4px 10px;
-    border-radius: 16px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: capitalize;
-    letter-spacing: 0.02em;
-  }
-
-  .status-pending {
-    background: var(--widget-warning, #f59e0b);
-    color: white;
+    display: flex;
+    align-items: center;
+    align-self: center;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    height: fit-content;
+    line-height: 1rem;
+    padding: 0.25rem 0.5rem;
+    border: solid;
+    border-width: 1px;
+    border-radius: 9999px;
   }
 
   .status-success {
-    background: var(--widget-success, #10b981);
-    color: white;
+    border-color: rgb(187 247 208);
+    background-color: rgb(220 252 231);
+    color: rgb(22 163 74);
+  }
+
+  .status-pending {
+    border-color: rgb(254 240 138);
+    background-color: rgb(254 249 195);
+    color: rgb(202 138 4);
   }
 
   .status-failed {
-    background: var(--widget-danger, #ef4444);
-    color: white;
+    border-color: rgb(254 202 202);
+    background-color: rgb(254 226 226);
+    color: rgb(220 38 38);
   }
 </style>
-
-<script>
-  // Simulate status changes
-  setInterval(() => {
-    const pendingItems = document.querySelectorAll('.status-pending');
-    if (pendingItems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * pendingItems.length);
-      const item = pendingItems[randomIndex];
-      const newStatus = Math.random() > 0.3 ? 'success' : 'failed';
-
-      item.classList.remove('status-pending');
-      item.classList.add(`status-${newStatus}`);
-      item.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-    }
-  }, 5000);
-</script>
