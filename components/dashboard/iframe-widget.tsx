@@ -46,7 +46,10 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
         const widgetHtml = await widgetResponse.text();
 
         // Fetch the widget CSS url
-        const widgetCssPath = getAssetPath("/widgets.css");
+        const widgetStylesheetPaths = [
+          getAssetPath("/widgets/reset.css"),
+          getAssetPath("/widgets/widgets.css"),
+        ];
 
         // Parse the widget HTML and inject our code into it
         const parser = new DOMParser();
@@ -61,14 +64,16 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
           doc.body.classList.add(themeClass);
         }
 
-        // Add the stylesheet link if it doesn't exist
-        const existingLink = doc.querySelector(`link[href="${widgetCssPath}"]`);
-        if (!existingLink) {
-          const link = doc.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = widgetCssPath;
-          doc.head.appendChild(link);
-        }
+        // Add the stylesheets
+        widgetStylesheetPaths.forEach((path) => {
+          const existingLink = doc.querySelector(`link[href="${path}"]`);
+          if (!existingLink) {
+            const link = doc.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = path;
+            doc.head.appendChild(link);
+          }
+        });
 
         // Add meta tags if they don't exist, and override if they do
         const metaTags = [

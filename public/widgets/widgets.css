@@ -1,0 +1,36 @@
+/* Light theme variables */
+body {
+    --widget-bg: #ffffff;
+    --widget-bg-muted: #f5f5f5;
+    --widget-text: #333333;
+    --widget-muted: #6b7280;
+    --widget-border: #e5e7eb;
+    --widget-primary: #3b82f6;
+    --widget-secondary: #10b981;
+    --widget-success: #22c55e;
+    --widget-danger: #ef4444;
+    --widget-warning: #f59e0b;
+    --widget-info: #06b6d4;
+
+    color: var(--widget-text);
+    background-color: var(--widget-bg);
+    margin: 0;
+    padding: 0.5rem;
+    height: 90vh;
+    overflow: auto;
+}
+
+/* Dark theme styles */
+body.dark-theme {
+    --widget-bg: #0a0a0a;
+    --widget-bg-muted: #262626;
+    --widget-text: #f3f4f6;
+    --widget-muted: #9ca3af;
+    --widget-border: #4b5563;
+    --widget-primary: #60a5fa;
+    --widget-secondary: #34d399;
+    --widget-success: #4ade80;
+    --widget-danger: #f87171;
+    --widget-warning: #fbbf24;
+    --widget-info: #22d3ee;
+}
