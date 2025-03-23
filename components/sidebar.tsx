@@ -21,6 +21,7 @@ import {
 import { cn, getAssetPath } from "@/lib/utils"
 import { navigateToPath } from "@/lib/utils/url"
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   })
   const router = useRouter()
   const pathname = usePathname()
+  const isMobile = useIsMobile()
   
   // Load favorites from localStorage on initial render
   useEffect(() => {
@@ -284,7 +286,11 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             <CollapsibleContent>
               <div className="pl-4 pr-2 py-2 space-y-1" onDrop={handleDrop} onDragOver={handleDragOver}>
                 {favorites.length === 0 ? (
-                  <p className="text-xs text-muted-foreground px-3 py-2">Drag folders here to add to favorites</p>
+                  <p className="text-xs text-muted-foreground px-3 py-2">
+                    {isMobile ? 
+                      "Use the star button to add favorites" : 
+                      "Drag folders here to add to favorites"}
+                  </p>
                 ) : (
                   favorites.map((fav) => (
                     <div key={fav.id} className="flex items-center justify-between group">
