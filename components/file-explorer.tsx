@@ -5,6 +5,7 @@ import { useFileSystem } from "@/components/contexts/file-system-context"
 import type { FileSystemItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
+import { addToFavorites } from "@/lib/utils/favorites"
 import { PermissionsDialog } from "@/components/permissions-dialog"
 import {
   ContextMenu,
@@ -19,6 +20,7 @@ import {
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
 } from "@/components/ui/context-menu"
+import { Star } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -33,6 +35,7 @@ interface BackgroundContextMenuContentProps {
   sortConfig: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }
   setSortConfig: (config: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }) => void
   setViewMode?: (mode: "grid" | "list") => void
+  getCurrentDirectoryInfo: () => FileSystemItem | null
   handleCreateFolder?: (name: string) => void
   toggleSyncPause?: () => void
   syncPaused?: boolean
@@ -44,6 +47,7 @@ function BackgroundContextMenuContent({
   setSortConfig,
   setViewMode,
   viewMode,
+  getCurrentDirectoryInfo,
   handleCreateFolder,
   toggleSyncPause,
   syncPaused
@@ -63,6 +67,31 @@ function BackgroundContextMenuContent({
       setNewFolderName("");
     }
     setShowNewFolderDialog(false);
+  }
+
+  // Handler for adding current directory to favorites
+  const handleAddToFavorites = () => {
+    // For root directory
+    if (currentPath.length === 0) {
+      addToFavorites({
+        id: "root", // Using "root" as ID for root directory
+        name: "Root",
+        type: "folder",
+        path: []
+      });
+      return;
+    }
+
+    // For non-root directories, we need to construct an item
+    const dirName = currentPath[currentPath.length - 1];
+    const dirPath = currentPath.slice(0, -1);
+
+    addToFavorites({
+      id: `dir-${dirName}`, // Creating a pseudo-ID based on name
+      name: dirName,
+      type: "folder",
+      path: dirPath
+    });
   }
 
   return (
@@ -91,6 +120,10 @@ function BackgroundContextMenuContent({
         <ContextMenuItem>Refresh</ContextMenuItem>
         <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={handleAddToFavorites}>
+          <Star className="mr-2 h-4 w-4" />
+          Add Current Folder to Favorites
         </ContextMenuItem>
         <ContextMenuSeparator />
 
@@ -179,6 +212,7 @@ interface FileExplorerItemProps {
   item: FileSystemItem
   viewMode: "grid" | "list"
   selectedItems: string[]
+  currentPath: string[]
   handleItemClick: (item: FileSystemItem, event: React.MouseEvent) => void
   handleItemDoubleClick: (item: FileSystemItem) => void
   handleDragStart: (e: React.DragEvent, item: FileSystemItem) => void
@@ -202,6 +236,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   item,
   viewMode,
   selectedItems,
+  currentPath,
   handleItemClick,
   handleItemDoubleClick,
   handleDragStart,
@@ -318,6 +353,19 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => openRenameDialog(item)}>Rename</ContextMenuItem>
         <ContextMenuItem onClick={() => openShareDialog(item)}>Permissions</ContextMenuItem>
+        {item.type === 'folder' && (
+          <ContextMenuItem
+            onClick={() => addToFavorites({
+              id: item.id,
+              name: item.name,
+              type: item.type,
+              path: currentPath
+            })}
+          >
+            <Star className="mr-2 h-4 w-4" />
+            Add to Favorites
+          </ContextMenuItem>
+        )}
         <ContextMenuSeparator />
         <ContextMenuItem
           onClick={() => handleDelete([item.id])}
@@ -605,7 +653,7 @@ export function FileExplorer({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className="flex flex-col items-center justify-center h-64 text-muted-foreground w-full"
+          className="flex flex-col items-center justify-center text-muted-foreground w-full h-full"
           onDragOver={(e) => handleDragOver(e)}
           onDrop={(e) => handleDrop(e)}
           onClick={handleBackgroundClick}
@@ -621,6 +669,15 @@ export function FileExplorer({
         setSortConfig={fileSystemContext.setSortConfig}
         setViewMode={fileSystemContext.setViewMode}
         viewMode={viewMode}
+        getCurrentDirectoryInfo={() => {
+          // Create a dummy implementation if none provided
+          if (!getCurrentDirectoryInfo) {
+            return currentPath.length > 0
+              ? { id: `dir-${currentPath[currentPath.length - 1]}`, name: currentPath[currentPath.length - 1], type: 'folder' as const }
+              : { id: 'root', name: 'Root', type: 'folder' as const };
+          }
+          return getCurrentDirectoryInfo();
+        }}
         handleCreateFolder={fileSystemContext.handleCreateFolder}
         toggleSyncPause={fileSystemContext.toggleSyncPause}
         syncPaused={fileSystemContext.syncPaused}
@@ -657,6 +714,7 @@ export function FileExplorer({
                     item={item}
                     viewMode={viewMode}
                     selectedItems={selectedItems}
+                    currentPath={currentPath}
                     handleItemClick={handleItemClick}
                     handleItemDoubleClick={handleItemDoubleClick}
                     handleDragStart={handleDragStart}
@@ -685,6 +743,15 @@ export function FileExplorer({
           setSortConfig={fileSystemContext.setSortConfig}
           setViewMode={fileSystemContext.setViewMode}
           viewMode={viewMode}
+          getCurrentDirectoryInfo={() => {
+            // Create a dummy implementation if none provided
+            if (!getCurrentDirectoryInfo) {
+              return currentPath.length > 0
+                ? { id: `dir-${currentPath[currentPath.length - 1]}`, name: currentPath[currentPath.length - 1], type: 'folder' as const }
+                : { id: 'root', name: 'Root', type: 'folder' as const };
+            }
+            return getCurrentDirectoryInfo();
+          }}
           handleCreateFolder={fileSystemContext.handleCreateFolder}
           toggleSyncPause={fileSystemContext.toggleSyncPause}
           syncPaused={fileSystemContext.syncPaused}

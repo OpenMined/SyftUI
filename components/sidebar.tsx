@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { cn, getAssetPath } from "@/lib/utils"
 import { navigateToPath } from "@/lib/utils/url"
+import { loadFavorites, saveFavorites } from "@/lib/utils/favorites"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,19 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   })
   const router = useRouter()
   const pathname = usePathname()
+  
+  // Load favorites from localStorage on initial render
+  useEffect(() => {
+    const savedFavorites = loadFavorites();
+    if (savedFavorites.length > 0) {
+      setFavorites(savedFavorites);
+    }
+  }, [])
+  
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    saveFavorites(favorites);
+  }, [favorites])
 
   // User email for "My datasite" path
   const userEmail = "user@example.com"
@@ -69,6 +83,33 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   useEffect(() => {
     setActiveItem(getActiveItem(pathname))
   }, [pathname])
+  
+  // Listen for add-to-favorites events
+  useEffect(() => {
+    const handleAddToFavorites = (event: Event) => {
+      const detail = (event as any).detail;
+      
+      if (detail && detail.id && detail.name) {
+        // Check if already in favorites
+        if (!favorites.some((fav) => fav.id === detail.id)) {
+          setFavorites((prev) => [
+            ...prev,
+            {
+              id: detail.id,
+              name: detail.name,
+              path: detail.path || [],
+            },
+          ])
+        }
+      }
+    };
+    
+    window.addEventListener('add-to-favorites', handleAddToFavorites);
+    
+    return () => {
+      window.removeEventListener('add-to-favorites', handleAddToFavorites);
+    };
+  }, [favorites])
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({

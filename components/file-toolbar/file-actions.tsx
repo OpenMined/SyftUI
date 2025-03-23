@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { useFileSystem } from "@/components/contexts/file-system-context"
 import { useClipboard } from "@/components/contexts/clipboard-context"
 import { useSync } from "@/components/contexts/sync-context"
+import { addToFavorites } from "@/lib/utils/favorites"
 import {
   FolderPlus,
   Upload,
@@ -15,6 +16,7 @@ import {
   PlayCircle,
   RefreshCw,
   ArrowUpDown,
+  Star,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,9 +33,14 @@ import {
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleDelete, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleDelete, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
+  
+  // Check if any selected items are folders
+  const hasSelectedFolder = selectedItems.length === 1 && fileSystem
+    .filter(item => item.id === selectedItems[0])
+    .some(item => item.type === 'folder')
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
@@ -56,6 +63,23 @@ export function FileActions() {
     setTimeout(() => {
       setIsRefreshing(false);
     }, 750); // Show refreshing state for at least 750ms
+  }
+  
+  // Function to handle favoriting the selected folder
+  const handleAddToFavorites = () => {
+    if (hasSelectedFolder) {
+      const selectedFolderId = selectedItems[0];
+      const folder = fileSystem.find(item => item.id === selectedFolderId);
+      
+      if (folder && folder.type === 'folder') {
+        addToFavorites({
+          id: folder.id,
+          name: folder.name,
+          type: folder.type,
+          path: currentPath,
+        });
+      }
+    }
   }
 
   // Sync status button
@@ -161,6 +185,22 @@ export function FileActions() {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      {/* Favorite button - only visible when a folder is selected */}
+      {hasSelectedFolder && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleAddToFavorites}>
+                <Star className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add to Favorites</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
       <TooltipProvider>
         {selectedItems.length > 0 && (
