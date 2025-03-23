@@ -17,7 +17,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 768 // md breakpoint
     }
-    return true // Default to true for SSR
+    return false // Default to false for SSR
   })
 
   const toggleSidebar = () => {

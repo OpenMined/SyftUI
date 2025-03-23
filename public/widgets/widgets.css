@@ -16,7 +16,7 @@ body {
     background-color: var(--widget-bg);
     margin: 0;
     padding: 0.5rem;
-    height: 90vh;
+    height: 100vh;
     overflow: auto;
 }
 

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcast Wizard</title>
+    <style>
+        /* Common Transitions and Animations */
+        :root {
+            /* Theme variables */
+            --widget-highlight: #8b5cf6;
+            --widget-pill-bg: #e0e7ff;
+            --chip-bg: #f3f4f6;
+            --chip-hover: #e5e7eb;
+            --chip-selected: #dbeafe;
+            --chip-selected-border: #60a5fa;
+            --chip-text: #374151;
+            --chip-selected-text: #1e40af;
+
+            /* Common transitions */
+            --transition-standard: all 0.2s ease;
+            --transition-screen: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Dark theme styles */
+        .dark {
+            --widget-highlight: #a78bfa;
+            --widget-pill-bg: #4338ca;
+            --chip-bg: #1e293b;
+            --chip-hover: #334155;
+            --chip-selected: #1e40af;
+            --chip-selected-border: #93c5fd;
+            --chip-text: #e5e7eb;
+            --chip-selected-text: #ffffff;
+        }
+
+        /* Broadcast Wizard Styles */
+        .broadcast-wizard {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .wizard-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: var(--transition-standard);
+        }
+
+        .wizard-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .wizard-step-title {
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: var(--transition-screen);
+        }
+
+        .wizard-screen.active {
+            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .wizard-screen h2 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--widget-text);
+        }
+
+        .search-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--widget-border);
+            background-color: var(--widget-bg);
+            color: var(--widget-text);
+            font-size: 0.875rem;
+            transition: var(--transition-standard);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--widget-primary);
+        }
+
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            background-color: var(--widget-bg);
+            border: 1px solid var(--widget-border);
+            transition: var(--transition-standard);
+            padding: 0.75rem;
+        }
+
+        /* Selection controls */
+        .selection-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .selection-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: var(--widget-bg);
+            color: var(--widget-text);
+            border: 1px solid var(--widget-border);
+            cursor: pointer;
+            transition: var(--transition-standard);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .selection-btn:hover {
+            background-color: var(--widget-primary);
+            color: white;
+            border-color: var(--widget-primary);
+        }
+
+        /* Chip style for apps and recipients */
+        .app-chips,
+        .recipient-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .app-chip,
+        .recipient-chip {
+            display: flex;
+            align-items: center;
+            align-self: center;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            height: fit-content;
+            line-height: 1rem;
+            padding: 0.25rem 0.5rem;
+            border: solid;
+            border-width: 1px;
+            border-radius: 9999px;
+            border-color: rgb(229 231 235);
+            background-color: var(--chip-bg);
+            color: var(--chip-text);
+            cursor: pointer;
+            transition: var(--transition-standard);
+        }
+
+        .app-chip:hover,
+        .recipient-chip:hover {
+            background-color: var(--chip-hover);
+        }
+
+        .app-chip.selected,
+        .recipient-chip.selected {
+            border-color: var(--chip-selected-border);
+            background-color: var(--chip-selected);
+            color: var(--chip-selected-text);
+        }
+
+        /* Pills display style */
+        .selected-recipients {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .selected-recipients .recipient-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background-color: var(--widget-pill-bg);
+            color: var(--widget-text);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            transition: var(--transition-standard);
+        }
+
+        .recipient-pill:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Confirmation Screen Styles */
+        #screen-3 {
+            overflow-y: auto;
+        }
+
+        .confirmation-message {
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-message p,
+        .success-content p {
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .confirmation-message .warning {
+            color: var(--widget-danger);
+            font-weight: 500;
+        }
+
+        .highlight-app {
+            color: var(--widget-highlight);
+            font-weight: 600;
+        }
+
+        .confirm-recipients {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: var(--widget-bg);
+            border-radius: 8px;
+            border: 1px solid var(--widget-border);
+        }
+
+        /* Adjust success screen */
+        #screen-4 {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .success-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .success-icon {
+            color: var(--widget-success);
+            margin-bottom: 1.5rem;
+        }
+
+        .success-content h2 {
+            margin-bottom: 1rem;
+        }
+
+        .success-recipients {
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            background-color: var(--widget-bg-muted);
+            border-radius: 12px;
+            width: 100%;
+            border: 1px solid var(--widget-border);
+        }
+
+        /* Footer Styles */
+        .wizard-footer {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .wizard-footer.success-footer {
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-standard);
+            border: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--widget-primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--widget-bg-muted);
+            color: var(--widget-text);
+            border: 1px solid var(--widget-border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--widget-bg);
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Animation classes */
+        .slide-in-right {
+            animation: slideInRight 0.3s forwards;
+        }
+
+        .slide-out-left {
+            animation: slideOutLeft 0.3s forwards;
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.3s forwards;
+        }
+
+        .slide-out-right {
+            animation: slideOutRight 0.3s forwards;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .wizard-container {
+                height: 100%;
+                max-height: none;
+                border-radius: 0;
+            }
+        }
+
+        @media (max-width: 480px),
+        (max-height: 600px) {
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .wizard-screen h2 {
+                margin-bottom: 0.5rem;
+                font-size: 1.25rem;
+            }
+
+            .search-container {
+                margin-bottom: 0.5rem;
+            }
+
+            .search-input {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Accessibility focus styles */
+        :focus-visible {
+            outline: 2px solid var(--widget-primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="broadcast-wizard">
+        <div class="wizard-container">
+            <div class="wizard-content">
+                <!-- Screen 1: App Selection -->
+                <div class="wizard-screen active" id="screen-1">
+                    <p class="wizard-step-title">Step 1: Select an installed app to share</p>
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search apps..." id="app-search">
+                    </div>
+                    <div class="scrollable-content">
+                        <div class="app-chips" id="app-list">
+                            <!-- App chips will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 2: Recipient Selection -->
+                <div class="wizard-screen" id="screen-2">
+                    <p class="wizard-step-title">Step 2: Select Recipients</p>
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search recipients..."
+                            id="recipient-search">
+                        <div class="selection-controls">
+                            <button class="selection-btn" id="select-all-btn" title="Select All">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 3h18v18H3z"></path>
+                                    <path d="m9 13 2 2 4-4"></path>
+                                </svg>
+                            </button>
+                            <button class="selection-btn" id="select-none-btn" title="Select None">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 3h18v18H3z"></path>
+                                    <path d="M15 9 9 15"></path>
+                                    <path d="m9 9 6 6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="scrollable-content">
+                        <div class="recipient-chips" id="recipient-list">
+                            <!-- Recipient chips will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 3: Confirmation -->
+                <div class="wizard-screen" id="screen-3">
+                    <p class="wizard-step-title">Step 3: Confirm Broadcast</p>
+                    <div class="confirmation-message">
+                        <p>
+                            You are about to broadcast the app <span class="highlight-app" id="confirm-app-name"></span>
+                            to the
+                            following datasites:
+                        </p>
+                        <div class="confirm-recipients" id="confirm-recipients"></div>
+                        <p class="warning">
+                            This action will notify multiple users across various locations. Are you sure you want to
+                            proceed?
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Screen 4: Success -->
+                <div class="wizard-screen" id="screen-4">
+                    <div class="success-content">
+                        <div class="success-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <h2 class="wizard-step-title">App broadcast scheduled</h2>
+                        <p>
+                            <span class="highlight-app" id="success-app-name"></span> has been successfully
+                            scheduled to
+                            broadcast to the following datasites:
+                        </p>
+                        <div class="success-recipients" id="success-recipients"></div>
+                        <p>You can monitor the progress in the logs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-footer" id="wizard-footer">
+                <button class="btn btn-secondary" id="prev-btn" style="visibility: hidden;">
+                    Back
+                </button>
+                <button class="btn btn-primary" id="next-btn" disabled>
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        class BroadcastWizard {
+            constructor() {
+                this.appNames = [
+                    'basic_aggregator',
+                    'fl_aggregator',
+                    'fl_client',
+                    'ftop',
+                    'github_app_updater',
+                    'inbox',
+                    'logged_in',
+                    'model_aggregator_app',
+                    'ring',
+                    'sync_status_indicators',
+                    'secure_MPC',
+                    'differential_privacy_tool',
+                    'homomorphic_encryption',
+                    'ZKP_verifier',
+                    'PSI_protocol',
+                    'federated_analytics',
+                    'privacy_dashboard',
+                    'data_anonymizer',
+                    'secure_enclave',
+                    'privacy_budget_monitor',
+                    'secure_multiparty_computing',
+                    'private_set_intersection',
+                    'encrypted_learning'
+                ];
+
+                this.emails = [
+                    'andrew@openmined.org',
+                    'aziz@openmined.org',
+                    'bennett@openmined.org',
+                    'brendan@openmined.org',
+                    'curtis@openmined.org',
+                    'dave@openmined.org',
+                    'eelco@openmined.org',
+                    'info@openmined.org',
+                    'ionesio@openmined.org',
+                    'irina@openmined.org',
+                    'khoa@openmined.org',
+                    'koen@openmined.org',
+                    'lacey@openmined.org',
+                    'madhava@openmined.org',
+                    'matei@openmined.org',
+                    'osam@openmined.org',
+                    'peter@openmined.org',
+                    'rasswanth@openmined.org',
+                    'ronnie@openmined.org',
+                    'sameer@openmined.org',
+                    'shubham@openmined.org',
+                    'stephen@openmined.org',
+                    'subha@openmined.org',
+                    'tauquir@openmined.org',
+                    'teodor@openmined.org',
+                    'valerio@openmined.org',
+                    'yash@openmined.org',
+                    'zarreen@openmined.org',
+                ];
+
+                // State variables
+                this.currentScreen = 1;
+                this.selectedApp = null;
+                this.selectedRecipients = [];
+
+                // Cache DOM elements
+                this.elements = {
+                    nextBtn: document.getElementById('next-btn'),
+                    prevBtn: document.getElementById('prev-btn'),
+                    appList: document.getElementById('app-list'),
+                    recipientList: document.getElementById('recipient-list'),
+                    selectAllBtn: document.getElementById('select-all-btn'),
+                    selectNoneBtn: document.getElementById('select-none-btn'),
+                    appSearch: document.getElementById('app-search'),
+                    recipientSearch: document.getElementById('recipient-search'),
+                    wizardFooter: document.getElementById('wizard-footer'),
+                    screens: {
+                        1: document.getElementById('screen-1'),
+                        2: document.getElementById('screen-2'),
+                        3: document.getElementById('screen-3'),
+                        4: document.getElementById('screen-4')
+                    }
+                };
+
+                // Initialize the wizard
+                this.init();
+            }
+
+            init() {
+                this.initializeEventListeners();
+                this.initializeAppList();
+                this.initializeRecipientList();
+            }
+
+            initializeEventListeners() {
+                // Main navigation controls
+                this.elements.nextBtn.addEventListener('click', () => this.goToNextScreen());
+                this.elements.prevBtn.addEventListener('click', () => this.goToPrevScreen());
+
+                // Selection controls
+                this.elements.selectAllBtn.addEventListener('click', () => this.handleSelectAll());
+                this.elements.selectNoneBtn.addEventListener('click', () => this.handleSelectNone());
+
+                // Search inputs
+                this.elements.appSearch.addEventListener('input', (e) => this.filterApps(e.target.value));
+                this.elements.recipientSearch.addEventListener('input', (e) => this.filterRecipients(e.target.value));
+
+                // Event delegation for app selection
+                this.elements.appList.addEventListener('click', (e) => {
+                    const target = e.target.closest('.app-chip');
+                    if (target) {
+                        this.handleAppSelection(target.dataset.appName);
+                    }
+                });
+
+                // Event delegation for recipient selection
+                this.elements.recipientList.addEventListener('click', (e) => {
+                    const target = e.target.closest('.recipient-chip');
+                    if (target) {
+                        this.handleRecipientSelection(target.dataset.email);
+                    }
+                });
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !this.elements.nextBtn.disabled) {
+                        this.goToNextScreen();
+                    } else if (e.key === 'Escape' && this.currentScreen > 1) {
+                        this.goToPrevScreen();
+                    }
+                });
+            }
+
+            initializeAppList() {
+                const appListFragment = document.createDocumentFragment();
+
+                this.appNames.forEach(appName => {
+                    const appChip = document.createElement('div');
+                    appChip.className = 'app-chip';
+                    appChip.dataset.appName = appName;
+                    appChip.textContent = appName.split('_')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                    appListFragment.appendChild(appChip);
+                });
+
+                this.elements.appList.appendChild(appListFragment);
+            }
+
+            initializeRecipientList() {
+                const recipientListFragment = document.createDocumentFragment();
+
+                this.emails.forEach(email => {
+                    const recipientChip = document.createElement('div');
+                    recipientChip.className = 'recipient-chip';
+                    recipientChip.dataset.email = email;
+                    recipientChip.textContent = email;
+                    recipientListFragment.appendChild(recipientChip);
+                });
+
+                this.elements.recipientList.appendChild(recipientListFragment);
+            }
+
+            handleAppSelection(appName) {
+                this.selectedApp = appName;
+
+                // Update UI
+                document.querySelectorAll('.app-chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+
+                const selectedAppElement = document.querySelector(`.app-chip[data-app-name="${appName}"]`);
+                if (selectedAppElement) {
+                    selectedAppElement.classList.add('selected');
+                }
+
+                // Enable next button
+                this.elements.nextBtn.disabled = false;
+            }
+
+            handleRecipientSelection(email) {
+                const index = this.selectedRecipients.indexOf(email);
+
+                if (index > -1) {
+                    // Remove if already selected
+                    this.selectedRecipients.splice(index, 1);
+                    document.querySelector(`.recipient-chip[data-email="${email}"]`).classList.remove('selected');
+                } else {
+                    // Add if not selected
+                    this.selectedRecipients.push(email);
+                    document.querySelector(`.recipient-chip[data-email="${email}"]`).classList.add('selected');
+                }
+
+                // Update next button state
+                this.elements.nextBtn.disabled = this.selectedRecipients.length === 0;
+            }
+
+            handleSelectAll() {
+                this.selectedRecipients = [...this.emails];
+                document.querySelectorAll('.recipient-chip').forEach(chip => {
+                    chip.classList.add('selected');
+                });
+                this.elements.nextBtn.disabled = false;
+            }
+
+            handleSelectNone() {
+                this.selectedRecipients = [];
+                document.querySelectorAll('.recipient-chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+                this.elements.nextBtn.disabled = true;
+            }
+
+            filterApps(searchTerm) {
+                document.querySelectorAll('.app-chip').forEach(chip => {
+                    const appName = chip.dataset.appName;
+                    chip.style.display = appName.toLowerCase().includes(searchTerm.toLowerCase()) ? 'inline-flex' : 'none';
+                });
+            }
+
+            filterRecipients(searchTerm) {
+                document.querySelectorAll('.recipient-chip').forEach(chip => {
+                    const email = chip.dataset.email;
+                    chip.style.display = email.toLowerCase().includes(searchTerm.toLowerCase()) ? 'inline-flex' : 'none';
+                });
+            }
+
+            updateConfirmationContent() {
+                const appNameElement = document.getElementById('confirm-app-name');
+                const recipientsElement = document.getElementById('confirm-recipients');
+
+                if (!appNameElement || !recipientsElement) {
+                    console.error('Required elements not found for confirmation content');
+                    return;
+                }
+
+                appNameElement.textContent = this.selectedApp;
+                recipientsElement.innerHTML = '';
+
+                const pillsContainer = document.createElement('div');
+                pillsContainer.className = 'selected-recipients';
+
+                this.selectedRecipients.forEach(email => {
+                    const pill = document.createElement('div');
+                    pill.className = 'recipient-chip';
+                    pill.textContent = email;
+                    pillsContainer.appendChild(pill);
+                });
+
+                recipientsElement.appendChild(pillsContainer);
+            }
+
+            updateSuccessContent() {
+                const appNameElement = document.getElementById('success-app-name');
+                const recipientsElement = document.getElementById('success-recipients');
+
+                if (!appNameElement || !recipientsElement) {
+                    console.error('Required elements not found for success content');
+                    return;
+                }
+
+                appNameElement.textContent = this.selectedApp;
+                recipientsElement.innerHTML = '';
+
+                const pillsContainer = document.createElement('div');
+                pillsContainer.className = 'selected-recipients';
+
+                this.selectedRecipients.forEach(email => {
+                    const pill = document.createElement('div');
+                    pill.className = 'recipient-chip';
+                    pill.textContent = email;
+                    pillsContainer.appendChild(pill);
+                });
+
+                recipientsElement.appendChild(pillsContainer);
+            }
+
+            goToNextScreen() {
+                if (this.currentScreen < 4) {
+                    const nextScreen = this.currentScreen + 1;
+                    const currentScreenElement = this.elements.screens[this.currentScreen];
+                    const nextScreenElement = this.elements.screens[nextScreen];
+
+                    if (!currentScreenElement || !nextScreenElement) {
+                        console.error('Screen elements not found');
+                        return;
+                    }
+
+                    // Apply animation class
+                    currentScreenElement.classList.add('slide-out-left');
+
+                    setTimeout(() => {
+                        currentScreenElement.classList.remove('active', 'slide-out-left');
+
+                        if (nextScreen === 4) {
+                            // Use fade-in for success screen
+                            nextScreenElement.classList.add('active', 'fade-in');
+
+                            // Change footer for success screen
+                            this.elements.wizardFooter.className = 'wizard-footer success-footer';
+                            this.elements.wizardFooter.innerHTML = '<button class="btn btn-primary" id="done-btn">Done</button>';
+
+                            document.getElementById('done-btn').addEventListener('click', () => this.resetWizard());
+                        } else {
+                            nextScreenElement.classList.add('active', 'slide-in-right');
+                            this.updateButtonText(nextScreen);
+                            this.updateButtonState(nextScreen);
+                        }
+
+                        // Update current screen
+                        this.currentScreen = nextScreen;
+
+                        // Focus management for accessibility
+                        this.focusFirstInteractiveElement(nextScreenElement);
+
+                        // If going to confirmation screen, update confirmation content
+                        if (nextScreen === 3) {
+                            this.updateConfirmationContent();
+                        }
+
+                        // If going to success screen, update success content
+                        if (nextScreen === 4) {
+                            this.updateSuccessContent();
+                        }
+                    }, 300);
+                }
+            }
+
+            goToPrevScreen() {
+                if (this.currentScreen > 1) {
+                    const prevScreen = this.currentScreen - 1;
+                    const currentScreenElement = this.elements.screens[this.currentScreen];
+                    const prevScreenElement = this.elements.screens[prevScreen];
+
+                    if (!currentScreenElement || !prevScreenElement) {
+                        console.error('Screen elements not found');
+                        return;
+                    }
+
+                    // Apply animation class
+                    currentScreenElement.classList.add('slide-out-right');
+
+                    setTimeout(() => {
+                        currentScreenElement.classList.remove('active', 'slide-out-right');
+                        prevScreenElement.classList.add('active', 'slide-in-left');
+
+                        // Update current screen
+                        this.currentScreen = prevScreen;
+
+                        // Focus management for accessibility
+                        this.focusFirstInteractiveElement(prevScreenElement);
+
+                        // Update button text and state
+                        this.updateButtonText(prevScreen);
+                        this.updateButtonState(prevScreen);
+                    }, 300);
+                }
+            }
+
+            focusFirstInteractiveElement(screenElement) {
+                const firstInput = screenElement.querySelector('input') ||
+                    screenElement.querySelector('button:not([disabled])');
+                if (firstInput) {
+                    setTimeout(() => firstInput.focus(), 50);
+                }
+            }
+
+            updateButtonText(screen) {
+                if (screen === 3) {
+                    this.elements.nextBtn.textContent = 'Broadcast';
+                } else {
+                    this.elements.nextBtn.textContent = 'Next';
+                }
+
+                this.elements.prevBtn.style.visibility = screen === 1 ? 'hidden' : 'visible';
+            }
+
+            updateButtonState(screen) {
+                if (screen === 1) {
+                    this.elements.nextBtn.disabled = !this.selectedApp;
+                } else if (screen === 2) {
+                    this.elements.nextBtn.disabled = this.selectedRecipients.length === 0;
+                } else {
+                    this.elements.nextBtn.disabled = false;
+                }
+            }
+
+            resetWizard() {
+                // Reset state
+                this.currentScreen = 1;
+                this.selectedApp = null;
+                this.selectedRecipients = [];
+
+                // Reset UI
+                document.querySelectorAll('.app-chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+
+                document.querySelectorAll('.recipient-chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+
+                // Hide all screens and show first screen
+                Object.values(this.elements.screens).forEach(screen => {
+                    screen.classList.remove('active', 'slide-in-right', 'slide-in-left', 'slide-out-right', 'slide-out-left', 'fade-in');
+                });
+                this.elements.screens[1].classList.add('active');
+
+                // Reset footer
+                this.elements.wizardFooter.className = 'wizard-footer';
+                this.elements.wizardFooter.innerHTML = `
+            <button class="btn btn-secondary" id="prev-btn" style="visibility: hidden;">Back</button>
+            <button class="btn btn-primary" id="next-btn" disabled>Next</button>
+        `;
+
+                // Re-initialize event listeners for new buttons
+                this.elements.nextBtn = document.getElementById('next-btn');
+                this.elements.prevBtn = document.getElementById('prev-btn');
+                this.elements.nextBtn.addEventListener('click', () => this.goToNextScreen());
+                this.elements.prevBtn.addEventListener('click', () => this.goToPrevScreen());
+            }
+        }
+
+        // Initialize the wizard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            new BroadcastWizard();
+        });
+    </script>
+</body>
+
+</html>

@@ -20,7 +20,7 @@ import {
   saveDashboardLayout,
   WidgetDefinition
 } from './mock-data';
-import { Pencil, Plus, Check, X, BarChart2, Inbox, List, Server } from 'lucide-react';
+import { Pencil, Plus, Check, X, BarChart2, Inbox, List, Server, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 // LocalStorage key for saving dashboard layout
@@ -395,6 +395,8 @@ function getWidgetIcon(type: string): React.ReactNode {
   switch (type) {
     case 'api-requests':
       return <Inbox className="h-4 w-4 text-primary" />;
+    case 'api-broadcast':
+      return <Send className="h-4 w-4 text-primary" />;
     case 'queue-rpc':
       return <Server className="h-4 w-4 text-primary" />;
     case 'projects-rds':
