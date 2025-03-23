@@ -169,7 +169,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
       {/* Full-screen dialog */}
       <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-        <DialogContent className="w-[90vw] md:max-w-[60%] h-[90vh] md:max-h-[60%] flex flex-col">
+        <DialogContent className="w-[90vw] md:max-w-[60%] h-[80vh] md:max-h-[60%] flex flex-col">
           <DialogHeader>
             <DialogTitle>{widget.title}</DialogTitle>
           </DialogHeader>

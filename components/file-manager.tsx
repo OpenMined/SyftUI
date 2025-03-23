@@ -341,8 +341,12 @@ function FileManagerContent({
     }
   }, [handleKeyDown])
   
-  // Close preview
-  const closePreview = () => setPreviewFile(null)
+  // Close preview and update URL
+  const closePreview = () => {
+    setPreviewFile(null);
+    // Update URL to remove the filename when closing preview
+    updateUrlWithPath(currentPath);
+  }
   
   // Handle mobile details panel
   const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {

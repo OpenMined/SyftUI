@@ -91,9 +91,13 @@ export function FileSystemProvider({
     const pathSegments = getPathFromUrl();
     const { dirPath, fileName } = processPath(pathSegments, value.fileSystem);
 
-    // First navigate to the correct directory
-    if (dirPath.length > 0) {
+    // Only navigate if there's no file in the path
+    // If there is a file, we want to keep the full path in the URL
+    if (dirPath.length > 0 && !fileName) {
       value.navigateTo(dirPath);
+    } else if (dirPath.length > 0 && fileName) {
+      // Set current path without updating the URL
+      value.currentPath = dirPath;
     }
 
     // If there's a file in the path, we need to find it and open it
@@ -101,10 +105,8 @@ export function FileSystemProvider({
       // Find the file using our utility function
       const fileToOpen = findFileInPath(value.fileSystem, dirPath, fileName);
       if (fileToOpen) {
-        // Schedule setting the preview file after the navigate completes
-        setTimeout(() => {
-          value.setPreviewFile(fileToOpen);
-        }, 100);
+        // Set the preview file directly without changing the URL
+        value.setPreviewFile(fileToOpen);
       }
     }
   }, []);
