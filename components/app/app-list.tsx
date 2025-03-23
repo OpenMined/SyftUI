@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { App } from "@/lib/mock-apps"
 import { AppCard } from "./app-card"
@@ -14,6 +14,9 @@ interface AppListProps {
 }
 
 export function AppList({ apps, onSelectApp, onActionClick, searchQuery = "", viewContext }: AppListProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number | null>(null);
+
   // Filter apps based on search query
   const filteredApps = apps.filter(
     (app) =>
@@ -22,8 +25,25 @@ export function AppList({ apps, onSelectApp, onActionClick, searchQuery = "", vi
       app.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
+  useEffect(() => {
+    const calculateHeight = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const availableHeight = window.innerHeight - rect.top;
+        setContainerHeight(availableHeight);
+      }
+    };
+
+    calculateHeight();
+    window.addEventListener('resize', calculateHeight);
+
+    return () => {
+      window.removeEventListener('resize', calculateHeight);
+    };
+  }, []);
+
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea ref={containerRef} style={{ height: containerHeight ? `${containerHeight}px` : '100%', overflowY: 'auto' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {filteredApps.length > 0 ? (
           filteredApps.map((app) => (
