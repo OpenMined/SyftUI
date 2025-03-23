@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ReviewDialog } from "./review-dialog"
 import { ChevronLeft, Star, Download, ExternalLink, Heart, Share2, Code, Shield, MessageSquare } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
@@ -23,6 +24,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(app.installed);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
   const handleAction = () => {
     setIsProcessing(true);
@@ -312,7 +314,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                           </span>
                         </div>
                       </div>
-                      <Button variant="outline">Write a Review</Button>
+                      <Button variant="outline" onClick={() => setReviewDialogOpen(true)}>Write a Review</Button>
                     </div>
 
                     <div className="space-y-4">
@@ -373,6 +375,17 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Review Dialog */}
+      <ReviewDialog
+        appName={app.name}
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        onSubmit={(rating, reviewText) => {
+          console.log(`New review for ${app.name}: ${rating} stars - ${reviewText}`);
+          // In a real app, we would update the reviews list here
+        }}
+      />
     </div>
   )
 }
