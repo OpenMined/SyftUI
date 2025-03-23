@@ -10,6 +10,7 @@ import { AppDetail } from "@/components/app/app-detail"
 import { AppList } from "@/components/app/app-list"
 import { mockApps } from "@/lib/mock-apps"
 import { Toolbar } from "@/components/ui/toolbar"
+import { toast } from "@/hooks/use-toast"
 
 export default function MarketplacePage() {
     const [selectedApp, setSelectedApp] = useState<string | null>(null)
@@ -17,7 +18,7 @@ export default function MarketplacePage() {
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
     const [repoUrl, setRepoUrl] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSubmitted, setIsSubmitted] = useState(false)
+    // Removed isSubmitted state as we're using toast instead
 
     const handlePublishSubmit = () => {
         if (!repoUrl.trim()) return
@@ -26,15 +27,19 @@ export default function MarketplacePage() {
 
         // Simulate API call
         setTimeout(() => {
-        setIsSubmitting(false)
-        setIsSubmitted(true)
-
-        // Reset after showing success message
-        setTimeout(() => {
-            setIsSubmitted(false)
-            setRepoUrl("")
-            setIsPublishDialogOpen(false)
-        }, 3000)
+          setIsSubmitting(false)
+          
+          // Show toast notification instead of in-dialog message
+          toast({
+            icon: "🎉",
+            title: "Submission Received!",
+            description: "Thank you for your submission. Our team will review your app and get back to you soon.",
+            variant: "default",
+          })
+          
+          // Reset and close dialog immediately
+          setRepoUrl("")
+          setIsPublishDialogOpen(false)
         }, 1500)
     }
 
@@ -121,47 +126,35 @@ export default function MarketplacePage() {
                     <DialogTitle>Publish App</DialogTitle>
                 </DialogHeader>
 
-                {!isSubmitted ? (
-                    <>
-                    <div className="py-4">
-                        <p className="text-sm mb-4">
-                        Submit your GitHub repository URL to publish your app to the marketplace. Our team will review
-                        your submission and approve it if it meets our guidelines.
-                        </p>
-                        <div className="space-y-2">
-                        <label htmlFor="repo-url" className="text-sm font-medium">
-                            GitHub Repository URL
-                        </label>
-                        <Input
-                            id="repo-url"
-                            placeholder="https://github.com/username/repo"
-                            value={repoUrl}
-                            onChange={(e) => setRepoUrl(e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            Make sure your repository includes a valid manifest.json file with app metadata.
-                        </p>
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsPublishDialogOpen(false)}>
-                        Cancel
-                        </Button>
-                        <Button onClick={handlePublishSubmit} disabled={isSubmitting || !repoUrl.trim()}>
-                        {isSubmitting ? "Submitting..." : "Submit for Review"}
-                        </Button>
-                    </DialogFooter>
-                    </>
-                ) : (
-                    <div className="py-8 text-center">
-                    <div className="text-3xl mb-4">🎉</div>
-                    <h3 className="text-lg font-medium mb-2">Submission Received!</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Thank you for your submission. Our team will review your app and get back to you soon.
+                <div className="py-4">
+                    <p className="text-sm mb-4">
+                    Submit your GitHub repository URL to publish your app to the marketplace. Our team will review
+                    your submission and approve it if it meets our guidelines.
+                    </p>
+                    <div className="space-y-2">
+                    <label htmlFor="repo-url" className="text-sm font-medium">
+                        GitHub Repository URL
+                    </label>
+                    <Input
+                        id="repo-url"
+                        placeholder="https://github.com/username/repo"
+                        value={repoUrl}
+                        onChange={(e) => setRepoUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Make sure your repository includes a valid manifest.json file with app metadata.
                     </p>
                     </div>
-                )}
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsPublishDialogOpen(false)}>
+                    Cancel
+                    </Button>
+                    <Button onClick={handlePublishSubmit} disabled={isSubmitting || !repoUrl.trim()}>
+                    {isSubmitting ? "Submitting..." : "Submit for Review"}
+                    </Button>
+                </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

@@ -7,6 +7,7 @@ import { NotificationProvider } from "@/components/notification-context"
 import { Sidebar } from "@/components/sidebar"
 import { usePathname, useRouter } from "next/navigation"
 import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
+import { Toaster } from "@/components/ui/toaster"
 
 // Import metadata values
 import { metadata } from './metadata'
@@ -46,6 +47,7 @@ export default function RootLayout({
           <NotificationProvider>
             <SidebarProvider>
               <MainLayout>{children}</MainLayout>
+              <Toaster />
             </SidebarProvider>
           </NotificationProvider>
         </ThemeProvider>
