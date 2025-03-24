@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { X, Share2, Download, Trash2, Edit, Clock, Lock, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -30,6 +30,10 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
   const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
+
+  useEffect(() => {
+    setNewName(item.name)
+  }, [item])
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== item.name) {
@@ -261,30 +265,32 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
         </Tabs>
       </div>
 
-      <div className="p-4 border-t">
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="flex-1" onClick={() => setIsRenaming(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Rename
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-destructive hover:text-destructive"
-            onClick={() => {
-              handleDelete([item.id])
-              onClose()
-            }}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+      {item.id !== "root-directory" && (
+        <div className="p-4 border-t">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1" onClick={() => setIsRenaming(true)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Rename
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1">
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-destructive hover:text-destructive"
+              onClick={() => {
+                handleDelete([item.id])
+                onClose()
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {isPermissionsDialogOpen && <PermissionsDialog item={item} onClose={() => setIsPermissionsDialogOpen(false)} />}
     </div>
