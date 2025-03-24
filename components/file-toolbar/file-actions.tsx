@@ -36,7 +36,7 @@ export function FileActions() {
   const { selectedItems, handleCreateFolder, handleDelete, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
-  
+
   // Check if any selected items are folders
   const hasSelectedFolder = selectedItems.length === 1 && fileSystem
     .filter(item => item.id === selectedItems[0])
@@ -58,19 +58,19 @@ export function FileActions() {
   const handleRefresh = () => {
     setIsRefreshing(true);
     refreshFileSystem();
-    
+
     // Simulate a minimum refresh time for better visual feedback
     setTimeout(() => {
       setIsRefreshing(false);
     }, 750); // Show refreshing state for at least 750ms
   }
-  
+
   // Function to handle favoriting the selected folder
   const handleAddToFavorites = () => {
     if (hasSelectedFolder) {
       const selectedFolderId = selectedItems[0];
       const folder = fileSystem.find(item => item.id === selectedFolderId);
-      
+
       if (folder && folder.type === 'folder') {
         addToFavorites({
           id: folder.id,
@@ -136,9 +136,9 @@ export function FileActions() {
           </Tooltip>
         </TooltipProvider>
         <DropdownMenuContent align="start" className="w-40">
-          <DropdownMenuRadioGroup 
+          <DropdownMenuRadioGroup
             value={sortConfig?.sortBy || "name"}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setSortConfig?.({ ...(sortConfig || { direction: "asc" }), sortBy: value as "name" | "date" | "size" | "type" })
             }
           >
@@ -148,9 +148,9 @@ export function FileActions() {
             <DropdownMenuRadioItem value="type">Type</DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup 
+          <DropdownMenuRadioGroup
             value={sortConfig?.direction || "asc"}
-            onValueChange={(value) => 
+            onValueChange={(value) =>
               setSortConfig?.({ ...(sortConfig || { sortBy: "name" }), direction: value as "asc" | "desc" })
             }
           >

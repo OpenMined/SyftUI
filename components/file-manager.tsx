@@ -19,6 +19,7 @@ import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { updateUrlWithPath, getPathFromUrl, processPath, findFileInPath } from "@/lib/utils/url"
+import { mockFileSystem } from "@/lib/mock-data"
 
 interface FileManagerProps {
   fileSystem: FileSystemItem[]
@@ -132,7 +133,7 @@ function FileSystemProviderContent({
         refreshFileSystem: () => {
           // This performs a refresh of the file system
           // For now, we just re-set the file system to itself to trigger a re-render
-          setFileSystem([...fileSystem]);
+          setFileSystem([...mockFileSystem]);
         },
         setSyncDialogOpen
       }}

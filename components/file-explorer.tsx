@@ -38,6 +38,7 @@ interface BackgroundContextMenuContentProps {
   setViewMode?: (mode: "grid" | "list") => void
   getCurrentDirectoryInfo: () => FileSystemItem | null
   handleCreateFolder?: (name: string) => void
+  refreshFileSystem: () => void
   toggleSyncPause?: () => void
   syncPaused?: boolean
   clipboard?: ClipboardItem | null
@@ -52,6 +53,7 @@ function BackgroundContextMenuContent({
   viewMode,
   getCurrentDirectoryInfo,
   handleCreateFolder,
+  refreshFileSystem,
   toggleSyncPause,
   syncPaused,
   clipboard,
@@ -59,7 +61,7 @@ function BackgroundContextMenuContent({
 }: BackgroundContextMenuContentProps) {
   // Get current directory name
   const currentDirName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : "Root"
-  
+
   // State for the permissions dialog
   const [permissionsDialogItem, setPermissionsDialogItem] = useState<FileSystemItem | null>(null)
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false)
@@ -132,7 +134,7 @@ function BackgroundContextMenuContent({
           const dirInfo = getCurrentDirectoryInfo();
           if (dirInfo) setPermissionsDialogItem(dirInfo);
         }}>Permissions</ContextMenuItem>
-        <ContextMenuItem>Refresh</ContextMenuItem>
+        <ContextMenuItem onClick={refreshFileSystem}>Refresh</ContextMenuItem>
         <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
         </ContextMenuItem>
@@ -207,7 +209,7 @@ function BackgroundContextMenuContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Permissions dialog */}
       {permissionsDialogItem && <PermissionsDialog item={permissionsDialogItem} onClose={() => setPermissionsDialogItem(null)} />}
     </>
@@ -772,6 +774,7 @@ export function FileExplorer({
             return getCurrentDirectoryInfo();
           }}
           handleCreateFolder={fileSystemContext.handleCreateFolder}
+          refreshFileSystem={fileSystemContext.refreshFileSystem}
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}
           clipboard={fileSystemContext.clipboard}
