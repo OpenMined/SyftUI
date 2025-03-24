@@ -39,6 +39,10 @@ interface FileManagerContentProps extends FileManagerProps {
   setPreviewFile: React.Dispatch<React.SetStateAction<FileSystemItem | null>>;
   sortConfig?: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" };
   setSortConfig?: React.Dispatch<React.SetStateAction<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>>;
+  detailsItem?: FileSystemItem | null;
+  setDetailsItem?: (item: FileSystemItem | null) => void;
+  mobileDetailsOpen?: boolean;
+  setMobileDetailsOpen?: (open: boolean) => void;
 }
 
 // Create a wrapper component that will have access to all providers and be able to initialize file operations
@@ -69,7 +73,7 @@ function FileSystemProviderContent({
   sortConfig: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" },
   clipboard: ClipboardItem | null,
   syncPaused: boolean,
-  setSelectedItems: (items: string[]) => void, 
+  setSelectedItems: (items: string[]) => void,
   navigateTo: (path: string[]) => void,
   setPreviewFile: (file: FileSystemItem | null) => void,
   setDetailsItem: (item: FileSystemItem | null) => void,
@@ -140,34 +144,36 @@ function FileSystemProviderContent({
   );
 }
 
-function FileManagerContent({ 
-  fileSystem, 
-  setFileSystem, 
-  currentPath, 
-  setCurrentPath, 
-  initialViewMode, 
-  onViewModeChange, 
-  selectedItems, 
-  setSelectedItems, 
-  viewMode, 
+function FileManagerContent({
+  fileSystem,
+  setFileSystem,
+  currentPath,
+  setCurrentPath,
+  initialViewMode,
+  onViewModeChange,
+  selectedItems,
+  setSelectedItems,
+  viewMode,
   setViewMode,
   previewFile,
-  setPreviewFile
+  setPreviewFile,
+  detailsItem,
+  setDetailsItem,
+  mobileDetailsOpen,
+  setMobileDetailsOpen
 }: FileManagerContentProps) {
   // Get context providers
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
   const { syncDialogOpen, setSyncDialogOpen, syncPaused } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotifications()
-  
+
   // Local state
-  const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
-  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
-  
+
   const isMobile = useIsMobile()
   const fileManagerRef = useRef<HTMLDivElement>(null)
-  
+
   // Set up the drag and drop detection for OS files
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
@@ -190,7 +196,7 @@ function FileManagerContent({
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       setIsDraggingOver(false);
-      
+
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         handleExternalFileDrop(e.dataTransfer.files);
       }
@@ -211,17 +217,17 @@ function FileManagerContent({
       }
     };
   }, [fileManagerRef, handleExternalFileDrop]);
-  
+
   // Navigation function
   const navigateTo = (path: string[]) => {
     setCurrentPath(path)
     setSelectedItems([])
     setDetailsItem(null)
-    
+
     // Update URL with the new path
     updateUrlWithPath(path);
   }
-  
+
   // Get current directory items - changed to use the function in dependencies
   const getCurrentItems = useCallback((): FileSystemItem[] => {
     let current = fileSystem
@@ -237,7 +243,7 @@ function FileManagerContent({
 
     return current
   }, [fileSystem, currentPath])
-  
+
   // Get current directory info for details panel
   const getCurrentDirectoryInfo = useCallback(() => {
     if (currentPath.length === 0) {
@@ -272,7 +278,7 @@ function FileManagerContent({
 
     return currentDir;
   }, [currentPath, fileSystem, getCurrentItems]);
-  
+
   // Update details when directory changes
   const updateDetailsWithDirectory = useCallback(() => {
     if (selectedItems.length === 0) {
@@ -284,7 +290,7 @@ function FileManagerContent({
   useEffect(() => {
     updateDetailsWithDirectory();
   }, [currentPath, updateDetailsWithDirectory]);
-  
+
   // Handle selection changes
   const handleSelectedItemsChange = (items: string[]) => {
     setSelectedItems(items);
@@ -302,14 +308,14 @@ function FileManagerContent({
         }
         return null;
       };
-      
+
       const selectedItem = findItemById(items[0]);
       if (selectedItem) {
         setDetailsItem(selectedItem);
       }
     }
   };
-  
+
   // Keyboard shortcut handling
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -332,7 +338,7 @@ function FileManagerContent({
     },
     [selectedItems, clipboard, cutItems, copyItems, pasteItems],
   )
-  
+
   // Add keyboard event listeners
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)
@@ -340,39 +346,31 @@ function FileManagerContent({
       window.removeEventListener("keydown", handleKeyDown)
     }
   }, [handleKeyDown])
-  
+
   // Close preview and update URL
   const closePreview = () => {
     setPreviewFile(null);
     // Update URL to remove the filename when closing preview
     updateUrlWithPath(currentPath);
   }
-  
-  // Handle mobile details panel
-  const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {
-    setDetailsItem(item);
-    if (item && isMobile) {
-      setMobileDetailsOpen(true);
-    }
-  }, [isMobile]);
 
   const handleCloseDetails = () => {
-    if (isMobile) {
+    if (isMobile && setMobileDetailsOpen) {
       setMobileDetailsOpen(false);
-    } else {
+    } else if (setSelectedItems && setDetailsItem) {
       setSelectedItems([]);
       updateDetailsWithDirectory();
     }
   };
-  
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>
       <FileToolbar />
       <Breadcrumb currentPath={currentPath} navigateTo={navigateTo} />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-auto p-4 relative">
-          <FileExplorer 
-            items={getCurrentItems()} 
+          <FileExplorer
+            items={getCurrentItems()}
             selectedItems={selectedItems}
             onSelectedItemsChange={handleSelectedItemsChange}
             onNavigate={navigateTo}
@@ -414,13 +412,13 @@ function FileManagerContent({
         )}
       </div>
 
-      {/* Mobile: File details shown as a slide-in panel */}
+      {/* Mobile: File details shown as a slide-in panel from bottom */}
       <AnimatePresence>
         {isMobile && mobileDetailsOpen && detailsItem && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 bg-background z-50"
           >
@@ -463,12 +461,22 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
   const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null);
-  
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Enhanced function to set details item and handle mobile visibility
+  const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {
+    setDetailsItem(item);
+    if (item && isMobile) {
+      setMobileDetailsOpen(true);
+    }
+  }, [isMobile]);
+
   // Check for file in path on initial load
   useEffect(() => {
     const pathFromUrl = getPathFromUrl();
     const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
-    
+
     if (fileName) {
       const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
       if (fileToOpen) {
@@ -476,21 +484,21 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
       }
     }
   }, [fileSystem, setPreviewFile]);
-  
-  
+
+
   useEffect(() => {
     onViewModeChange(viewMode);
   }, [viewMode, onViewModeChange]);
-  
+
   // Listen for popstate events (when browser back/forward buttons are used)
   useEffect(() => {
     const handlePopState = () => {
       const pathSegments = getPathFromUrl();
       const { dirPath, fileName } = processPath(pathSegments, fileSystem);
-      
+
       // Update directory path
       setCurrentPath(dirPath);
-      
+
       // If there's a file in the path, find and open it
       if (fileName) {
         setTimeout(() => {
@@ -504,13 +512,13 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
         setPreviewFile(null);
       }
     };
-    
+
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [setPreviewFile, fileSystem]);
-  
+
   return (
     <SyncProvider fileSystem={fileSystem} setFileSystem={setFileSystem}>
       <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={currentPath}>
@@ -528,18 +536,23 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
             navigateTo={(path) => {
               setCurrentPath(path);
               setSelectedItems([]);
-              
+
               // Update URL with the new path
               updateUrlWithPath(path);
             }}
             setPreviewFile={setPreviewFile}
-            setDetailsItem={setDetailsItem}
+            setDetailsItem={(item) => {
+              setDetailsItem(item);
+              if (item && isMobile) {
+                setMobileDetailsOpen(true);
+              }
+            }}
             setViewMode={setViewMode}
             setSortConfig={setSortConfig}
             setSyncPaused={setSyncPaused}
             setSyncDialogOpen={setSyncDialogOpen}
           >
-            <FileManagerContent 
+            <FileManagerContent
               fileSystem={fileSystem}
               setFileSystem={setFileSystem}
               currentPath={currentPath}
@@ -554,6 +567,10 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
               setPreviewFile={setPreviewFile}
               sortConfig={sortConfig}
               setSortConfig={setSortConfig}
+              detailsItem={detailsItem}
+              setDetailsItem={setDetailsItem}
+              mobileDetailsOpen={mobileDetailsOpen}
+              setMobileDetailsOpen={setMobileDetailsOpen}
             />
           </FileSystemProviderContent>
         </ClipboardProvider>
