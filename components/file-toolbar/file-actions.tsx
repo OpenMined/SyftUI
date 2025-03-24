@@ -17,6 +17,7 @@ import {
   RefreshCw,
   ArrowUpDown,
   Star,
+  FilePlus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,7 +34,7 @@ import {
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleDelete, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
@@ -44,6 +45,8 @@ export function FileActions() {
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
+  const [isCreateFileOpen, setIsCreateFileOpen] = useState(false)
+  const [newFileName, setNewFileName] = useState("")
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
 
   const handleCreateFolderSubmit = () => {
@@ -51,6 +54,14 @@ export function FileActions() {
       handleCreateFolder(newFolderName.trim())
       setNewFolderName("")
       setIsCreateFolderOpen(false)
+    }
+  }
+
+  const handleCreateFileSubmit = () => {
+    if (newFileName.trim()) {
+      handleCreateFile(newFileName.trim())
+      setNewFileName("")
+      setIsCreateFileOpen(false)
     }
   }
 
@@ -165,6 +176,19 @@ export function FileActions() {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setIsCreateFileOpen(true)}>
+              <FilePlus className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>New File</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button variant="outline" size="icon" className="h-8 w-8">
               <Upload className="h-4 w-4" />
             </Button>
@@ -268,6 +292,30 @@ export function FileActions() {
               Cancel
             </Button>
             <Button onClick={handleCreateFolderSubmit}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateFileOpen} onOpenChange={setIsCreateFileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New File</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newFileName}
+            onChange={(e) => setNewFileName(e.target.value)}
+            placeholder="File name"
+            className="mt-4"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateFileSubmit()
+            }}
+          />
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsCreateFileOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateFileSubmit}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

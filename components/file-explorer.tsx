@@ -38,6 +38,7 @@ interface BackgroundContextMenuContentProps {
   setViewMode?: (mode: "grid" | "list") => void
   getCurrentDirectoryInfo: () => FileSystemItem | null
   handleCreateFolder?: (name: string) => void
+  handleCreateFile?: (name: string) => void
   isRefreshing: bool
   refreshFileSystem: () => void
   toggleSyncPause?: () => void
@@ -54,6 +55,7 @@ function BackgroundContextMenuContent({
   viewMode,
   getCurrentDirectoryInfo,
   handleCreateFolder,
+  handleCreateFile,
   isRefreshing,
   refreshFileSystem,
   toggleSyncPause,
@@ -68,9 +70,15 @@ function BackgroundContextMenuContent({
   const [permissionsDialogItem, setPermissionsDialogItem] = useState<FileSystemItem | null>(null)
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
+  const [showNewFileDialog, setShowNewFileDialog] = useState(false)
+  const [newFileName, setNewFileName] = useState("")
 
   const handleCreateNewFolder = () => {
     setShowNewFolderDialog(true);
+  }
+
+  const handleCreateNewFile = () => {
+    setShowNewFileDialog(true);
   }
 
   const submitNewFolder = () => {
@@ -79,6 +87,14 @@ function BackgroundContextMenuContent({
       setNewFolderName("");
     }
     setShowNewFolderDialog(false);
+  }
+
+  const submitNewFile = () => {
+    if (handleCreateFile && newFileName.trim()) {
+      handleCreateFile(newFileName.trim());
+      setNewFileName("");
+    }
+    setShowNewFileDialog(false);
   }
 
   // Handler for adding current directory to favorites
@@ -119,7 +135,7 @@ function BackgroundContextMenuContent({
           <ContextMenuSubTrigger>New</ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onClick={handleCreateNewFolder}>Folder</ContextMenuItem>
-            <ContextMenuItem>File</ContextMenuItem>
+            <ContextMenuItem onClick={handleCreateNewFile}>File</ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
 
@@ -208,6 +224,29 @@ function BackgroundContextMenuContent({
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setShowNewFolderDialog(false)}>Cancel</Button>
             <Button onClick={submitNewFolder}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New file dialog */}
+      <Dialog open={showNewFileDialog} onOpenChange={setShowNewFileDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New File</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newFileName}
+            onChange={(e) => setNewFileName(e.target.value)}
+            placeholder="File name"
+            className="mt-4"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitNewFile()
+            }}
+          />
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowNewFileDialog(false)}>Cancel</Button>
+            <Button onClick={submitNewFile}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -700,6 +739,7 @@ export function FileExplorer({
           return getCurrentDirectoryInfo();
         }}
         handleCreateFolder={fileSystemContext.handleCreateFolder}
+        handleCreateFile={fileSystemContext.handleCreateFile}
         toggleSyncPause={toggleSyncPause}
         syncPaused={syncPaused}
         clipboard={fileSystemContext.clipboard}
@@ -776,6 +816,7 @@ export function FileExplorer({
             return getCurrentDirectoryInfo();
           }}
           handleCreateFolder={fileSystemContext.handleCreateFolder}
+          handleCreateFile={fileSystemContext.handleCreateFile}
           isRefreshing={fileSystemContext.isRefreshing}
           refreshFileSystem={fileSystemContext.refreshFileSystem}
           toggleSyncPause={toggleSyncPause}

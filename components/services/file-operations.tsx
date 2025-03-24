@@ -354,10 +354,67 @@ export function useFileOperations(
     }
   }
 
+  const handleCreateFile = (name: string) => {
+    try {
+      const newFile: FileSystemItem = {
+        id: `file-${Date.now()}`,
+        name,
+        type: "file",
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        syncStatus: "pending",
+        size: 0,
+      }
+
+      if (currentPath.length === 0) {
+        setFileSystem(prevState => [...prevState, newFile])
+      } else {
+        const updateFileSystem = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+          if (depth === path.length) {
+            return [...items, newFile]
+          }
+
+          return items.map((item) => {
+            if (item.type === "folder" && item.name === path[depth]) {
+              return {
+                ...item,
+                children: updateFileSystem(item.children || [], path, depth + 1),
+              }
+            }
+            return item
+          })
+        }
+
+        setFileSystem(prevState => updateFileSystem(prevState, currentPath, 0))
+      }
+
+      setTimeout(() => {
+        updateSyncStatus(newFile.id, "syncing")
+
+        setTimeout(() => {
+          updateSyncStatus(newFile.id, "synced")
+          addNotification({
+            title: "File Created",
+            message: `File "${name}" has been created and synced`,
+            type: "success",
+          })
+        }, SYNC_COMPLETION_MS)
+      }, SYNC_DELAY_MS)
+    } catch (error) {
+      console.error("Error creating file:", error);
+      addNotification({
+        title: "Error Creating File",
+        message: `Failed to create file "${name}". Please try again.`,
+        type: "error",
+      });
+    }
+  }
+
   return {
     findItemById,
     findItemsByIds,
     handleCreateFolder,
+    handleCreateFile,
     handleDelete,
     handleRename,
     moveItems,

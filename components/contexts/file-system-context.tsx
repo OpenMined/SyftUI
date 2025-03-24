@@ -32,6 +32,7 @@ export interface FileSystemContextType {
   setSortConfig: (config: SortConfig) => void
   navigateTo: (path: string[]) => void
   handleCreateFolder: (name: string) => void
+  handleCreateFile: (name: string) => void
   handleDelete: (itemIds: string[]) => void
   handleRename: (itemId: string, newName: string) => void
   setPreviewFile: (file: FileSystemItem | null) => void

@@ -115,6 +115,9 @@ function FileSystemProviderContent({
         handleCreateFolder: (name) => {
           fileOperations.handleCreateFolder(name);
         },
+        handleCreateFile: (name) => {
+          fileOperations.handleCreateFile(name);
+        },
         handleDelete: (itemIds) => {
           fileOperations.handleDelete(itemIds, setSelectedItems, setDetailsItem);
         },
