@@ -21,7 +21,7 @@ import {
   WidgetDefinition
 } from './mock-data';
 import { Pencil, Plus, Check, X, BarChart2, Inbox, List, Server, Send } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 // LocalStorage key for saving dashboard layout
 const DASHBOARD_LAYOUT_KEY = 'syftui-dashboard-layout';
@@ -36,10 +36,11 @@ const cols = { lg: 4, md: 4, sm: 2, xs: 1, xxs: 1 };
 // For type safety with window
 declare global {
   interface Window {
-    saveLayoutDebounce: any;
     dashboardControls?: {
-      toggleEditMode: () => void;
+      toggleEditMode: (shouldSave?: boolean) => void;
       openAddWidgetDialog: () => void;
+      cancelEditMode: () => void;
+      resetDashboard: () => Promise<void>;
     };
   }
 }
@@ -50,6 +51,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false }) => {
   const [isEditing, setIsEditing] = useState(initialEditMode);
+  const [originalLayout, setOriginalLayout] = useState<DashboardLayout | null>(null);
   const [isAddWidgetDialogOpen, setIsAddWidgetDialogOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState<string | null>(null);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout | null>(null);
@@ -82,6 +84,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
               layout = JSON.parse(savedLayout);
               console.log('Loaded layout from localStorage');
               setDashboardLayout(layout);
+              // Store original layout for reset functionality
+              setOriginalLayout(JSON.parse(JSON.stringify(layout)));
               setLoading(false);
               return;
             } catch (e) {
@@ -94,9 +98,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
         // If no localStorage or parsing failed, load from backend mock
         layout = await loadDashboardLayout();
         setDashboardLayout(layout);
+        // Store original layout for reset functionality
+        setOriginalLayout(JSON.parse(JSON.stringify(layout)));
       } catch (error) {
         console.error('Failed to load dashboard layout:', error);
-        toast.error('Failed to load dashboard layout');
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load dashboard layout",
+          icon: "❌"
+        });
       } finally {
         setLoading(false);
       }
@@ -106,7 +117,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   }, [storageAvailable]);
 
   // Save layout on changes
-  const saveLayout = async (layout: DashboardLayout) => {
+  const saveLayout = async (layout: DashboardLayout, updateOriginal: boolean = false) => {
     try {
       // Save to localStorage if available
       if (storageAvailable) {
@@ -115,10 +126,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
       // Also save to mock backend for demonstration
       await saveDashboardLayout(layout);
-      toast.success('Dashboard layout saved');
+      
+      // Update original layout if specified (typically after a successful save)
+      if (updateOriginal) {
+        setOriginalLayout(JSON.parse(JSON.stringify(layout)));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Dashboard layout saved",
+        icon: "✅"
+      });
     } catch (error) {
       console.error('Failed to save dashboard layout:', error);
-      toast.error('Failed to save dashboard layout');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save dashboard layout",
+        icon: "❌"
+      });
     }
   };
 
@@ -131,16 +157,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       layouts,
     };
 
+    // Just update the state without saving to storage
     setDashboardLayout(updatedLayout);
-
-    // Save the layout on changes, but debounce to avoid too many saves
-    if (window.saveLayoutDebounce) {
-      clearTimeout(window.saveLayoutDebounce);
-    }
-    window.saveLayoutDebounce = setTimeout(() => {
-      saveLayout(updatedLayout);
-    }, 1000);
   };
+
+  
 
   // Handle adding a new widget
   const handleAddWidget = () => {
@@ -187,7 +208,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       }
     });
 
-    // Update dashboard layout
+    // Update dashboard layout state without saving
     const updatedDashboardLayout: DashboardLayout = {
       layouts: updatedLayouts,
       widgets: [...dashboardLayout.widgets, newWidget],
@@ -196,10 +217,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     setDashboardLayout(updatedDashboardLayout);
     setIsAddWidgetDialogOpen(false);
     setSelectedWidgetType(null);
-
-    // Save the updated layout
-    saveLayout(updatedDashboardLayout);
-    toast.success(`Added ${widgetToAdd.title} widget`);
+    
+    // Show notification for widget addition
+    toast({
+      title: "Widget Added",
+      description: `Added ${widgetToAdd.title} widget`,
+      icon: "➕"
+    });
   };
 
   // Handle removing a widget
@@ -215,28 +239,80 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(item => item.i !== widgetId);
     });
 
-    // Update dashboard layout
+    // Update dashboard layout state without saving
     const updatedDashboardLayout: DashboardLayout = {
       layouts: updatedLayouts,
       widgets: updatedWidgets,
     };
 
     setDashboardLayout(updatedDashboardLayout);
-
-    // Save the updated layout
-    saveLayout(updatedDashboardLayout);
-    toast.success('Widget removed');
+    
+    // Show notification for widget removal
+    toast({
+      title: "Widget Removed",
+      description: "Widget has been removed from dashboard",
+      icon: "🗑️"
+    });
   };
 
   // Handle toggling edit mode
-  const toggleEditMode = () => {
-    if (isEditing) {
-      // Save layout when exiting edit mode
+  const toggleEditMode = (shouldSave = true) => {
+    if (isEditing && shouldSave) {
+      // Save layout when exiting edit mode with visible notification
       if (dashboardLayout) {
-        saveLayout(dashboardLayout);
+        saveLayout(dashboardLayout, true); // Update original layout after saving
       }
     }
     setIsEditing(!isEditing);
+  };
+
+  // Handle canceling edit mode
+  const cancelEditMode = () => {
+    // Restore original layout
+    if (originalLayout) {
+      setDashboardLayout(JSON.parse(JSON.stringify(originalLayout)));
+    }
+    // Exit edit mode without saving
+    toggleEditMode(false);
+    toast({
+      title: "Changes Discarded",
+      description: "Edit changes have been discarded",
+      icon: "ℹ️"
+    });
+  };
+
+  // Handle resetting dashboard to default
+  const resetDashboard = async () => {
+    try {
+      setLoading(true);
+      // Load default layout from backend
+      const defaultLayout = await loadDashboardLayout();
+      setDashboardLayout(defaultLayout);
+      setOriginalLayout(JSON.parse(JSON.stringify(defaultLayout)));
+      
+      // Save to localStorage if available
+      if (storageAvailable) {
+        localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(defaultLayout));
+      }
+      
+      toast({
+        title: "Dashboard Reset",
+        description: "Dashboard has been reset to default layout",
+        icon: "🔄"
+      });
+      // Exit edit mode
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to reset dashboard:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to reset dashboard",
+        icon: "❌"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Expose dashboard controls to parent components
@@ -244,7 +320,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     if (window) {
       window.dashboardControls = {
         toggleEditMode,
-        openAddWidgetDialog: () => setIsAddWidgetDialogOpen(true)
+        openAddWidgetDialog: () => setIsAddWidgetDialogOpen(true),
+        cancelEditMode,
+        resetDashboard
       };
     }
     return () => {
@@ -252,7 +330,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
         delete window.dashboardControls;
       }
     };
-  }, [toggleEditMode]);
+  }, [toggleEditMode, cancelEditMode, resetDashboard]);
 
   // Render loading state
   if (loading) {
