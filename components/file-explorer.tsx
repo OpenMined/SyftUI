@@ -59,6 +59,9 @@ function BackgroundContextMenuContent({
 }: BackgroundContextMenuContentProps) {
   // Get current directory name
   const currentDirName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : "Root"
+  
+  // State for the permissions dialog
+  const [permissionsDialogItem, setPermissionsDialogItem] = useState<FileSystemItem | null>(null)
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
 
@@ -125,7 +128,10 @@ function BackgroundContextMenuContent({
         <ContextMenuSeparator />
 
         <ContextMenuItem>Activity</ContextMenuItem>
-        <ContextMenuItem>Permissions</ContextMenuItem>
+        <ContextMenuItem onClick={() => {
+          const dirInfo = getCurrentDirectoryInfo();
+          if (dirInfo) setPermissionsDialogItem(dirInfo);
+        }}>Permissions</ContextMenuItem>
         <ContextMenuItem>Refresh</ContextMenuItem>
         <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
@@ -201,6 +207,9 @@ function BackgroundContextMenuContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Permissions dialog */}
+      {permissionsDialogItem && <PermissionsDialog item={permissionsDialogItem} onClose={() => setPermissionsDialogItem(null)} />}
     </>
   )
 }
