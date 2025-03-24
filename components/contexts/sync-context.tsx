@@ -16,6 +16,7 @@ interface SyncContextType {
   setSyncDialogOpen: (open: boolean) => void
   updateSyncStatus: (itemId: string, status: SyncStatus) => void
   triggerManualSync: () => void
+  toggleSyncPause: () => void
 }
 
 const SyncContext = createContext<SyncContextType | undefined>(undefined)
@@ -126,6 +127,7 @@ export function SyncProvider({
     setSyncDialogOpen,
     updateSyncStatus,
     triggerManualSync,
+    toggleSyncPause
   }
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>

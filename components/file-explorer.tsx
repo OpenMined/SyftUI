@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from "react"
 import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useSync } from "@/components/contexts/sync-context"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
@@ -437,6 +438,7 @@ export function FileExplorer({
   getCurrentDirectoryInfo
 }: FileExplorerProps) {
   const fileSystemContext = useFileSystem()
+  const { toggleSyncPause, syncPaused } = useSync()
 
   // Use either provided props or context values
   const viewMode = externalViewMode || fileSystemContext.viewMode
@@ -685,8 +687,8 @@ export function FileExplorer({
           return getCurrentDirectoryInfo();
         }}
         handleCreateFolder={fileSystemContext.handleCreateFolder}
-        toggleSyncPause={fileSystemContext.toggleSyncPause}
-        syncPaused={fileSystemContext.syncPaused}
+        toggleSyncPause={toggleSyncPause}
+        syncPaused={syncPaused}
         clipboard={fileSystemContext.clipboard}
         pasteItems={fileSystemContext.pasteItems}
       />
@@ -761,8 +763,8 @@ export function FileExplorer({
             return getCurrentDirectoryInfo();
           }}
           handleCreateFolder={fileSystemContext.handleCreateFolder}
-          toggleSyncPause={fileSystemContext.toggleSyncPause}
-          syncPaused={fileSystemContext.syncPaused}
+          toggleSyncPause={toggleSyncPause}
+          syncPaused={syncPaused}
           clipboard={fileSystemContext.clipboard}
           pasteItems={fileSystemContext.pasteItems}
         />

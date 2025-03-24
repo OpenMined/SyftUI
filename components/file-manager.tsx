@@ -124,7 +124,7 @@ function FileSystemProviderContent({
           fileOperations.updatePermissions(itemId, permissions);
         },
         toggleSyncPause: () => {
-          setSyncPaused(!syncPaused);
+          toggleSyncPause();
         },
         triggerManualSync: () => {
           // This would trigger a manual sync if implemented
@@ -162,7 +162,7 @@ function FileManagerContent({
 }: FileManagerContentProps) {
   // Get context providers
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
-  const { syncDialogOpen, setSyncDialogOpen, syncPaused, setSyncPaused } = useSync()
+  const { syncDialogOpen, setSyncDialogOpen, syncPaused, setSyncPaused, toggleSyncPause } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotifications()
 
