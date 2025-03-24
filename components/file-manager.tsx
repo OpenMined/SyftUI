@@ -82,9 +82,20 @@ function FileSystemProviderContent({
   setSyncDialogOpen: (open: boolean) => void,
   children: React.ReactNode
 }) {
-  // Initialize file operations service - now with all contexts available
   const fileOperations = useFileOperations(fileSystem, setFileSystem, currentPath);
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshFileSystem = () => {
+    setIsRefreshing(true);
+
+    // Simulate a minimum refresh time for better visual feedback
+    setTimeout(() => {
+      // For now, we just re-set the file system from the mock data
+      setFileSystem([...mockFileSystem]);
+      setIsRefreshing(false);
+    }, 750); // Show refreshing state for at least 750ms
+  }
 
   return (
     <FileSystemProvider
@@ -130,11 +141,8 @@ function FileSystemProviderContent({
         triggerManualSync: () => {
           // This would trigger a manual sync if implemented
         },
-        refreshFileSystem: () => {
-          // This performs a refresh of the file system
-          // For now, we just re-set the file system to itself to trigger a re-render
-          setFileSystem([...mockFileSystem]);
-        },
+        isRefreshing,
+        refreshFileSystem,
         setSyncDialogOpen
       }}
     >

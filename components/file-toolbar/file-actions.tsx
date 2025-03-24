@@ -33,7 +33,7 @@ import {
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleDelete, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleDelete, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
@@ -44,7 +44,6 @@ export function FileActions() {
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
 
   const handleCreateFolderSubmit = () => {
@@ -53,16 +52,6 @@ export function FileActions() {
       setNewFolderName("")
       setIsCreateFolderOpen(false)
     }
-  }
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    refreshFileSystem();
-
-    // Simulate a minimum refresh time for better visual feedback
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 750); // Show refreshing state for at least 750ms
   }
 
   // Function to handle favoriting the selected folder
@@ -109,7 +98,7 @@ export function FileActions() {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRefresh} disabled={isRefreshing}>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={refreshFileSystem} disabled={isRefreshing}>
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             </Button>
           </TooltipTrigger>

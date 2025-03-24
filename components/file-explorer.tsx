@@ -38,6 +38,7 @@ interface BackgroundContextMenuContentProps {
   setViewMode?: (mode: "grid" | "list") => void
   getCurrentDirectoryInfo: () => FileSystemItem | null
   handleCreateFolder?: (name: string) => void
+  isRefreshing: bool
   refreshFileSystem: () => void
   toggleSyncPause?: () => void
   syncPaused?: boolean
@@ -53,6 +54,7 @@ function BackgroundContextMenuContent({
   viewMode,
   getCurrentDirectoryInfo,
   handleCreateFolder,
+  isRefreshing,
   refreshFileSystem,
   toggleSyncPause,
   syncPaused,
@@ -134,7 +136,7 @@ function BackgroundContextMenuContent({
           const dirInfo = getCurrentDirectoryInfo();
           if (dirInfo) setPermissionsDialogItem(dirInfo);
         }}>Permissions</ContextMenuItem>
-        <ContextMenuItem onClick={refreshFileSystem}>Refresh</ContextMenuItem>
+        <ContextMenuItem onClick={refreshFileSystem} disabled={isRefreshing}>{isRefreshing ? "Refreshing..." : "Refresh"}</ContextMenuItem>
         <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
         </ContextMenuItem>
@@ -774,6 +776,7 @@ export function FileExplorer({
             return getCurrentDirectoryInfo();
           }}
           handleCreateFolder={fileSystemContext.handleCreateFolder}
+          isRefreshing={fileSystemContext.isRefreshing}
           refreshFileSystem={fileSystemContext.refreshFileSystem}
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}

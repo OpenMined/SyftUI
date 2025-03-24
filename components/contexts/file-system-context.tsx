@@ -44,6 +44,7 @@ export interface FileSystemContextType {
   updatePermissions: (itemId: string, permissions: Permission[]) => void
   toggleSyncPause: () => void
   triggerManualSync: () => void
+  isRefreshing: boolean
   refreshFileSystem: () => void
   setSyncDialogOpen: (open: boolean) => void
 }
