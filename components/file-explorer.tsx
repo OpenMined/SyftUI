@@ -438,7 +438,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
 })
 
 // Common style variables to improve consistency
-const GRID_ITEM_SIZE = "w-32 h-32"
+const GRID_ITEM_SIZE = "md:w-32 md:h-32"
 const GRID_ICON_SIZE = "h-16 w-16"
 const LIST_ICON_SIZE = "h-10 w-10"
 const ITEM_PADDING = "p-2"
@@ -765,8 +765,8 @@ export function FileExplorer({
           >
             <div
               className={cn(
-                "min-h-[300px] p-2 w-full",
-                viewMode === "grid" ? `flex flex-wrap ${GRID_GAP} items-start` : `flex flex-col ${LIST_GAP}`
+                "min-h-[300px] w-full",
+                viewMode === "grid" ? `grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap md:p-2 ${GRID_GAP}` : `flex p-2 flex-col ${LIST_GAP}`
               )}
               onClick={handleBackgroundClick}
             >
