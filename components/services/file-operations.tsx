@@ -19,7 +19,7 @@ export function useFileOperations(
   // Use injected services if provided, otherwise use hooks
   const defaultNotifications = useNotifications()
   const defaultSync = useSync()
-  
+
   const { addNotification } = notificationService || defaultNotifications
   const { updateSyncStatus } = syncService || defaultSync
 
@@ -72,27 +72,26 @@ export function useFileOperations(
       }
 
       if (currentPath.length === 0) {
-        setFileSystem([...fileSystem, newFolder])
-        return
-      }
+        setFileSystem(prevState => [...prevState, newFolder])
+      } else {
+        const updateFileSystem = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+          if (depth === path.length) {
+            return [...items, newFolder]
+          }
 
-      const updateFileSystem = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
-        if (depth === path.length) {
-          return [...items, newFolder]
+          return items.map((item) => {
+            if (item.type === "folder" && item.name === path[depth]) {
+              return {
+                ...item,
+                children: updateFileSystem(item.children || [], path, depth + 1),
+              }
+            }
+            return item
+          })
         }
 
-        return items.map((item) => {
-          if (item.type === "folder" && item.name === path[depth]) {
-            return {
-              ...item,
-              children: updateFileSystem(item.children || [], path, depth + 1),
-            }
-          }
-          return item
-        })
+        setFileSystem(prevState => updateFileSystem(prevState, currentPath, 0))
       }
-
-      setFileSystem(updateFileSystem(fileSystem, currentPath, 0))
 
       setTimeout(() => {
         updateSyncStatus(newFolder.id, "syncing")
@@ -134,8 +133,8 @@ export function useFileOperations(
         })
       }
 
-      setFileSystem(findItems([...fileSystem]))
-      
+      setFileSystem(prevState => findItems([...prevState]))
+
       if (setSelectedItems) {
         setSelectedItems([])
       }
@@ -189,7 +188,7 @@ export function useFileOperations(
         })
       }
 
-      setFileSystem(renameItem(fileSystem))
+      setFileSystem(prevState => renameItem(prevState))
 
       if (setDetailsItem) {
         const detailsItem = findItemById(itemId)
@@ -267,8 +266,10 @@ export function useFileOperations(
         })
       }
 
-      const newFileSystem = removeItems([...fileSystem])
-      setFileSystem(addItems(newFileSystem, targetPath, 0))
+      setFileSystem(prevState => {
+        const newFileSystem = removeItems([...prevState])
+        return addItems(newFileSystem, targetPath, 0)
+      })
 
       if (setDetailsItem) {
         const detailsItem = itemsToMove.length > 0 ? itemsToMove[0] : null
@@ -336,7 +337,7 @@ export function useFileOperations(
         })
       }
 
-      setFileSystem(updateItemPermissions(fileSystem))
+      setFileSystem(prevState => updateItemPermissions(prevState))
 
       addNotification({
         title: "Permissions Updated",

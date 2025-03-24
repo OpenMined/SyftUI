@@ -55,7 +55,7 @@ export function SyncProvider({
       })
     }
 
-    setFileSystem(updateStatus(fileSystem))
+    setFileSystem(prevFileSystem => updateStatus(prevFileSystem))
   }
 
   const triggerManualSync = () => {
