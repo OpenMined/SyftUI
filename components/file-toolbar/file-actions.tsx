@@ -18,6 +18,7 @@ import {
   ArrowUpDown,
   Star,
   FilePlus,
+  TextCursorInput,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,7 +35,7 @@ import {
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, handleRename, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
@@ -47,6 +48,8 @@ export function FileActions() {
   const [newFolderName, setNewFolderName] = useState("")
   const [isCreateFileOpen, setIsCreateFileOpen] = useState(false)
   const [newFileName, setNewFileName] = useState("")
+  const [isRenameOpen, setIsRenameOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState("")
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
 
   const handleCreateFolderSubmit = () => {
@@ -62,6 +65,36 @@ export function FileActions() {
       handleCreateFile(newFileName.trim())
       setNewFileName("")
       setIsCreateFileOpen(false)
+    }
+  }
+
+  const handleRenameSubmit = () => {
+    if (selectedItems.length === 1 && renameValue.trim()) {
+      handleRename(selectedItems[0], renameValue.trim())
+      setRenameValue("")
+      setIsRenameOpen(false)
+    }
+  }
+
+  const openRenameDialog = () => {
+    if (selectedItems.length === 1) {
+      // Find the selected item to get its current name
+      const findItemById = (id: string, items: FileSystemItem[]): FileSystemItem | null => {
+        for (const item of items) {
+          if (item.id === id) return item
+          if (item.type === "folder" && item.children) {
+            const found = findItemById(id, item.children)
+            if (found) return found
+          }
+        }
+        return null
+      }
+
+      const selectedItem = findItemById(selectedItems[0], fileSystem)
+      if (selectedItem) {
+        setRenameValue(selectedItem.name)
+        setIsRenameOpen(true)
+      }
     }
   }
 
@@ -220,6 +253,17 @@ export function FileActions() {
           <>
             <Tooltip>
               <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={openRenameDialog}>
+                  <TextCursorInput className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Rename</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="outline"
                   size="icon"
@@ -316,6 +360,30 @@ export function FileActions() {
               Cancel
             </Button>
             <Button onClick={handleCreateFileSubmit}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Item</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            placeholder="Enter new name"
+            className="mt-4"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRenameSubmit()
+            }}
+          />
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsRenameOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRenameSubmit}>Rename</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
