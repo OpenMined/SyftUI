@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from "react"
 import { useFileSystem } from "@/components/contexts/file-system-context"
-import type { FileSystemItem } from "@/lib/types"
+import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
 import { addToFavorites } from "@/lib/utils/favorites"
@@ -39,6 +39,8 @@ interface BackgroundContextMenuContentProps {
   handleCreateFolder?: (name: string) => void
   toggleSyncPause?: () => void
   syncPaused?: boolean
+  clipboard?: ClipboardItem | null
+  pasteItems?: () => void
 }
 
 function BackgroundContextMenuContent({
@@ -50,7 +52,9 @@ function BackgroundContextMenuContent({
   getCurrentDirectoryInfo,
   handleCreateFolder,
   toggleSyncPause,
-  syncPaused
+  syncPaused,
+  clipboard,
+  pasteItems
 }: BackgroundContextMenuContentProps) {
   // Get current directory name
   const currentDirName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : "Root"
@@ -113,6 +117,10 @@ function BackgroundContextMenuContent({
 
         <ContextMenuItem>Upload File</ContextMenuItem>
         <ContextMenuItem>Download as ZIP</ContextMenuItem>
+        <ContextMenuItem onClick={pasteItems} disabled={!clipboard} className={!clipboard ? "text-muted-foreground pointer-events-none opacity-50" : ""}>
+          Paste
+          <ContextMenuShortcut>⌘V</ContextMenuShortcut>
+        </ContextMenuItem>
         <ContextMenuSeparator />
 
         <ContextMenuItem>Activity</ContextMenuItem>
@@ -339,12 +347,10 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
           Copy
           <ContextMenuShortcut>⌘C</ContextMenuShortcut>
         </ContextMenuItem>
-        {clipboard && (
-          <ContextMenuItem onClick={pasteItems}>
-            Paste
-            <ContextMenuShortcut>⌘V</ContextMenuShortcut>
-          </ContextMenuItem>
-        )}
+        <ContextMenuItem onClick={pasteItems} disabled={!clipboard} className={!clipboard ? "text-muted-foreground pointer-events-none opacity-50" : ""}>
+          Paste
+          <ContextMenuShortcut>⌘V</ContextMenuShortcut>
+        </ContextMenuItem>
         {isMobile && (
           <ContextMenuItem onClick={() => setDetailsItem(item)}>
             Details
@@ -681,6 +687,8 @@ export function FileExplorer({
         handleCreateFolder={fileSystemContext.handleCreateFolder}
         toggleSyncPause={fileSystemContext.toggleSyncPause}
         syncPaused={fileSystemContext.syncPaused}
+        clipboard={fileSystemContext.clipboard}
+        pasteItems={fileSystemContext.pasteItems}
       />
     </ContextMenu>
   ), [handleDragOver, handleDrop, handleBackgroundClick, handleBackgroundContextMenu, currentPath, sortConfig, fileSystemContext, viewMode])
@@ -755,6 +763,8 @@ export function FileExplorer({
           handleCreateFolder={fileSystemContext.handleCreateFolder}
           toggleSyncPause={fileSystemContext.toggleSyncPause}
           syncPaused={fileSystemContext.syncPaused}
+          clipboard={fileSystemContext.clipboard}
+          pasteItems={fileSystemContext.pasteItems}
         />
       </ContextMenu>
 

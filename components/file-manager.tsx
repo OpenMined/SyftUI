@@ -53,7 +53,6 @@ function FileSystemProviderContent({
   selectedItems,
   viewMode,
   sortConfig,
-  clipboard,
   syncPaused,
   setSelectedItems,
   navigateTo,
@@ -71,7 +70,6 @@ function FileSystemProviderContent({
   selectedItems: string[],
   viewMode: "grid" | "list",
   sortConfig: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" },
-  clipboard: ClipboardItem | null,
   syncPaused: boolean,
   setSelectedItems: (items: string[]) => void,
   navigateTo: (path: string[]) => void,
@@ -85,7 +83,7 @@ function FileSystemProviderContent({
 }) {
   // Initialize file operations service - now with all contexts available
   const fileOperations = useFileOperations(fileSystem, setFileSystem, currentPath);
-  const { cutItems, copyItems, pasteItems } = useClipboard();
+  const { clipboard, cutItems, copyItems, pasteItems } = useClipboard();
 
   return (
     <FileSystemProvider
@@ -164,7 +162,7 @@ function FileManagerContent({
 }: FileManagerContentProps) {
   // Get context providers
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
-  const { syncDialogOpen, setSyncDialogOpen, syncPaused } = useSync()
+  const { syncDialogOpen, setSyncDialogOpen, syncPaused, setSyncPaused } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotifications()
 
@@ -444,6 +442,7 @@ function FileManagerContent({
         open={syncDialogOpen}
         onClose={() => setSyncDialogOpen(false)}
         isPaused={syncPaused}
+        onPauseChange={setSyncPaused}
       />
 
       {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}
@@ -458,7 +457,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   const [sortConfig, setSortConfig] = useState<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>({ sortBy: "name", direction: "asc" });
   const [syncPaused, setSyncPaused] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
   const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null);
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
@@ -530,7 +528,6 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
             selectedItems={selectedItems}
             viewMode={viewMode}
             sortConfig={sortConfig}
-            clipboard={clipboard}
             syncPaused={syncPaused}
             setSelectedItems={setSelectedItems}
             navigateTo={(path) => {
