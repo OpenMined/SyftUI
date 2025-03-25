@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X, Share2, Download, Trash2, Edit, Clock, Lock, Info } from "lucide-react"
+import { FileIcon } from "@/components/file-icon"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SyncStatus } from "@/components/sync-status"
@@ -42,53 +43,51 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
     setIsRenaming(false)
   }
 
-  const getFileTypeInfo = () => {
+  const getFileType = () => {
     if (item.type === "folder") {
-      return {
-        type: "Folder",
-        icon: "📁",
-      }
+      return "Folder"
     }
 
     const extension = item.name.split(".").pop()?.toLowerCase() || ""
 
     switch (extension) {
       case "pdf":
-        return { type: "PDF Document", icon: "📄" }
+        return "PDF Document"
       case "doc":
       case "docx":
-        return { type: "Word Document", icon: "📝" }
+        return "Word Document"
       case "xls":
       case "xlsx":
-        return { type: "Excel Spreadsheet", icon: "📊" }
+        return "Excel Spreadsheet"
       case "ppt":
       case "pptx":
-        return { type: "PowerPoint Presentation", icon: "📑" }
+        return "PowerPoint Presentation"
       case "jpg":
       case "jpeg":
       case "png":
       case "gif":
-        return { type: "Image", icon: "🖼️" }
+        return "Image"
       case "mp4":
       case "mov":
       case "avi":
-        return { type: "Video", icon: "🎬" }
+        return "Video"
       case "mp3":
       case "wav":
-        return { type: "Audio", icon: "🎵" }
+        return "Audio"
       case "zip":
       case "rar":
-        return { type: "Archive", icon: "🗄️" }
+        return "Archive"
       case "html":
       case "css":
       case "js":
-        return { type: "Web File", icon: "🌐" }
+        return "Web File"
       default:
-        return { type: `${extension.toUpperCase()} File`, icon: "📄" }
+        return `${extension.toUpperCase()} File`
     }
   }
 
-  const fileTypeInfo = getFileTypeInfo()
+  const fileType = getFileType()
+  const extension = item.type === "file" ? item.name.split(".").pop() : undefined
 
   return (
     <div className="h-full flex flex-col bg-card">
@@ -115,9 +114,9 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
 
           <TabsContent value="details" className="p-4 space-y-6">
             <div className="flex flex-col items-center text-center p-4">
-              <div className="h-20 w-20 mb-4 text-6xl">
+              <div className="h-20 w-20 mb-4">
                 <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>
-                  {fileTypeInfo.icon}
+                  <FileIcon type={item.type} extension={extension} className="h-full w-full" />
                 </motion.div>
               </div>
 
@@ -140,7 +139,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
                 <h3 className="font-medium text-lg mb-1 break-all">{item.name}</h3>
               )}
 
-              <p className="text-sm text-muted-foreground">{fileTypeInfo.type}</p>
+              <p className="text-sm text-muted-foreground">{fileType}</p>
 
               {item.syncStatus && (
                 <div className="mt-2">
@@ -157,7 +156,7 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm pl-6">
                   <span className="text-muted-foreground">Type:</span>
-                  <span>{fileTypeInfo.type}</span>
+                  <span>{fileType}</span>
 
                   {item.size && (
                     <>
