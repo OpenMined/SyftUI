@@ -396,7 +396,7 @@ function FileManagerContent({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10"
+                className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center z-10"
               >
                 <div className="bg-card border-2 border-dashed border-primary rounded-lg p-8 text-center">
                   <div className="text-2xl font-bold mb-2">Drop files here</div>

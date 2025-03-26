@@ -318,7 +318,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   // Extract common class names for better readability
   const itemClasses = cn(
     `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
-    viewMode === "grid" ? `${GRID_ITEM_SIZE} flex-shrink-0 flex-grow-0` : "w-full",
+    viewMode === "grid" ? `${GRID_ITEM_SIZE} shrink-0 grow-0` : "w-full",
     selectedItems.includes(item.id) ? "bg-accent" : "hover:bg-muted",
     dropTarget === item.id && "ring-2 ring-primary",
     viewMode === "list" && "justify-start gap-3"
@@ -331,7 +331,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
 
   const iconClasses = cn(
     "relative",
-    viewMode === "grid" ? GRID_ICON_SIZE : `${LIST_ICON_SIZE} flex-shrink-0`
+    viewMode === "grid" ? GRID_ICON_SIZE : `${LIST_ICON_SIZE} shrink-0`
   )
 
   const textClasses = cn(
@@ -383,7 +383,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
               )}
             </div>
             {viewMode === "list" && item.syncStatus && (
-              <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 flex-shrink-0" />
+              <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 shrink-0" />
             )}
           </div>
         </motion.div>

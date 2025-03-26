@@ -117,7 +117,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
   return (
     <>
-      <Card className="h-full w-full overflow-hidden shadow-sm border transition-all duration-200">
+      <Card className="h-full w-full overflow-hidden shadow-xs border transition-all duration-200">
         <CardHeader className={`p-3 ${isEditing ? 'cursor-move' : 'cursor-default'} handle bg-accent border-b select-none`} data-no-drag={isEditing ? 'true' : 'false'}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium truncate">{widget.title}</CardTitle>

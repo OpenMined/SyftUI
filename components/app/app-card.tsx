@@ -19,7 +19,7 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="border rounded-lg overflow-hidden flex flex-col cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all"
+      className="border rounded-lg overflow-hidden flex flex-col cursor-pointer hover:border-primary/50 hover:shadow-xs transition-all"
       onClick={() => onClick(app.id)}
     >
       <div className="p-4 flex items-start gap-3">

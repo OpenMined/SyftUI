@@ -30,7 +30,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
       <div className={`fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } md:w-64 flex-shrink-0`}>
+        } md:w-64 shrink-0`}>
         <Sidebar closeSidebar={() => setSidebarOpen(false)} />
       </div>
       <div className="flex-1 overflow-hidden">
