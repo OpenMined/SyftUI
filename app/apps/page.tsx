@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AppWindow, Search, Plus, Filter } from "lucide-react"
+import { AppWindow, Search, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,7 +13,7 @@ import { Toolbar } from "@/components/ui/toolbar"
 export default function AppsPage() {
     const [selectedApp, setSelectedApp] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
-    
+
     // Filter to only show installed apps
     const installedApps = mockApps.filter(app => app.installed);
 
@@ -21,7 +21,7 @@ export default function AppsPage() {
         // Logic to uninstall the app would go here
         console.log(`Uninstalling app with id: ${appId}`)
     }
-    
+
     if (selectedApp) {
         return <AppDetail appId={selectedApp} onBack={() => setSelectedApp(null)} />;
     }
@@ -31,23 +31,16 @@ export default function AppsPage() {
             <Toolbar
                 title="Apps"
                 icon={<AppWindow className="h-5 w-5" />}
-                leftSection={
-                    <div className="flex items-center gap-2 ml-4">
-                        <div className="relative w-72">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search installed apps..."
-                                className="pl-9"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <Button variant="outline" size="icon" className="hidden sm:flex">
-                            <Filter className="h-4 w-4" />
-                        </Button>
-                    </div>
-                }
             >
+                <div className="relative w-72">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search installed apps..."
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
                 <Button variant="outline" onClick={() => window.location.href = "/marketplace"}>
                     <Plus className="h-4 w-4 mr-2" />
                     <span>Add App</span>
@@ -65,9 +58,9 @@ export default function AppsPage() {
 
                 <TabsContent value="all" className="flex-1 p-0">
                     {installedApps.length > 0 ? (
-                        <AppList 
-                            apps={installedApps} 
-                            onSelectApp={(appId) => setSelectedApp(appId)} 
+                        <AppList
+                            apps={installedApps}
+                            onSelectApp={(appId) => setSelectedApp(appId)}
                             onActionClick={handleUninstallApp}
                             searchQuery={searchQuery}
                             viewContext="apps"
