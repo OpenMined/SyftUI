@@ -72,10 +72,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     if (pathname.startsWith("/logs")) return "Logs"
     if (pathname.startsWith("/marketplace")) return "Marketplace"
     if (pathname.startsWith("/apps")) return "Apps"
-    if (pathname.startsWith(`/workspace/?path=/datasites/${userEmail}`)) return "My datasite"
-    if (pathname.startsWith("/workspace/?path=/datasites")) return "Datasites"
     if (pathname.startsWith("/workspace")) return "Workspace"
-    return "Dashboard"
+    if (pathname.startsWith("/dashboard")) return "Dashboard"
+    return ""
   }
 
   const [activeItem, setActiveItem] = useState(getActiveItem(pathname))
@@ -123,7 +122,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     {
       icon: LayoutDashboard, label: "Dashboard", action: () => {
         setActiveItem("Dashboard")
-        router.push("/")
+        router.push("/dashboard/")
         closeSidebar()
       }
     },

@@ -2,7 +2,7 @@
 
 import { Toolbar } from "@/components/ui/toolbar"
 import { Check, LayoutDashboard, Pencil, Plus, X, RotateCcw } from "lucide-react"
-import { Dashboard } from "@/components/dashboard/dashboard"
+import { Dashboard } from "@/components/dashboard"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -61,8 +61,8 @@ export default function HomePage() {
         <>
           <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
             <AlertDialogTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
               >
@@ -74,7 +74,7 @@ export default function HomePage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset Dashboard</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will reset the dashboard to its default layout. All customizations will be lost. 
+                  This will reset the dashboard to its default layout. All customizations will be lost.
                   This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -84,19 +84,19 @@ export default function HomePage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={openAddWidgetDialog}
             className="flex items-center gap-1"
           >
             <Plus className="h-4 w-4" />
             Add Widget
           </Button>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             size="sm"
             onClick={cancelEditMode}
             className="flex items-center gap-1"
@@ -104,7 +104,7 @@ export default function HomePage() {
             <X className="h-4 w-4" />
             Cancel
           </Button>
-          
+
           <Button
             variant="default"
             size="sm"
