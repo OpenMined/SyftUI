@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import {
   LayoutDashboard,
-  Briefcase,
   Database,
   FolderHeart,
   AppWindow,
@@ -51,7 +50,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const isMobile = useIsMobile()
-  
+
   // Load favorites from localStorage on initial render
   useEffect(() => {
     const savedFavorites = loadFavorites();
@@ -59,7 +58,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       setFavorites(savedFavorites);
     }
   }, [])
-  
+
   // Save favorites to localStorage whenever they change
   useEffect(() => {
     saveFavorites(favorites);
@@ -85,12 +84,12 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   useEffect(() => {
     setActiveItem(getActiveItem(pathname))
   }, [pathname])
-  
+
   // Listen for add-to-favorites events
   useEffect(() => {
     const handleAddToFavorites = (event: Event) => {
       const detail = (event as any).detail;
-      
+
       if (detail && detail.id && detail.name) {
         // Check if already in favorites
         if (!favorites.some((fav) => fav.id === detail.id)) {
@@ -105,9 +104,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         }
       }
     };
-    
+
     window.addEventListener('add-to-favorites', handleAddToFavorites);
-    
+
     return () => {
       window.removeEventListener('add-to-favorites', handleAddToFavorites);
     };
@@ -129,7 +128,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       }
     },
     {
-      icon: Briefcase,
+      icon: Database,
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
@@ -137,26 +136,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         router.push("/workspace/")
         closeSidebar()
       },
-    },
-    {
-      icon: Database,
-      label: "Datasites",
-      action: () => {
-        setActiveItem("Datasites")
-        navigateToPath(["datasites"])
-        router.push("/workspace/?path=datasites/")
-        closeSidebar()
-      },
-    },
-    {
-      icon: FolderHeart,
-      label: "My datasite",
-      action: () => {
-        setActiveItem("My datasite")
-        navigateToPath(["datasites", userEmail])
-        router.push(`/workspace/?path=datasites/${userEmail}/`)
-        closeSidebar()
-      }
     },
     {
       icon: AppWindow, label: "Apps", action: () => {
@@ -287,8 +266,8 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               <div className="pl-4 pr-2 py-2 space-y-1" onDrop={handleDrop} onDragOver={handleDragOver}>
                 {favorites.length === 0 ? (
                   <p className="text-xs text-muted-foreground px-3 py-2">
-                    {isMobile ? 
-                      "Use the star button to add favorites" : 
+                    {isMobile ?
+                      "Use the star button to add favorites" :
                       "Drag folders here to add to favorites"}
                   </p>
                 ) : (

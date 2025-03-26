@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { NotificationProvider } from "@/components/notification-context"
 import { Sidebar } from "@/components/sidebar"
 import { usePathname, useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { initializationService } from "@/lib/initialization"
 import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -16,6 +18,14 @@ import { metadata } from './metadata'
 function MainLayout({ children }: { children: React.ReactNode }) {
   // Access sidebar state from context
   const { sidebarOpen, setSidebarOpen } = useSidebar()
+
+  // Run initialization once when the app starts
+  useEffect(() => {
+    // Run initialization only on client side
+    if (typeof window !== 'undefined') {
+      initializationService.initialize().catch(console.error);
+    }
+  }, []);
 
   return (
     <div className="flex h-screen">
