@@ -7,3 +7,4 @@ export function LogoComponent() {
             <img src={getAssetPath("/logo-dark.svg")} alt="SyftBox Logo" className="hidden h-full w-auto dark:block" />
         </>
     )
+}

@@ -6,8 +6,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { ConnectionFormValues } from "@/lib/connection/constants"
-import { ConnectionStatus } from "@/lib/connection/constants"
+import { ConnectionFormValues, ConnectionStatus } from "@/components/contexts/connection-context"
 
 interface ConnectionFormProps {
   form: UseFormReturn<ConnectionFormValues>;
@@ -29,10 +28,10 @@ export function ConnectionForm({
   submitButtonText = "Connect"
 }: ConnectionFormProps) {
   const [showToken, setShowToken] = useState(false);
-  
+
   // Handle form field change with settings sync
   const handleFieldChange = (
-    field: { onChange: (e: any) => void }, 
+    field: { onChange: (e: any) => void },
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: keyof ConnectionFormValues
   ) => {
@@ -41,7 +40,7 @@ export function ConnectionForm({
       onSettingsChange(fieldName, e.target.value);
     }
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -52,9 +51,9 @@ export function ConnectionForm({
             <FormItem>
               <FormLabel>Host</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="localhost" 
-                  {...field} 
+                <Input
+                  placeholder="localhost"
+                  {...field}
                   onChange={(e) => handleFieldChange(field, e, "host")}
                 />
               </FormControl>
@@ -70,11 +69,11 @@ export function ConnectionForm({
             <FormItem>
               <FormLabel>Port</FormLabel>
               <FormControl>
-                <Input 
-                  min={1} 
-                  type="number" 
-                  placeholder="3000" 
-                  {...field} 
+                <Input
+                  min={1}
+                  type="number"
+                  placeholder="3000"
+                  {...field}
                   onChange={(e) => handleFieldChange(field, e, "port")}
                 />
               </FormControl>
@@ -117,11 +116,11 @@ export function ConnectionForm({
 
         <div className="flex justify-end space-x-2 pt-2">
           {showCancelButton && onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer select-none">
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={status === "connecting"}>
+          <Button type="submit" disabled={status === "connecting"} className="cursor-pointer select-none">
             {status === "connecting" ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

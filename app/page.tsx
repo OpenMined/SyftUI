@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -11,20 +11,14 @@ import { ConnectionForm } from "@/components/connection/connection-form"
 
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LogoComponent } from "@/components/logo"
-import { useConnection } from "@/lib/connection/use-connection"
-import { ConnectionStatus as StatusType, DEFAULT_CONNECTION_SETTINGS, connectionFormSchema, ConnectionFormValues } from "@/lib/connection/constants"
-
-// Use the shared form schema from constants
+import { ConnectionStatus as StatusType, DEFAULT_CONNECTION_SETTINGS, connectionFormSchema, ConnectionFormValues, useConnection } from "@/components/contexts/connection-context"
 
 export default function HomePage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
-    // Use our shared connection hook
     const {
         settings,
         updateSettings,
         status,
-        setStatus,
         connect
     } = useConnection();
 
@@ -46,11 +40,11 @@ export default function HomePage() {
 
     useEffect(() => {
         // Handle navigation after successful connection
-        const nextUrl = searchParams.get("next") || "dashboard"
+        const nextUrl = new URLSearchParams(window.location.search).get("next") || "/dashboard";
         if (status === "connected") {
             router.push(nextUrl)
         }
-    }, [status, router, searchParams])
+    }, [status])
 
     // Handle form submission
     async function onSubmit(values: ConnectionFormValues) {
@@ -60,10 +54,10 @@ export default function HomePage() {
             port: values.port.toString(),
             token: values.token
         });
-        
+
         // Attempt connection
         const result = connect();
-        
+
         if (!result.success) {
             // Handle validation errors from the connection hook
             Object.entries(result.errors).forEach(([key, value]) => {
@@ -97,14 +91,14 @@ export default function HomePage() {
                         </div>
 
                         <div className="space-y-6">
-                            <ConnectionForm 
+                            <ConnectionForm
                                 form={form}
                                 onSubmit={onSubmit}
                                 onSettingsChange={(key, value) => updateSettings({ [key]: value })}
                                 status={status}
                                 showCancelButton={false}
                             />
-                            
+
                             <div className="text-sm text-muted-foreground">
                                 You can find this information in the output of the{" "}
                                 <code className="rounded bg-muted px-1 py-0.5 font-mono text-sm">syft client</code> command in the terminal.

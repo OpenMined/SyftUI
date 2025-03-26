@@ -7,31 +7,21 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { ConnectionStatus as StatusType, DEFAULT_CONNECTION_SETTINGS, connectionFormSchema, ConnectionFormValues } from "@/lib/connection/constants"
-import { useConnection } from "@/lib/connection/use-connection"
+import { ConnectionStatus as StatusType, DEFAULT_CONNECTION_SETTINGS, connectionFormSchema, ConnectionFormValues, useConnection } from "@/components/contexts/connection-context"
 import { ConnectionForm } from "@/components/connection/connection-form"
 
-interface ConnectionStatusProps {
-  initialStatus?: StatusType;
-  onStatusChange?: (status: StatusType) => void;
-}
-
-export function ConnectionStatus({ 
-  initialStatus, 
-  onStatusChange 
-}: ConnectionStatusProps) {
+export function ConnectionStatus() {
   const {
     settings,
     updateSettings,
     status,
-    setStatus,
     displayHost,
     displayPort,
     connect
   } = useConnection();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   // Setup form with react-hook-form and zod validation
   const form = useForm<ConnectionFormValues>({
     resolver: zodResolver(connectionFormSchema),
@@ -41,20 +31,6 @@ export function ConnectionStatus({
       token: DEFAULT_CONNECTION_SETTINGS.token,
     },
   });
-
-  // Handle initial status if provided
-  useEffect(() => {
-    if (initialStatus) {
-      setStatus(initialStatus);
-    }
-  }, [initialStatus, setStatus]);
-
-  // Notify parent component about status changes
-  useEffect(() => {
-    if (onStatusChange) {
-      onStatusChange(status);
-    }
-  }, [status, onStatusChange]);
 
   // Sync form with connection settings
   useEffect(() => {
@@ -71,10 +47,10 @@ export function ConnectionStatus({
       port: values.port.toString(),
       token: values.token
     });
-    
+
     // Attempt connection
     const result = connect();
-    
+
     if (result.success) {
       setIsDialogOpen(false);
     } else {
@@ -156,9 +132,9 @@ export function ConnectionStatus({
           <DialogHeader>
             <DialogTitle>Connection Settings</DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4">
-            <ConnectionForm 
+            <ConnectionForm
               form={form}
               onSubmit={onSubmit}
               onCancel={() => setIsDialogOpen(false)}

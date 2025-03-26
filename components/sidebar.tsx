@@ -43,7 +43,6 @@ interface SidebarProps {
 export function Sidebar({ closeSidebar }: SidebarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
-  const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connected")
   const [favorites, setFavorites] = useState<{ id: string; name: string; path: string[] }[]>([])
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
@@ -209,17 +208,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     setFavorites((prev) => prev.filter((fav) => fav.id !== id))
   }
 
-  // Simulate random connection status changes for demo purposes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const statuses: Array<"connected" | "connecting" | "disconnected"> = ["connected", "connecting", "disconnected"]
-      const randomStatus = statuses[Math.floor(Math.random() * 10) % 3]
-      setConnectionStatus(randomStatus)
-    }, 30000) // Change every 30 seconds
-
-    return () => clearInterval(interval)
-  }, [])
-
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
       <div className="flex justify-between items-center mx-4 pt-4 gap-2">
@@ -229,7 +217,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         </Button>
       </div>
       <div className="flex justify-between items-center mx-4 pt-2 pb-4 border-b border-border">
-        <ConnectionStatus status={connectionStatus} />
+        <ConnectionStatus />
       </div>
       <nav className="flex-1 overflow-auto p-2">
         <ul className="space-y-1 mb-4">

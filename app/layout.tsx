@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/sidebar"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { initializationService } from "@/lib/initialization"
+import { ConnectionProvider } from "@/components/contexts/connection-context"
 import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
 import { Toaster } from "@/components/ui/toaster"
 import { metadata } from './metadata'
@@ -60,10 +61,12 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NotificationProvider>
-            <SidebarProvider>
-              <MainLayout>{children}</MainLayout>
-              <Toaster />
-            </SidebarProvider>
+            <ConnectionProvider>
+              <SidebarProvider>
+                <MainLayout>{children}</MainLayout>
+                <Toaster />
+              </SidebarProvider>
+            </ConnectionProvider>
           </NotificationProvider>
         </ThemeProvider>
       </body>
