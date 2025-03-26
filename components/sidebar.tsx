@@ -17,7 +17,7 @@ import {
   User,
   X,
 } from "lucide-react"
-import { cn, getAssetPath } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { navigateToPath } from "@/lib/utils/url"
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -34,6 +34,7 @@ import Image from "next/image"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useTheme } from "next-themes"
 import { useRouter, usePathname } from "next/navigation"
+import { LogoComponent } from "./logo"
 
 interface SidebarProps {
   closeSidebar: () => void
@@ -222,7 +223,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
       <div className="flex justify-between items-center mx-4 pt-4 gap-2">
-        <Image src={getAssetPath(isDarkTheme ? "/logo-dark.svg" : "/logo-light.svg")} width={180} height={54} alt="SyftBox UI" />
+        <LogoComponent />
         <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
           <X className="h-4 w-4" />
         </Button>
