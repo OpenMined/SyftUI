@@ -6,8 +6,7 @@ import { z } from "zod";
 
 // Connection settings types and constants
 export interface ConnectionSettings {
-  host: string;
-  port: string | number;
+  url: string;
   token: string;
 }
 
@@ -15,8 +14,7 @@ export type ConnectionStatus = "connected" | "connecting" | "disconnected";
 
 // Default values for connection settings
 export const DEFAULT_CONNECTION_SETTINGS: ConnectionSettings = {
-  host: "localhost",
-  port: "3000",
+  url: "http://127.0.0.1:8080/",
   token: "2b280fc73335d39427183bed28fead26d865a5c1",
 };
 
@@ -28,20 +26,15 @@ export const SIMULATED_CONNECTION_DELAY = 750; // ms
 
 // Form schema for connection settings validation
 export const connectionFormSchema = z.object({
-  host: z.string().min(1, "Host is required").regex(/^[a-zA-Z0-9.-]+$/, "Invalid host"),
-  port: z.preprocess(
-    (value) => parseInt(z.string().parse(value), 10),
-    z.number().min(1, "Port is required").max(65535, "Port must be between 1 and 65535")
-  ),
-  token: z.string().length(40, "Token must be exactly 40 characters"),
+  url: z.string().min(1, "URL is required").url("Must be a valid URL"),
+  token: z.string().min(1, "Token is required"),
 });
 
 // Type for form values
 export type ConnectionFormValues = z.infer<typeof connectionFormSchema>;
 
 export interface ConnectionErrors {
-  host?: string;
-  port?: string;
+  url?: string;
   token?: string;
 }
 
@@ -50,8 +43,7 @@ interface ConnectionContextType {
   updateSettings: (newSettings: Partial<ConnectionSettings>) => void;
   status: ConnectionStatus;
   setStatus: (status: ConnectionStatus) => void;
-  displayHost: string;
-  displayPort: string | number;
+  displayUrl: string;
   connect: () => { success: boolean; errors: ConnectionErrors };
   validateSettings: (settings: ConnectionSettings) => ConnectionErrors;
 }
@@ -60,8 +52,7 @@ const ConnectionContext = createContext<ConnectionContextType | undefined>(undef
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<ConnectionSettings>(DEFAULT_CONNECTION_SETTINGS);
-  const [displayHost, setDisplayHost] = useState(settings.host);
-  const [displayPort, setDisplayPort] = useState(settings.port);
+  const [displayUrl, setDisplayUrl] = useState(settings.url);
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
 
   // Load saved connection from sessionStorage
@@ -69,17 +60,12 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     const savedConnection = getFromSessionStorage(CONNECTION_STORAGE_KEY);
     if (savedConnection) {
       try {
-        const { host, port, token } = savedConnection as ConnectionSettings;
+        const { url, token } = savedConnection as ConnectionSettings;
         const newSettings = { ...settings };
 
-        if (host) {
-          newSettings.host = host;
-          setDisplayHost(host);
-        }
-
-        if (port) {
-          newSettings.port = port;
-          setDisplayPort(port);
+        if (url) {
+          newSettings.url = url;
+          setDisplayUrl(url);
         }
 
         if (token) {
@@ -97,8 +83,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   const validateSettings = (settings: ConnectionSettings): ConnectionErrors => {
     // Convert settings to the format expected by zod schema
     const result = connectionFormSchema.safeParse({
-      host: settings.host,
-      port: settings.port,
+      url: settings.url,
       token: settings.token
     });
 
@@ -132,8 +117,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       // Simulate connection attempt
       setTimeout(() => {
         saveToSessionStorage(CONNECTION_STORAGE_KEY, settings);
-        setDisplayHost(settings.host);
-        setDisplayPort(settings.port);
+        setDisplayUrl(settings.url);
         setStatus("connected");
       }, SIMULATED_CONNECTION_DELAY);
 
@@ -150,8 +134,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
         updateSettings,
         status,
         setStatus,
-        displayHost,
-        displayPort,
+        displayUrl,
         connect,
         validateSettings
       }}

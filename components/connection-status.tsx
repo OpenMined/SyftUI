@@ -15,27 +15,25 @@ export function ConnectionStatus() {
     settings,
     updateSettings,
     status,
-    displayHost,
-    displayPort,
+    displayUrl,
     connect
   } = useConnection();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
   // Setup form with react-hook-form and zod validation
   const form = useForm<ConnectionFormValues>({
     resolver: zodResolver(connectionFormSchema),
     defaultValues: {
-      host: DEFAULT_CONNECTION_SETTINGS.host,
-      port: DEFAULT_CONNECTION_SETTINGS.port,
+      url: DEFAULT_CONNECTION_SETTINGS.url,
       token: DEFAULT_CONNECTION_SETTINGS.token,
     },
   });
 
   // Sync form with connection settings
   useEffect(() => {
-    form.setValue("host", settings.host);
-    form.setValue("port", settings.port as string);
+    form.setValue("url", settings.url);
     form.setValue("token", settings.token);
   }, [form, settings]);
 
@@ -43,8 +41,7 @@ export function ConnectionStatus() {
   function onSubmit(values: ConnectionFormValues) {
     // Update connection settings from form values
     updateSettings({
-      host: values.host,
-      port: values.port.toString(),
+      url: values.url,
       token: values.token
     });
 
@@ -69,7 +66,7 @@ export function ConnectionStatus() {
   // Focus first input when dialog opens
   useEffect(() => {
     if (isDialogOpen) {
-      form.setFocus("host");
+      form.setFocus("url");
     }
   }, [isDialogOpen, form]);
 
@@ -95,9 +92,9 @@ export function ConnectionStatus() {
   const getStatusText = () => {
     switch (status) {
       case "connected":
-        return `Connected to ${displayHost}:${displayPort}`
+        return "Connected"
       case "connecting":
-        return `Connecting...`
+        return "Connecting..."
       case "disconnected":
         return "Disconnected"
     }
@@ -106,11 +103,11 @@ export function ConnectionStatus() {
   const getButtonColors = () => {
     switch (status) {
       case "connected":
-        return "bg-green-50 border-green-200 text-green-600 hover:bg-green-100 hover:border-green-300 hover:text-green-700"
+        return "bg-green-50 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-200 hover:text-green-600"
       case "connecting":
-        return "bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-100 hover:border-yellow-300 hover:text-yellow-700"
+        return "bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-200 hover:text-yellow-600"
       case "disconnected":
-        return "bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 hover:text-red-700"
+        return "bg-red-50 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
     }
   }
 
@@ -119,12 +116,15 @@ export function ConnectionStatus() {
       <Button
         variant="outline"
         size="sm"
-        className={cn("flex items-center gap-2 py-4 px-2 h-auto w-full font-semibold", getButtonColors())}
+        className={cn("flex items-center gap-2 py-2 px-2 h-auto w-full font-semibold cursor-pointer select-none", getButtonColors())}
+        title={`${displayUrl} • ${getStatusText()}`}
         onClick={() => setIsDialogOpen(true)}
+        onMouseOver={() => setIsHovering(true)}
+        onMouseOut={() => setIsHovering(false)}
         onKeyDown={handleKeyDown}
       >
         {getStatusIcon()}
-        <span className="text-xs text-wrap">{getStatusText()}</span>
+        <span className="text-xs text-ellipsis overflow-hidden">{isHovering ? displayUrl : getStatusText()}</span>
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

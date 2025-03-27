@@ -46,35 +46,15 @@ export function ConnectionForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="host"
+          name="url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Host</FormLabel>
+              <FormLabel>Client URL</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="localhost"
+                  placeholder="http://127.0.0.1:8080/"
                   {...field}
-                  onChange={(e) => handleFieldChange(field, e, "host")}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="port"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Port</FormLabel>
-              <FormControl>
-                <Input
-                  min={1}
-                  type="number"
-                  placeholder="3000"
-                  {...field}
-                  onChange={(e) => handleFieldChange(field, e, "port")}
+                  onChange={(e) => handleFieldChange(field, e, "url")}
                 />
               </FormControl>
               <FormMessage />
@@ -92,7 +72,7 @@ export function ConnectionForm({
                 <div className="relative">
                   <Input
                     type={showToken ? "text" : "password"}
-                    placeholder="Enter your 40-character token"
+                    placeholder="Enter your client token"
                     autoComplete="off"
                     {...field}
                     onChange={(e) => handleFieldChange(field, e, "token")}
