@@ -75,6 +75,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
   const app = mockApps.find((a) => a.id === appId) as App
 
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isInstalled, setIsInstalled] = useState(app.installed)
   const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(app.installed)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [securityReportOpen, setSecurityReportOpen] = useState(false)
@@ -112,8 +113,15 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
   return (
     <div className="flex flex-col h-full">
       <Toolbar title="App Details" icon={<ChevronLeft className="h-4 w-4 cursor-pointer" onClick={onBack} />}>
-        {!app.installed ? (
-          <Button onClick={handleAction} disabled={isProcessing}>
+        {!isInstalled ? (
+          <Button onClick={() => {
+            setIsProcessing(true);
+            // Simulate installation process
+            setTimeout(() => {
+              setIsProcessing(false);
+              setIsInstalled(true);
+            }, 2000);
+          }} disabled={isProcessing}>
             {isProcessing ? "Installing..." : "Install"}
           </Button>
         ) : (
@@ -127,7 +135,14 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
             <Button variant="outline" onClick={handleDisable} disabled={isProcessing}>
               {isProcessing ? "Disabling..." : "Disable"}
             </Button>
-            <Button variant="destructive" onClick={handleUninstall} disabled={isProcessing}>
+            <Button variant="destructive" onClick={() => {
+              setIsProcessing(true);
+              // Simulate uninstallation process
+              setTimeout(() => {
+                setIsProcessing(false);
+                setIsInstalled(false);
+              }, 2000);
+            }} disabled={isProcessing}>
               Uninstall
             </Button>
           </div>

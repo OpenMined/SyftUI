@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useState } from "react"
 import { Star, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,8 @@ interface AppCardProps {
 }
 
 export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardProps) {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isInstalled, setIsInstalled] = useState(app.installed)
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -42,7 +45,7 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
       </div>
 
       <div className="px-4 py-2 flex items-center text-sm text-muted-foreground">
-        {app.installed && app.lastUsed ? (
+        {isInstalled && app.lastUsed ? (
           <div className="flex items-center mr-4">Last used: {app.lastUsed}</div>
         ) : (
           <>
@@ -59,19 +62,28 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
         <div className="ml-auto">
           {viewContext === 'marketplace' ? (
             <div className="flex items-center gap-2">
-              {app.installed && (
+              {isInstalled && (
                 <span className="text-xs text-muted-foreground">Installed</span>
               )}
               <Button
                 variant="outline"
                 size="sm"
-                className={app.installed ? "hover:border-red-500 hover:text-red-500 transition-colors" : ""}
+                className={isInstalled ? "hover:border-red-500 hover:text-red-500 transition-colors" : ""}
+                disabled={isProcessing}
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (onActionClick) onActionClick(app.id)
+                  if (onActionClick) {
+                    setIsProcessing(true)
+                    // Simulate installation/uninstallation process
+                    setTimeout(() => {
+                      setIsInstalled(!isInstalled)
+                      setIsProcessing(false)
+                      onActionClick(app.id)
+                    }, 2000)
+                  }
                 }}
               >
-                {app.installed ? "Uninstall" : "Install"}
+                {isProcessing ? (isInstalled ? "Uninstalling..." : "Installing...") : (isInstalled ? "Uninstall" : "Install")}
               </Button>
             </div>
           ) : null}

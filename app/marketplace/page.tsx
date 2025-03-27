@@ -45,8 +45,22 @@ export default function MarketplacePage() {
     }
 
     const handleAppInstall = (appId: string) => {
-        // Here would be the logic to install the app
-        console.log(`Installing app with id: ${appId}`)
+        // Find the app in the mock data
+        const appIndex = mockApps.findIndex(app => app.id === appId);
+        if (appIndex !== -1) {
+            // Toggle the installed state in our copy of the data
+            // Note: In a real application, this would be managed by a state management solution
+            // or would involve API calls to actually install/uninstall the app
+            const updatedApps = [...mockApps];
+            updatedApps[appIndex] = {
+                ...updatedApps[appIndex],
+                installed: !updatedApps[appIndex].installed
+            };
+            
+            // The app card component now handles its own state independently
+            // This function is now primarily for logging or backend integration
+            console.log(`${updatedApps[appIndex].installed ? 'Installing' : 'Uninstalling'} app with id: ${appId}`);
+        }
     }
 
     useEffect(() => {

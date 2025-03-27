@@ -108,13 +108,79 @@ After an API is sent, datasite owners will receive notifications (desktop and em
     id: "2",
     name: "Sync Status Indicators",
     description: "Add sync status indicators to all datasite files in MacOS native file manager",
+    longDescription: `# Sync Status Indicators
+This app adds sync status indicators to all datasite files in the MacOS native file manager. It provides a visual representation of the sync status of your files, making it easier to manage and monitor your data.
+## Features
+* Visual indicators for sync status
+* Easy integration with MacOS native file manager
+* User-friendly interface
+* Customizable settings
+* Supports multiple datasites
+* Real-time updates
+* Notifications for sync status changes
+* Lightweight and efficient
+* Minimal impact on system performance
+
+## Installation
+1. Install the app from the marketplace.
+2. Once installed, the app will automatically integrate with your MacOS native file manager.
+3. You can customize the settings to suit your preferences.
+4. Enjoy the convenience of sync status indicators for all your datasite files!
+
+## Usage
+* Open the MacOS native file manager.
+* Navigate to your datasite files.
+* Observe the sync status indicators next to each file.
+* Use the indicators to quickly identify the sync status of your files.
+
+## Troubleshooting
+* If you encounter any issues, please refer to the FAQ section in the app settings.`,
     author: "OpenMined",
     stars: 0,
     downloads: 7577,
     tags: ["sync", "UI", "UX"],
     verified: true,
     icon: "📡",
-    installed: false
+    installed: false,
+    lastUsed: "Never",
+    screenshots: [
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+    ],
+    reviews: [
+      {
+        id: "1",
+        author: "john@acme.com",
+        rating: 5,
+        date: "2023-12-01",
+        comment: "Great app! The sync status indicators are a game changer for managing my datasite files. Highly recommend!",
+      },
+      {
+        id: "2",
+        author: "greg@gmail.com",
+        rating: 4,
+        date: "2023-12-02",
+        comment: "Very helpful for keeping track of file statuses.",
+      },
+      {
+        id: "3",
+        author: "newuser@example.com",
+        rating: 5,
+        date: "2024-01-01",
+        comment: "The indicators are very intuitive and helpful!",
+      },
+      {
+        id: "4",
+        author: "newuser2@example.com",
+        rating: 3,
+        date: "2024-01-02",
+        comment: "Good app, but could impact performance.",
+      },
+    ]
   },
   {
     id: "3",
