@@ -70,6 +70,8 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
         "html",
         "css",
         "json",
+        "yaml",
+        "yml",
         "py",
         "java",
         "c",

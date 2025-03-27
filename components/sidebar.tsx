@@ -170,6 +170,21 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     },
   ]
 
+  const handleProfileClick = () => {
+    router.push("/profile/")
+    closeSidebar()
+  }
+
+  const handleSettingsClick = () => {
+    router.push("/settings/")
+    closeSidebar()
+  }
+
+  const handleLogoutClick = () => {
+    router.push("/")
+    closeSidebar()
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const data = e.dataTransfer.getData("application/json")
@@ -303,16 +318,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={closeSidebar}>
+            <DropdownMenuItem onClick={handleProfileClick}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={closeSidebar}>
+            <DropdownMenuItem onClick={handleSettingsClick}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={closeSidebar}>
+            <DropdownMenuItem onClick={handleLogoutClick}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
@@ -322,4 +337,3 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     </div>
   )
 }
-

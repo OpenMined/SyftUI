@@ -55,6 +55,8 @@ export function FileIcon({ type, extension, className }: FileIconProps) {
     case "ts":
     case "tsx":
     case "json":
+    case "yaml":
+    case "yml":
     case "xml":
       return <FileCode className={cn("h-full w-full text-cyan-500", className)} />
     case "txt":

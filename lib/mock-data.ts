@@ -1,8 +1,9 @@
+import { v4 as uuidv4 } from "uuid";
 import type { FileSystemItem } from "./types"
 
 export const mockFileSystem: FileSystemItem[] = [
   {
-    id: "folder-1",
+    id: uuidv4(),
     name: "apis",
     type: "folder",
     createdAt: "2023-01-15T10:30:00Z",
@@ -10,7 +11,7 @@ export const mockFileSystem: FileSystemItem[] = [
     syncStatus: "synced",
     children: [
       {
-        id: "file-1",
+        id: uuidv4(),
         name: "Project Proposal.pdf",
         type: "file",
         createdAt: "2023-01-15T10:30:00Z",
@@ -19,7 +20,7 @@ export const mockFileSystem: FileSystemItem[] = [
         syncStatus: "synced",
       },
       {
-        id: "file-2",
+        id: uuidv4(),
         name: "Meeting Notes.txt",
         type: "file",
         createdAt: "2023-02-05T09:15:00Z",
@@ -28,7 +29,7 @@ export const mockFileSystem: FileSystemItem[] = [
         syncStatus: "syncing",
       },
       {
-        id: "folder-2",
+        id: uuidv4(),
         name: "Research",
         type: "folder",
         createdAt: "2023-02-10T11:20:00Z",
@@ -36,7 +37,7 @@ export const mockFileSystem: FileSystemItem[] = [
         syncStatus: "synced",
         children: [
           {
-            id: "file-3",
+            id: uuidv4(),
             name: "Market Analysis.xlsx",
             type: "file",
             createdAt: "2023-02-10T11:25:00Z",
@@ -45,7 +46,7 @@ export const mockFileSystem: FileSystemItem[] = [
             syncStatus: "synced",
           },
           {
-            id: "file-4",
+            id: uuidv4(),
             name: "Competitor Data.json",
             type: "file",
             createdAt: "2023-03-01T13:40:00Z",
@@ -58,16 +59,98 @@ export const mockFileSystem: FileSystemItem[] = [
     ],
   },
   {
-    id: "folder-3",
+    id: uuidv4(),
     name: "datasites",
     type: "folder",
     createdAt: "2023-01-20T08:45:00Z",
     modifiedAt: "2023-04-05T10:15:00Z",
-    syncStatus: "syncing",
+    syncStatus: "synced",
     children: [
       {
-        id: "folder-9",
+        id: uuidv4(),
         name: "user@example.com",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
+        syncStatus: "synced",
+        children: [
+          {
+            id: uuidv4(),
+            name: "api_data",
+            type: "folder",
+            createdAt: "2023-04-10T16:00:00Z",
+            modifiedAt: "2023-04-10T16:00:00Z",
+            syncStatus: "synced",
+            children: [],
+          },
+          {
+            id: uuidv4(),
+            name: "inbox",
+            type: "folder",
+            createdAt: "2023-04-10T16:00:00Z",
+            modifiedAt: "2023-04-10T16:00:00Z",
+            syncStatus: "synced",
+            children: [],
+          },
+          {
+            id: uuidv4(),
+            name: "private",
+            type: "folder",
+            createdAt: "2023-04-10T16:00:00Z",
+            modifiedAt: "2023-04-10T16:00:00Z",
+            syncStatus: "synced",
+            children: [],
+          },
+          {
+            id: uuidv4(),
+            name: "public",
+            type: "folder",
+            createdAt: "2023-04-10T16:00:00Z",
+            modifiedAt: "2023-04-10T16:00:00Z",
+            syncStatus: "syncing",
+            children: [],
+          },
+          {
+            id: uuidv4(),
+            name: "syftperm.yaml",
+            type: "file",
+            createdAt: "2023-01-20T08:50:00Z",
+            modifiedAt: "2023-01-20T08:50:00Z",
+            size: 50,
+            syncStatus: "synced",
+          },
+          {
+            id: uuidv4(),
+            name: "Team-Asia.png",
+            type: "file",
+            createdAt: "2023-02-15T14:20:00Z",
+            modifiedAt: "2023-02-15T14:20:00Z",
+            size: 4200000,
+            syncStatus: "pending",
+          },
+          {
+            id: uuidv4(),
+            name: "Logo.svg",
+            type: "file",
+            createdAt: "2023-03-10T09:30:00Z",
+            modifiedAt: "2023-03-10T09:30:00Z",
+            size: 150000,
+            syncStatus: "rejected",
+          },
+        ],
+      },
+      {
+        id: uuidv4(),
+        name: "tauquir@openmined.org",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
+        syncStatus: "syncing",
+        children: [],
+      },
+      {
+        id: uuidv4(),
+        name: "shubham@openmined.org",
         type: "folder",
         createdAt: "2023-04-10T16:00:00Z",
         modifiedAt: "2023-04-10T16:00:00Z",
@@ -75,36 +158,18 @@ export const mockFileSystem: FileSystemItem[] = [
         children: [],
       },
       {
-        id: "file-5",
-        name: "Product Photo.jpg",
-        type: "file",
-        createdAt: "2023-01-20T08:50:00Z",
-        modifiedAt: "2023-01-20T08:50:00Z",
-        size: 3500000,
+        id: uuidv4(),
+        name: "yash@openmined.org",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
         syncStatus: "synced",
-      },
-      {
-        id: "file-6",
-        name: "Team Photo.png",
-        type: "file",
-        createdAt: "2023-02-15T14:20:00Z",
-        modifiedAt: "2023-02-15T14:20:00Z",
-        size: 4200000,
-        syncStatus: "pending",
-      },
-      {
-        id: "file-7",
-        name: "Logo.svg",
-        type: "file",
-        createdAt: "2023-03-10T09:30:00Z",
-        modifiedAt: "2023-03-10T09:30:00Z",
-        size: 150000,
-        syncStatus: "rejected",
+        children: [],
       },
     ],
   },
   {
-    id: "folder-4",
+    id: uuidv4(),
     name: "logs",
     type: "folder",
     createdAt: "2023-02-01T11:00:00Z",
@@ -112,7 +177,7 @@ export const mockFileSystem: FileSystemItem[] = [
     syncStatus: "pending",
     children: [
       {
-        id: "folder-5",
+        id: uuidv4(),
         name: "Website Redesign",
         type: "folder",
         createdAt: "2023-02-01T11:05:00Z",
@@ -120,7 +185,7 @@ export const mockFileSystem: FileSystemItem[] = [
         syncStatus: "synced",
         children: [
           {
-            id: "file-8",
+            id: uuidv4(),
             name: "Homepage.html",
             type: "file",
             createdAt: "2023-02-01T11:10:00Z",
@@ -129,7 +194,7 @@ export const mockFileSystem: FileSystemItem[] = [
             syncStatus: "synced",
           },
           {
-            id: "file-9",
+            id: uuidv4(),
             name: "styles.css",
             type: "file",
             createdAt: "2023-02-05T10:30:00Z",
@@ -138,7 +203,7 @@ export const mockFileSystem: FileSystemItem[] = [
             syncStatus: "synced",
           },
           {
-            id: "file-10",
+            id: uuidv4(),
             name: "main.js",
             type: "file",
             createdAt: "2023-02-10T09:45:00Z",
@@ -149,7 +214,7 @@ export const mockFileSystem: FileSystemItem[] = [
         ],
       },
       {
-        id: "folder-6",
+        id: uuidv4(),
         name: "Mobile App",
         type: "folder",
         createdAt: "2023-03-01T13:15:00Z",
@@ -157,7 +222,7 @@ export const mockFileSystem: FileSystemItem[] = [
         syncStatus: "syncing",
         children: [
           {
-            id: "file-11",
+            id: uuidv4(),
             name: "App.tsx",
             type: "file",
             createdAt: "2023-03-01T13:20:00Z",
@@ -166,7 +231,7 @@ export const mockFileSystem: FileSystemItem[] = [
             syncStatus: "syncing",
           },
           {
-            id: "file-12",
+            id: uuidv4(),
             name: "Navigation.tsx",
             type: "file",
             createdAt: "2023-03-05T14:30:00Z",
@@ -179,7 +244,7 @@ export const mockFileSystem: FileSystemItem[] = [
     ],
   },
   {
-    id: "folder-7",
+    id: uuidv4(),
     name: "plugins",
     type: "folder",
     createdAt: "2023-04-10T16:00:00Z",
@@ -188,7 +253,7 @@ export const mockFileSystem: FileSystemItem[] = [
     children: [],
   },
   {
-    id: "folder-8",
+    id: uuidv4(),
     name: "private",
     type: "folder",
     createdAt: "2023-04-10T16:00:00Z",
@@ -197,7 +262,7 @@ export const mockFileSystem: FileSystemItem[] = [
     children: [],
   },
   {
-    id: "file-13",
+    id: uuidv4(),
     name: "README.md",
     type: "file",
     createdAt: "2023-01-10T08:00:00Z",
@@ -206,7 +271,7 @@ export const mockFileSystem: FileSystemItem[] = [
     syncStatus: "error",
   },
   {
-    id: "file-14",
+    id: uuidv4(),
     name: ".metadata.json",
     type: "file",
     createdAt: "2023-01-12T09:30:00Z",
