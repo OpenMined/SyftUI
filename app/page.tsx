@@ -7,8 +7,7 @@ import { useTheme } from "next-themes"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Github, Chrome, Loader2, Eye, EyeOff } from "lucide-react"
-
+import { Github, Chrome, Loader2, Eye, EyeOff, Folder } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -135,6 +134,15 @@ export default function HomePage() {
                 }
             });
         }
+    }
+
+    const handleDirectorySelect = () => {
+        toast({
+            icon: "🐱",
+            title: "Feature Coming Soon!",
+            description: "Hang tight! We're working on this feature. Meanwhile, here's a cat for ya!",
+            variant: "default",
+        })
     }
 
     const handleConfigureClient = (values: ConfigFormValues) => {
@@ -291,12 +299,19 @@ export default function HomePage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Where do you want SyftBox to store data?</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="~/SyftBox"
-                                                    {...field}
-                                                />
-                                            </FormControl>
+                                            <div className="flex space-x-2">
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="~/SyftBox"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <Button variant="outline" onClick={handleDirectorySelect} type="button">
+                                                    <Folder className="h-4 w-4 mr-2" />
+                                                    Browse
+                                                </Button>
+                                            </div>
+
                                             <FormMessage />
                                         </FormItem>
                                     )}
