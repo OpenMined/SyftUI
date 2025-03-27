@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus, prism } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { useTheme } from "next-themes"
+import { getAssetPath } from "@/lib/utils"
 
 interface FilePreviewProps {
   file: FileSystemItem
@@ -29,7 +30,7 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            src={`/placeholder.svg?height=400&width=600`}
+            src={`${getAssetPath("/placeholder.svg?height=400&width=600")}`}
             alt={file.name}
             className="max-h-full max-w-full object-contain rounded-md"
           />

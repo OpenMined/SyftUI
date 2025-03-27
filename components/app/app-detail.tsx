@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/chart"
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { getAssetPath } from "@/lib/utils"
 
 interface AppDetailProps {
   appId: string
@@ -321,7 +322,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                       {app.screenshots.map((screenshot, index) => (
                         <img
                           key={index}
-                          src={screenshot || "/placeholder.svg"}
+                          src={screenshot || getAssetPath("/placeholder.svg")}
                           alt={`${app.name} screenshot ${index + 1}`}
                           className="rounded-md border object-cover w-full aspect-video"
                         />

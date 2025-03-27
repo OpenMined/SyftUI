@@ -1,3 +1,5 @@
+import { getAssetPath } from "./utils";
+
 export interface App {
   id: string;
   name: string;
@@ -77,9 +79,9 @@ After an API is sent, datasite owners will receive notifications (desktop and em
     installed: true,
     lastUsed: "2 hours ago",
     screenshots: [
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
     ],
     pricing: "Free",
     website: "https://github.com/OpenMined/inbox",
