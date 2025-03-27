@@ -4,11 +4,18 @@ import { useState, useEffect } from "react"
 import { Wifi, WifiOff, Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import { ConnectionStatus as StatusType, DEFAULT_CONNECTION_SETTINGS, connectionFormSchema, ConnectionFormValues, useConnection } from "@/components/contexts/connection-context"
+import {
+  ConnectionStatus as StatusType,
+  DEFAULT_CONNECTION_SETTINGS,
+  connectionFormSchema,
+  ConnectionFormValues,
+  useConnection
+} from "@/components/contexts/connection-context"
 import { ConnectionForm } from "@/components/connection/connection-form"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function ConnectionStatus() {
   const {
@@ -113,19 +120,27 @@ export function ConnectionStatus() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className={cn("flex items-center gap-2 py-2 px-2 h-auto w-full font-semibold cursor-pointer select-none", getButtonColors())}
-        title={`${displayUrl} • ${getStatusText()}`}
-        onClick={() => setIsDialogOpen(true)}
-        onMouseOver={() => setIsHovering(true)}
-        onMouseOut={() => setIsHovering(false)}
-        onKeyDown={handleKeyDown}
-      >
-        {getStatusIcon()}
-        <span className="text-xs text-ellipsis overflow-hidden">{isHovering ? displayUrl : getStatusText()}</span>
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn("flex items-center gap-2 py-2 px-2 h-auto w-full font-semibold cursor-pointer select-none", getButtonColors())}
+              onClick={() => setIsDialogOpen(true)}
+              onMouseOver={() => setIsHovering(true)}
+              onMouseOut={() => setIsHovering(false)}
+              onKeyDown={handleKeyDown}
+            >
+              {getStatusIcon()}
+              <span className="text-xs text-ellipsis overflow-hidden">{isHovering ? displayUrl : getStatusText()}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{getStatusText()} {status === "disconnected" ? "from" : "to"} {displayUrl}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>

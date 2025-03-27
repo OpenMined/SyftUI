@@ -23,6 +23,8 @@ import {
 } from "@/components/contexts/connection-context"
 import { toast } from "@/hooks/use-toast"
 import { LogoComponent } from "@/components/logo"
+import { FloatingConnectionStatus } from "@/components/floating-connection-status"
+import { ConnectionStatus } from "@/components/connection-status"
 
 export default function HomePage() {
     const router = useRouter()
@@ -122,7 +124,7 @@ export default function HomePage() {
         if (result.success) {
             setTimeout(() => {
                 setStep("configure");
-            }, 1500);
+            }, 750);
         } else {
             Object.entries(result.errors).forEach(([key, value]) => {
                 if (value && key in values) {
@@ -142,7 +144,7 @@ export default function HomePage() {
         setTimeout(() => {
             setIsLoading(false);
             setStep("email");
-        }, 1500);
+        }, 750);
     }
 
     const handleSendVerification = (values: VerificationFormValues) => {
@@ -152,7 +154,7 @@ export default function HomePage() {
         setTimeout(() => {
             setIsLoading(false);
             setStep("verify");
-        }, 1500);
+        }, 750);
     };
 
     const handleCompleteSetup = (values: VerificationFormValues) => {
@@ -162,7 +164,7 @@ export default function HomePage() {
         setTimeout(() => {
             setIsLoading(false)
             navigateToApp();
-        }, 1500)
+        }, 750)
     }
 
     const handleOAuthLogin = (provider: string) => {
@@ -173,7 +175,7 @@ export default function HomePage() {
             setTimeout(() => {
                 setIsGoogleLoading(false)
                 navigateToApp();
-            }, 1500)
+            }, 750)
         } else if (provider === "GitHub") {
             setIsGithubLoading(true)
 
@@ -181,7 +183,7 @@ export default function HomePage() {
             setTimeout(() => {
                 setIsGithubLoading(false)
                 navigateToApp();
-            }, 1500)
+            }, 750)
         }
     }
 
@@ -447,13 +449,9 @@ export default function HomePage() {
                             Back
                         </Button>
                     )}
-                    {status === "connected" && step === "connect" && (
-                        <div className="text-sm text-green-500 font-medium">
-                            <span className="text-2xl align-middle font-bold">•</span> Connected to {displayUrl}
-                        </div>
-                    )}
                 </CardFooter>
             </Card>
+            <FloatingConnectionStatus status={status} url={displayUrl} position="bottom-right" />
         </>
     )
 }
