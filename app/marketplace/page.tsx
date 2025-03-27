@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ShoppingBag, Search, Plus, Filter, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,12 +14,13 @@ import { Toolbar } from "@/components/ui/toolbar"
 import { toast } from "@/hooks/use-toast"
 
 export default function MarketplacePage() {
+    const router = useRouter();
+    const params = useSearchParams();
     const [selectedApp, setSelectedApp] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
     const [repoUrl, setRepoUrl] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    // Removed isSubmitted state as we're using toast instead
 
     const handlePublishSubmit = () => {
         if (!repoUrl.trim()) return
@@ -29,7 +31,6 @@ export default function MarketplacePage() {
         setTimeout(() => {
             setIsSubmitting(false)
 
-            // Show toast notification instead of in-dialog message
             toast({
                 icon: "🎉",
                 title: "Submission Received!",
@@ -48,8 +49,13 @@ export default function MarketplacePage() {
         console.log(`Installing app with id: ${appId}`)
     }
 
+    useEffect(() => {
+        const id = params.get("id") || null;
+        setSelectedApp(id);
+    }, [params])
+
     if (selectedApp) {
-        return <AppDetail appId={selectedApp} onBack={() => setSelectedApp(null)} />;
+        return <AppDetail appId={selectedApp} onBack={() => router.push("/marketplace")} />;
     }
 
     return (
@@ -86,7 +92,7 @@ export default function MarketplacePage() {
                 <TabsContent value="all" className="flex-1 p-0">
                     <AppList
                         apps={mockApps}
-                        onSelectApp={(appId) => setSelectedApp(appId)}
+                        onSelectApp={(appId) => router.push(`/marketplace?id=${appId}`)}
                         onActionClick={handleAppInstall}
                         searchQuery={searchQuery}
                         viewContext="marketplace"

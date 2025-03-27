@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AppWindow, Search, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +12,8 @@ import { mockApps } from "@/lib/mock-apps"
 import { Toolbar } from "@/components/ui/toolbar"
 
 export default function AppsPage() {
+    const router = useRouter();
+    const params = useSearchParams();
     const [selectedApp, setSelectedApp] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
 
@@ -22,8 +25,13 @@ export default function AppsPage() {
         console.log(`Uninstalling app with id: ${appId}`)
     }
 
+    useEffect(() => {
+        const id = params.get("id") || null;
+        setSelectedApp(id);
+    }, [params])
+
     if (selectedApp) {
-        return <AppDetail appId={selectedApp} onBack={() => setSelectedApp(null)} />;
+        return <AppDetail appId={selectedApp} onBack={() => router.push("/apps")} />;
     }
 
     return (
@@ -60,7 +68,7 @@ export default function AppsPage() {
                     {installedApps.length > 0 ? (
                         <AppList
                             apps={installedApps}
-                            onSelectApp={(appId) => setSelectedApp(appId)}
+                            onSelectApp={(appId) => router.push(`/apps?id=${appId}`)}
                             onActionClick={handleUninstallApp}
                             searchQuery={searchQuery}
                             viewContext="apps"
