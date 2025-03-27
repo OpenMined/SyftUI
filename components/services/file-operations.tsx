@@ -315,8 +315,11 @@ export function useFileOperations(
     })
   }
 
-  const updatePermissions = (itemId: string, permissions: Permission[]) => {
+  const updatePermissions = (itemId: string, permissions: Permission[], setDetailsItem?: React.Dispatch<React.SetStateAction<FileSystemItem | null>>) => {
     try {
+      // Find the item before updating to check if it's currently displayed in details
+      const originalItem = findItemById(itemId);
+      
       const updateItemPermissions = (items: FileSystemItem[]): FileSystemItem[] => {
         return items.map((item) => {
           if (item.id === itemId) {
@@ -338,6 +341,14 @@ export function useFileOperations(
       }
 
       setFileSystem(prevState => updateItemPermissions(prevState))
+      
+      // Update the details panel if this item is currently displayed
+      if (setDetailsItem && originalItem) {
+        const updatedItem = findItemById(itemId)
+        if (updatedItem && updatedItem.id === itemId) {
+          setDetailsItem(updatedItem)
+        }
+      }
 
       addNotification({
         title: "Permissions Updated",

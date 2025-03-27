@@ -136,7 +136,7 @@ function FileSystemProviderContent({
           // This will be handled by the sync context
         },
         updatePermissions: (itemId, permissions) => {
-          fileOperations.updatePermissions(itemId, permissions);
+          fileOperations.updatePermissions(itemId, permissions, setDetailsItem);
         },
         toggleSyncPause: () => {
           toggleSyncPause();
@@ -417,7 +417,7 @@ function FileManagerContent({
             transition={{ duration: 0.2 }}
             className="border-l border-border overflow-hidden hidden md:block"
           >
-            <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} />
+            <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} setDetailsItem={setDetailsItem} />
           </motion.div>
         )}
       </div>
@@ -432,7 +432,7 @@ function FileManagerContent({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 bg-background z-50"
           >
-            <FileDetails item={detailsItem} onClose={handleCloseDetails} />
+            <FileDetails item={detailsItem} onClose={handleCloseDetails} setDetailsItem={setDetailsItem} />
           </motion.div>
         )}
       </AnimatePresence>

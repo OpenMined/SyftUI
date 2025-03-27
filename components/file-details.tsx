@@ -15,9 +15,10 @@ import { formatFileSize } from "@/lib/utils"
 interface FileDetailsProps {
   item: FileSystemItem
   onClose: () => void
+  setDetailsItem?: (item: FileSystemItem | null) => void
 }
 
-export function FileDetails({ item, onClose }: FileDetailsProps) {
+export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps) {
   // Ensure we have a valid item to display
   if (!item) {
     return (
@@ -34,6 +35,8 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
 
   useEffect(() => {
     setNewName(item.name)
+    // Reset dialog state when item changes
+    setIsPermissionsDialogOpen(false)
   }, [item])
 
   const handleRenameSubmit = () => {
@@ -291,7 +294,13 @@ export function FileDetails({ item, onClose }: FileDetailsProps) {
         </div>
       )}
 
-      {isPermissionsDialogOpen && <PermissionsDialog item={item} onClose={() => setIsPermissionsDialogOpen(false)} />}
+      {isPermissionsDialogOpen &&
+        <PermissionsDialog
+          item={item}
+          setDetailsItem={setDetailsItem ? setDetailsItem : undefined}
+          onClose={() => setIsPermissionsDialogOpen(false)}
+        />
+      }
     </div>
   )
 }

@@ -16,6 +16,7 @@ import { X, Plus, Copy, Info } from "lucide-react"
 interface PermissionsDialogProps {
   item: FileSystemItem
   onClose: () => void
+  setDetailsItem?: (item: FileSystemItem | null) => void
 }
 
 interface FolderLimits {
@@ -29,7 +30,7 @@ interface FolderLimits {
   }
 }
 
-export function PermissionsDialog({ item, onClose }: PermissionsDialogProps) {
+export function PermissionsDialog({ item, onClose, setDetailsItem }: PermissionsDialogProps) {
   const { updatePermissions } = useFileSystem()
   // Initialize with an empty array if no permissions exist
   const [permissions, setPermissions] = useState<Permission[]>(
@@ -80,7 +81,19 @@ export function PermissionsDialog({ item, onClose }: PermissionsDialogProps) {
   }
 
   const handleSave = () => {
+    // Update the file system
     updatePermissions(item.id, permissions)
+    
+    // Directly update details item if provided
+    if (setDetailsItem) {
+      // Create updated item with new permissions
+      const updatedItem = {
+        ...item,
+        permissions: permissions
+      }
+      setDetailsItem(updatedItem)
+    }
+    
     onClose()
   }
 
