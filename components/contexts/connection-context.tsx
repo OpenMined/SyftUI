@@ -27,7 +27,7 @@ export const SIMULATED_CONNECTION_DELAY = 750; // ms
 // Form schema for connection settings validation
 export const connectionFormSchema = z.object({
   url: z.string().min(1, "URL is required").url("Must be a valid URL"),
-  token: z.string().min(1, "Token is required"),
+  token: z.string().length(40, "Token must be exactly 40 characters long"),
 });
 
 // Type for form values

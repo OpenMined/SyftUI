@@ -6,7 +6,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { ConnectionFormValues, ConnectionStatus } from "@/components/contexts/connection-context"
+import { ConnectionFormValues, ConnectionStatus, DEFAULT_CONNECTION_SETTINGS } from "@/components/contexts/connection-context"
 
 interface ConnectionFormProps {
   form: UseFormReturn<ConnectionFormValues>;
@@ -52,7 +52,7 @@ export function ConnectionForm({
               <FormLabel>Client URL</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="http://127.0.0.1:8080/"
+                  placeholder={DEFAULT_CONNECTION_SETTINGS.url}
                   {...field}
                   onChange={(e) => handleFieldChange(field, e, "url")}
                 />
