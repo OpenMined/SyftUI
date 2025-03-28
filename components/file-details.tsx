@@ -144,7 +144,7 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
 
               <p className="text-sm text-muted-foreground">{fileType}</p>
 
-              {item.syncStatus && (
+              {item.syncStatus && item.syncStatus !== "hidden" && (
                 <div className="mt-2">
                   <SyncStatus status={item.syncStatus} variant="badge" />
                 </div>
@@ -157,7 +157,7 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
                   <Info className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="font-medium">Basic Info</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm pl-6">
+                <div className="grid grid-cols-[minmax(0,_0.6fr)_minmax(0,_1fr)] gap-2 text-sm pl-6">
                   <span className="text-muted-foreground">Type:</span>
                   <span>{fileType}</span>
 
@@ -178,7 +178,7 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
                   <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="font-medium">Time Info</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm pl-6">
+                <div className="grid grid-cols-[minmax(0,_0.6fr)_minmax(0,_1fr)] gap-2 text-sm pl-6">
                   <span className="text-muted-foreground">Created:</span>
                   <span>{new Date(item.createdAt).toLocaleString()}</span>
 
@@ -193,7 +193,7 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
                     <Lock className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="font-medium">Permissions</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm pl-6">
+                  <div className="grid grid-cols-[minmax(0,_0.6fr)_minmax(0,_1fr)] gap-2 text-sm pl-6">
                     <span className="text-muted-foreground">Owner:</span>
                     <span>{item.permissions.find((p) => p.type === "owner")?.name || "You"}</span>
 

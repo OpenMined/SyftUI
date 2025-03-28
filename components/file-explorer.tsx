@@ -366,7 +366,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
                 type={item.type}
                 extension={item.type === "file" ? item.name.split(".").pop() : undefined}
               />
-              {item.syncStatus && (
+              {item.syncStatus && item.syncStatus !== "hidden" && (
                 <div className="absolute -bottom-1 -right-1">
                   <SyncStatus status={item.syncStatus} />
                 </div>
@@ -382,7 +382,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
                 </div>
               )}
             </div>
-            {viewMode === "list" && item.syncStatus && (
+            {viewMode === "list" && item.syncStatus && item.syncStatus !== "hidden" && (
               <SyncStatus status={item.syncStatus} variant="badge" className="py-1 mr-2 shrink-0" />
             )}
           </div>

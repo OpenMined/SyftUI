@@ -1,4 +1,4 @@
-export type SyncStatus = "synced" | "syncing" | "pending" | "rejected" | "error"
+export type SyncStatus = "synced" | "syncing" | "pending" | "rejected" | "error" | "ignored" | "hidden"
 export type PermissionType = "read" | "write" | "admin"
 
 export interface Permission {

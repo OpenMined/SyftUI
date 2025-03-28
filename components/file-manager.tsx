@@ -264,7 +264,7 @@ function FileManagerContent({
         children: getCurrentItems(),
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
-        syncStatus: "synced" as const,
+        syncStatus: "hidden" as const,
         size: getCurrentItems().reduce((total, item) => total + (item.size || 0), 0),
       };
     }

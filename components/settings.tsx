@@ -122,7 +122,7 @@ export function Settings() {
             <Card className="mb-6">
                 <CardHeader>
                     <CardTitle>Server settings</CardTitle>
-                    <CardDescription>Details for SyftUI to communicate with SyftBox CLI</CardDescription>
+                    <CardDescription>Details for SyftBox CLI to communicate with the relay server</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -152,8 +152,8 @@ export function Settings() {
 
             <Card className="mb-6">
                 <CardHeader>
-                    <CardTitle>Authentication</CardTitle>
-                    <CardDescription>Manage your authentication details</CardDescription>
+                    <CardTitle>Authentication settings</CardTitle>
+                    <CardDescription>Details for managing server authentication</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">

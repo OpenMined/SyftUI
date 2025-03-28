@@ -24,6 +24,8 @@ export function SyncStatus({ status, className, variant = "icon" }: SyncStatusPr
         return <AlertTriangle className="h-3 w-3" />
       case "ignored":
         return <XCircle className="h-3 w-3" />
+      case "hidden":
+        return null;
     }
   }
 
@@ -41,6 +43,8 @@ export function SyncStatus({ status, className, variant = "icon" }: SyncStatusPr
         return "bg-red-500 text-white"
       case "ignored":
         return "bg-gray-500 text-white"
+      case "hidden":
+        return "hidden"
     }
   }
 
@@ -58,11 +62,18 @@ export function SyncStatus({ status, className, variant = "icon" }: SyncStatusPr
         return "Sync error"
       case "ignored":
         return "Sync ignored"
+      case "hidden":
+        return ""
     }
   }
 
   // Icon variant
   if (variant === "icon") {
+    // Don't render anything for hidden status
+    if (status === "hidden") {
+      return null;
+    }
+    
     return (
       <TooltipProvider>
         <Tooltip>
@@ -80,6 +91,11 @@ export function SyncStatus({ status, className, variant = "icon" }: SyncStatusPr
   }
 
   // Badge/capsule variant
+  // Don't render anything for hidden status
+  if (status === "hidden") {
+    return null;
+  }
+  
   return (
     <div
       className={cn(

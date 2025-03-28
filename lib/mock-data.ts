@@ -8,7 +8,7 @@ export const mockFileSystem: FileSystemItem[] = [
     type: "folder",
     createdAt: "2023-01-15T10:30:00Z",
     modifiedAt: "2023-03-20T14:45:00Z",
-    syncStatus: "synced",
+    syncStatus: "hidden",
     children: [
       {
         id: uuidv4(),
@@ -154,7 +154,7 @@ export const mockFileSystem: FileSystemItem[] = [
         type: "folder",
         createdAt: "2023-04-10T16:00:00Z",
         modifiedAt: "2023-04-10T16:00:00Z",
-        syncStatus: "synced",
+        syncStatus: "pending",
         children: [],
       },
       {
@@ -163,7 +163,25 @@ export const mockFileSystem: FileSystemItem[] = [
         type: "folder",
         createdAt: "2023-04-10T16:00:00Z",
         modifiedAt: "2023-04-10T16:00:00Z",
-        syncStatus: "synced",
+        syncStatus: "rejected",
+        children: [],
+      },
+      {
+        id: uuidv4(),
+        name: "khoa@openmined.org",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
+        syncStatus: "error",
+        children: [],
+      },
+      {
+        id: uuidv4(),
+        name: "rasswanth@openmined.org",
+        type: "folder",
+        createdAt: "2023-04-10T16:00:00Z",
+        modifiedAt: "2023-04-10T16:00:00Z",
+        syncStatus: "ignored",
         children: [],
       },
     ],
@@ -174,7 +192,7 @@ export const mockFileSystem: FileSystemItem[] = [
     type: "folder",
     createdAt: "2023-02-01T11:00:00Z",
     modifiedAt: "2023-04-10T15:45:00Z",
-    syncStatus: "pending",
+    syncStatus: "hidden",
     children: [
       {
         id: uuidv4(),
@@ -249,7 +267,7 @@ export const mockFileSystem: FileSystemItem[] = [
     type: "folder",
     createdAt: "2023-04-10T16:00:00Z",
     modifiedAt: "2023-04-10T16:00:00Z",
-    syncStatus: "rejected",
+    syncStatus: "hidden",
     children: [],
   },
   {
@@ -258,7 +276,7 @@ export const mockFileSystem: FileSystemItem[] = [
     type: "folder",
     createdAt: "2023-04-10T16:00:00Z",
     modifiedAt: "2023-04-10T16:00:00Z",
-    syncStatus: "ignored",
+    syncStatus: "hidden",
     children: [],
   },
   {
@@ -268,7 +286,7 @@ export const mockFileSystem: FileSystemItem[] = [
     createdAt: "2023-01-10T08:00:00Z",
     modifiedAt: "2023-01-10T08:00:00Z",
     size: 5000,
-    syncStatus: "error",
+    syncStatus: "hidden",
   },
   {
     id: uuidv4(),
@@ -277,7 +295,7 @@ export const mockFileSystem: FileSystemItem[] = [
     createdAt: "2023-01-12T09:30:00Z",
     modifiedAt: "2023-03-30T11:45:00Z",
     size: 8000,
-    syncStatus: "ignored",
+    syncStatus: "hidden",
   },
 ]
 
