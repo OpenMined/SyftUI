@@ -13,6 +13,8 @@ export interface App {
   verified: boolean;
   icon: string;
   installed: boolean;
+  enabled?: boolean;
+  autoUpdate?: boolean;
   lastUsed?: string;
   version?: string;
   lastUpdated?: string;
@@ -77,6 +79,7 @@ After an API is sent, datasite owners will receive notifications (desktop and em
     verified: true,
     icon: "📬",
     installed: true,
+    enabled: true,
     lastUsed: "2 hours ago",
     screenshots: [
       `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
@@ -196,6 +199,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     verified: true,
     icon: "🌐",
     installed: true,
+    enabled: true,
     lastUsed: "Yesterday",
     pricing: "Free",
     license: "MIT"
@@ -226,6 +230,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     verified: true,
     icon: "🐙",
     installed: true,
+    enabled: true,
     lastUsed: "Last week",
     pricing: "Free",
     license: "MIT",

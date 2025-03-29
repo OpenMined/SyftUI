@@ -2,11 +2,20 @@
 
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { Star, Download } from "lucide-react"
+import { Star, Download, Settings, Power, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { App } from "@/lib/mock-apps"
 import { InstallConfirmationDialog } from "./install-confirmation-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
+import { toast } from "@/hooks/use-toast"
 
 interface AppCardProps {
   app: App
@@ -19,14 +28,21 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
   const [isProcessing, setIsProcessing] = useState(false)
   const [isInstalled, setIsInstalled] = useState(app.installed)
   const [showInstallDialog, setShowInstallDialog] = useState(false)
+  const [autoUpdate, setAutoUpdate] = useState(app.autoUpdate !== false) // Default to true if not specified
+  const [isEnabled, setIsEnabled] = useState(app.enabled !== false) // Default to true if not specified
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="border rounded-lg overflow-hidden flex flex-col cursor-pointer hover:border-primary/50 hover:shadow-xs transition-all"
-        onClick={() => onClick(app.id)}
+        className={`border rounded-lg overflow-hidden flex flex-col cursor-pointer hover:border-primary/50 hover:shadow-xs transition-all ${isInstalled && !isEnabled ? 'opacity-60' : ''}`}
+        onClick={() => {
+          // Only navigate to app details if the app is enabled or in marketplace view
+          if (viewContext === 'marketplace' || isEnabled || !isInstalled) {
+            onClick(app.id)
+          }
+        }}
       >
         <div className="p-4 flex items-start gap-3">
           <div className="text-3xl">{app.icon}</div>
@@ -40,6 +56,11 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
               ) : (
                 <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
                   Unverified
+                </Badge>
+              )}
+              {isInstalled && !isEnabled && (
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                  Disabled
                 </Badge>
               )}
             </div>
@@ -66,7 +87,7 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
               </div>
             </>
           )}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             {viewContext === 'marketplace' ? (
               <div className="flex items-center gap-2">
                 {isInstalled && (
@@ -98,7 +119,88 @@ export function AppCard({ app, onClick, onActionClick, viewContext }: AppCardPro
                   {isProcessing ? (isInstalled ? "Uninstalling..." : "Installing...") : (isInstalled ? "Uninstall" : "Install")}
                 </Button>
               </div>
-            ) : null}
+            ) : (
+              isInstalled && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span className="sr-only">Settings</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuCheckboxItem
+                      checked={autoUpdate}
+                      onClick={(e) => e.stopPropagation()}
+                      onCheckedChange={(checked) => {
+                        setAutoUpdate(checked)
+                        // Update the app's metadata (for demonstration purposes)
+                        app.autoUpdate = checked
+                        toast({
+                          icon: "🔄",
+                          title: checked ? "Auto updates enabled" : "Auto updates disabled",
+                          description: `${app.name} will ${checked ? "now" : "no longer"} update automatically.`,
+                        })
+                      }}
+                    >
+                      Auto updates
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const newEnabledState = !isEnabled
+                        setIsEnabled(newEnabledState)
+                        // Update the app's metadata (for demonstration purposes)
+                        app.enabled = newEnabledState
+                        toast({
+                          icon: "🔌",
+                          title: isEnabled ? "App disabled" : "App enabled",
+                          description: `${app.name} has been ${isEnabled ? "disabled" : "enabled"}.`,
+                        })
+                      }}
+                    >
+                      <Power className="h-4 w-4" />
+                      {isEnabled ? "Disable app" : "Enable app"}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-500 focus:text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (onActionClick) {
+                          setIsProcessing(true)
+                          toast({
+                            icon: "🗑️",
+                            title: "Uninstalling...",
+                            description: `Uninstalling ${app.name}...`,
+                          })
+                          // Simulate uninstallation process
+                          setTimeout(() => {
+                            setIsInstalled(false)
+                            setIsProcessing(false)
+                            toast({
+                              icon: "🗑️",
+                              title: "App uninstalled",
+                              description: `${app.name} has been uninstalled.`,
+                            })
+                            onActionClick(app.id)
+                          }, 2000)
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Uninstall
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )
+            )}
           </div>
         </div>
 
