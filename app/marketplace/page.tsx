@@ -56,7 +56,7 @@ export default function MarketplacePage() {
                 ...updatedApps[appIndex],
                 installed: !updatedApps[appIndex].installed
             };
-            
+
             // The app card component now handles its own state independently
             // This function is now primarily for logging or backend integration
             console.log(`${updatedApps[appIndex].installed ? 'Installing' : 'Uninstalling'} app with id: ${appId}`);
@@ -87,7 +87,7 @@ export default function MarketplacePage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <Button onClick={() => setIsPublishDialogOpen(true)}>
+                <Button onClick={() => setIsPublishDialogOpen(true)} className="gap-0">
                     <Plus className="h-4 w-4 mr-2" />
                     <span className="hidden sm:inline">Publish App</span>
                 </Button>

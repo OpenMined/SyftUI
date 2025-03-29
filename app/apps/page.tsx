@@ -49,7 +49,7 @@ export default function AppsPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <Button variant="outline" onClick={() => window.location.href = "/marketplace"}>
+                <Button variant="outline" onClick={() => window.location.href = "/marketplace"} className="gap-0">
                     <Plus className="h-4 w-4 mr-2" />
                     <span>Add App</span>
                 </Button>

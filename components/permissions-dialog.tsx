@@ -83,7 +83,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
   const handleSave = () => {
     // Update the file system
     updatePermissions(item.id, permissions)
-    
+
     // Directly update details item if provided
     if (setDetailsItem) {
       // Create updated item with new permissions
@@ -93,7 +93,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
       }
       setDetailsItem(updatedItem)
     }
-    
+
     onClose()
   }
 
@@ -127,7 +127,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
         </DialogHeader>
 
         <div className="text-sm font-medium bg-muted/50 p-2 rounded-md mb-2">
-          Effective permissions file: <span className="text-red-500 px-1 rounded font-mono">/syft.pub.yaml</span>
+          Effective permissions file: <span className="text-red-500 px-1 rounded font-mono">./syft.pub.yaml</span>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

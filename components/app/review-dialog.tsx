@@ -22,13 +22,13 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
 
   const handleSubmit = () => {
     if (rating === 0) return
-    
+
     setIsSubmitting(true)
-    
+
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false)
-      
+
       // Show toast notification
       toast({
         icon: "🎉",
@@ -36,12 +36,12 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
         description: `Thank you for reviewing ${appName}. Your feedback helps others make informed decisions.`,
         variant: "default",
       })
-      
+
       // Call onSubmit callback if provided
       if (onSubmit) {
         onSubmit(rating, reviewText)
       }
-      
+
       // Reset and close dialog
       setRating(0)
       setReviewText("")
@@ -55,7 +55,7 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
         <DialogHeader>
           <DialogTitle>Write a Review</DialogTitle>
         </DialogHeader>
-        
+
         <div className="py-4">
           <div className="flex flex-col gap-4">
             <div>
@@ -64,11 +64,10 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-8 w-8 cursor-pointer ${
-                      star <= (hoverRating || rating) 
-                        ? "text-yellow-500 fill-yellow-500" 
+                    className={`h-8 w-8 cursor-pointer ${star <= (hoverRating || rating)
+                        ? "text-yellow-500 fill-yellow-500"
                         : "text-gray-300"
-                    }`}
+                      }`}
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
@@ -76,7 +75,7 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
                 ))}
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="review-text" className="text-sm font-medium">
                 Review
@@ -92,13 +91,13 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isSubmitting || rating === 0}
           >
             {isSubmitting ? "Submitting..." : "Submit Review"}

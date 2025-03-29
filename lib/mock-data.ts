@@ -112,7 +112,7 @@ export const mockFileSystem: FileSystemItem[] = [
           },
           {
             id: uuidv4(),
-            name: "syftperm.yaml",
+            name: "syft.pub.yaml",
             type: "file",
             createdAt: "2023-01-20T08:50:00Z",
             modifiedAt: "2023-01-20T08:50:00Z",
