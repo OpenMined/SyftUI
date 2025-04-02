@@ -1,6 +1,7 @@
 "use client"
 
 import { Gauge, Bug } from "lucide-react"
+import { NetworkTopologyCard } from "@/components/diagnostic/network-topology-card"
 import { Toolbar } from "@/components/ui/toolbar"
 import { PingStatusCard } from "@/components/diagnostic/ping-status-card"
 import { BugReportDialog } from "@/components/diagnostic/bug-report-dialog"
@@ -22,11 +23,14 @@ export default function DiagnosticPage() {
                 }
             />
             <div className="p-6 space-y-6 overflow-auto">
-                <PingStatusCard
-                    serverName="cache server"
-                    serverAddress="https://syftbox.openmined.org/"
-                    className="w-full"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <NetworkTopologyCard className="w-full" />
+                    <PingStatusCard
+                        serverName="cache server"
+                        serverAddress="https://syftbox.openmined.org/"
+                        className="w-full"
+                    />
+                </div>
 
                 {/* Add more diagnostic cards here as needed */}
             </div>
