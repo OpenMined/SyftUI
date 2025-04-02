@@ -9,7 +9,7 @@ import {
   ReferenceLine,
   XAxis,
   YAxis,
-  Tooltip
+  Tooltip as RechartsTooltip
 } from "recharts"
 
 import {
@@ -25,6 +25,7 @@ import {
   ChartConfig,
   ChartContainer
 } from "@/components/ui/chart"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface PingStatusCardProps {
   serverName?: string
@@ -195,84 +196,96 @@ export function PingStatusCard({
   const averagePingRounded = Math.round(averagePing)
 
   return (
-    <Card className={`shadow-md ${className}`}>
-      <CardHeader className="pb-2">
-        <div className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-xl">Pinging {serverName}</CardTitle>
-            <CardDescription>{serverAddress}</CardDescription>
+    <TooltipProvider>
+      <Card className={`shadow-md ${className}`}>
+        <CardHeader className="pb-2">
+          <div className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">
+                {validPings.length === MAX_DATA_POINTS ? "Ping" : "Pinging"} {serverName}
+              </CardTitle>
+              <CardDescription>{serverAddress}</CardDescription>
+            </div>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="text-3xl font-bold">{averagePingRounded} ms</div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="text-sm">Average ping</div>
+                <div className="text-sm">{validPings.length} samples</div>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <div className="text-3xl font-bold">{averagePingRounded} ms</div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <Server className={`mr-2 h-5 w-5 ${statusColor}`} />
-            <span className={`font-medium ${statusColor}`}>{connectionStatus}</span>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <Server className={`mr-2 h-5 w-5 ${statusColor}`} />
+              <span className={`font-medium ${statusColor}`}>{connectionStatus}</span>
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center justify-center p-1.5 rounded-full hover:bg-muted transition-colors"
+              aria-label="Restart ping test"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center justify-center p-1.5 rounded-full hover:bg-muted transition-colors"
-            aria-label="Restart ping test"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-        <ChartContainer config={chartConfig} className="h-64 w-full">
-          <LineChart
-            data={pingHistory}
-            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-            <XAxis
-              dataKey="time"
-              tick={{ fontSize: 11 }}
-              tickMargin={8}
-              tickFormatter={formatXAxisTick}
-              interval={0}
-              domain={["dataMin", "dataMax"]}
-              scale="point"
-              padding={{ left: 0, right: 0 }}
-            />
-            <YAxis
-              domain={getYAxisDomain()}
-              tick={{ fontSize: 11 }}
-              tickMargin={8}
-              width={30}
-            />
-            {avgPing > 0 && (
-              <ReferenceLine
-                y={avgPing}
-                stroke="hsl(var(--primary)/0.5)"
-                strokeDasharray="3 3"
-                label={{
-                  value: "Avg",
-                  fill: "hsl(var(--primary))",
-                  fontSize: 11,
-                  position: "insideBottomRight"
-                }}
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <LineChart
+              data={pingHistory}
+              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 11 }}
+                tickMargin={8}
+                tickFormatter={formatXAxisTick}
+                interval={0}
+                domain={["dataMin", "dataMax"]}
+                scale="point"
+                padding={{ left: 0, right: 0 }}
               />
-            )}
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="linear"
-              dataKey="ping"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
-              dot={true}
-              activeDot={{ r: 6, strokeWidth: 2, fill: "hsl(var(--primary))" }}
-              isAnimationActive={false}
-              connectNulls={false}
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="leading-none text-muted-foreground">
-          Showing ping measurements over the last {MAX_DATA_POINTS} seconds
-        </div>
-      </CardFooter>
-    </Card>
+              <YAxis
+                domain={getYAxisDomain()}
+                tick={{ fontSize: 11 }}
+                tickMargin={8}
+                width={30}
+              />
+              {avgPing > 0 && (
+                <ReferenceLine
+                  y={avgPing}
+                  stroke="hsl(var(--primary)/0.5)"
+                  strokeDasharray="3 3"
+                  label={{
+                    value: "Avg",
+                    fill: "hsl(var(--primary))",
+                    fontSize: 11,
+                    position: "insideBottomRight"
+                  }}
+                />
+              )}
+              <RechartsTooltip content={<CustomTooltip />} />
+              <Line
+                type="linear"
+                dataKey="ping"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                dot={true}
+                activeDot={{ r: 6, strokeWidth: 2, fill: "hsl(var(--primary))" }}
+                isAnimationActive={false}
+                connectNulls={false}
+              />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-2 text-sm">
+          <div className="leading-none text-muted-foreground">
+            Showing ping measurements over the last {MAX_DATA_POINTS} seconds
+          </div>
+        </CardFooter>
+      </Card>
+    </TooltipProvider>
   )
 }

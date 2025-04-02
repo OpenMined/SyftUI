@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { AlertTriangle, Check, Loader2, Monitor, Server, SquareTerminal, X, type LucideIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -79,25 +79,49 @@ const defaultTopology: NetworkTopology = {
 
 export function NetworkTopologyCard({ topology, className }: NetworkTopologyCardProps) {
   const { nodes, connections } = topology ?? defaultTopology
+  const [currentConnections, setCurrentConnections] = useState(connections)
+
+  useEffect(() => {
+    // Simulate connection status and latency changes every 5 seconds
+    const interval = setInterval(() => {
+      setCurrentConnections((prevConnections) => {
+        const isAllConnected = Math.random() < 0.5; // 50% chance for all connections to be connected
+        return prevConnections.map((conn) => {
+          const randomStatus = isAllConnected
+            ? "connected"
+            : ["connected", "connecting", "disconnected", "degraded"][Math.floor(Math.random() * 4)];
+          const randomLatency = randomStatus === "connected" ? Math.floor(Math.random() * 100) + 1 : null;
+          return {
+            ...conn,
+            status: randomStatus,
+            latency: randomLatency,
+          };
+        });
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Find connection between two nodes
   const findConnection = (sourceId: string, targetId: string) => {
-    return connections.find(
+    return currentConnections.find(
       (conn) =>
         (conn.sourceId === sourceId && conn.targetId === targetId) ||
         (conn.sourceId === targetId && conn.targetId === sourceId),
     )
   }
 
-  const isFullyConnected = connections.every((conn) => conn.status === "connected")
+  const isFullyConnected = currentConnections.every((conn) => conn.status === "connected")
 
   // Calculate total ping latency when all connections are active
-  const calculateAveragePing = () => {
+  const calculateTotalPing = () => {
     if (!isFullyConnected) return null;
-    const totalLatency = connections.reduce((acc, conn) => acc + (conn.latency || 0), 0)
+    const totalLatency = currentConnections.reduce((acc, conn) => acc + (conn.latency || 0), 0)
+    return Math.round(totalLatency);
   };
 
-  const averagePing = calculateAveragePing();
+  const totalPing = calculateTotalPing();
 
   return (
     <TooltipProvider>
@@ -108,13 +132,25 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
               <CardTitle className="text-xl">Network status</CardTitle>
               <CardDescription>System connection topology</CardDescription>
             </div>
-            <div className="text-3xl font-bold">
-              {isFullyConnected ? (
-                <span className="text-green-500 dark:text-green-400">{averagePing}ms</span>
-              ) : (
-                <span className="text-red-500 dark:text-red-400">Offline</span>
-              )}
-            </div>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="text-3xl font-bold">
+                  {isFullyConnected ? (
+                    <span className="text-green-500 dark:text-green-400">{totalPing}ms</span>
+                  ) : (
+                    <span className="text-red-500 dark:text-red-400">Offline</span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Total ping latency</p>
+                <p className="text-sm text-muted-foreground">
+                  {isFullyConnected
+                    ? `Total latency across all connections: ${totalPing} ms`
+                    : "Not all connections are active"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </CardHeader>
         <CardContent className="p-6 flex-1">
@@ -143,7 +179,7 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
             Last updated {new Date().toLocaleTimeString()} •
             {isFullyConnected
               ? ` All systems operational`
-              : ` ${connections.filter(k => k.status !== "connected").length} connection issues detected`}
+              : ` ${currentConnections.filter(k => k.status !== "connected").length} connection issues detected`}
           </div>
           {!isFullyConnected && (
             <div className="text-xs text-red-500 dark:text-red-400">
