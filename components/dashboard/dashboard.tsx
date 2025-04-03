@@ -126,12 +126,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
       // Also save to mock backend for demonstration
       await saveDashboardLayout(layout);
-      
+
       // Update original layout if specified (typically after a successful save)
       if (updateOriginal) {
         setOriginalLayout(JSON.parse(JSON.stringify(layout)));
       }
-      
+
       toast({
         title: "Success",
         description: "Dashboard layout saved",
@@ -161,7 +161,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     setDashboardLayout(updatedLayout);
   };
 
-  
+
 
   // Handle adding a new widget
   const handleAddWidget = () => {
@@ -217,7 +217,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     setDashboardLayout(updatedDashboardLayout);
     setIsAddWidgetDialogOpen(false);
     setSelectedWidgetType(null);
-    
+
     // Show notification for widget addition
     toast({
       title: "Widget Added",
@@ -246,7 +246,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     };
 
     setDashboardLayout(updatedDashboardLayout);
-    
+
     // Show notification for widget removal
     toast({
       title: "Widget Removed",
@@ -289,12 +289,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       const defaultLayout = await loadDashboardLayout();
       setDashboardLayout(defaultLayout);
       setOriginalLayout(JSON.parse(JSON.stringify(defaultLayout)));
-      
+
       // Save to localStorage if available
       if (storageAvailable) {
         localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(defaultLayout));
       }
-      
+
       toast({
         title: "Dashboard Reset",
         description: "Dashboard has been reset to default layout",
@@ -344,9 +344,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   // Render dashboard
   return (
     <div className="h-full relative">
-      {/* No floating controls - all moved to toolbar */}
-
-      {/* Dashboard grid */}
       {dashboardLayout && (
         <div className={`p-4 ${isEditing ? 'dashboard-editing' : ''}`}>
           <ResponsiveGridLayout
