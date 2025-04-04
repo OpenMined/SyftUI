@@ -12,13 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useNotifications } from "@/components/contexts/notification-context"
+import { useNotificationStore } from "@/stores"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 export function NotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification, clearAllNotifications } =
-    useNotifications()
+    useNotificationStore()
   const [open, setOpen] = useState(false)
 
   const handleOpen = (isOpen: boolean) => {
@@ -62,7 +62,7 @@ export function NotificationBell() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <AnimatePresence>
-            {unreadCount > 0 && (
+            {unreadCount() > 0 && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}

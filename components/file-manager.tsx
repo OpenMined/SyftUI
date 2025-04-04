@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/breadcrumb"
 import { FileToolbar } from "@/components/file-toolbar"
 import { FilePreview } from "@/components/file-preview"
 import { FileDetails } from "@/components/file-details"
-import { useNotifications } from "@/components/contexts/notification-context"
+import { useNotificationStore } from "@/stores"
 import { UploadProgress } from "@/components/upload-progress"
 import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
@@ -43,7 +43,7 @@ function FileManagerContent({
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
   const { syncDialogOpen, setSyncDialogOpen, syncPaused, setSyncPaused, toggleSyncPause } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
-  const { addNotification } = useNotifications()
+  const { addNotification } = useNotificationStore()
 
   // Use file system store
   const {

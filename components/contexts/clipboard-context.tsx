@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState } from "react"
-import { useNotifications } from "@/components/contexts/notification-context"
+import { useNotificationStore } from "@/stores"
 import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 
@@ -26,7 +26,7 @@ export function ClipboardProvider({
   currentPath: string[]
 }) {
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null)
-  const { addNotification } = useNotifications()
+  const { addNotification } = useNotificationsStore()
   const { findItemsByIds, moveItems, deepCloneItems } = useFileOperations(fileSystem, setFileSystem, currentPath)
 
   const cutItems = (itemIds: string[]) => {

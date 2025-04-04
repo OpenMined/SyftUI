@@ -6,7 +6,7 @@ const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
 
 import React, { createContext, useContext, useState } from "react"
-import { useNotifications } from "@/components/contexts/notification-context"
+import { useNotificationStore } from "@/stores"
 import type { FileSystemItem, SyncStatus } from "@/lib/types"
 
 interface SyncContextType {
@@ -32,7 +32,7 @@ export function SyncProvider({
 }) {
   const [syncPaused, setSyncPaused] = useState(false)
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
-  const { addNotification } = useNotifications()
+  const { addNotification } = useNotificationsStore()
 
   const updateSyncStatus = (itemId: string, status: SyncStatus) => {
     const updateStatus = (items: FileSystemItem[]): FileSystemItem[] => {

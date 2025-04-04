@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { ConnectionProvider } from "@/components/contexts/connection-context"
 import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
-import { NotificationProvider } from "@/components/contexts/notification-context"
 import { Sidebar } from "@/components/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -57,14 +56,12 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NuqsAdapter>
-            <NotificationProvider>
-              <ConnectionProvider>
-                <SidebarProvider>
-                  <MainLayout>{children}</MainLayout>
-                  <Toaster />
-                </SidebarProvider>
-              </ConnectionProvider>
-            </NotificationProvider>
+            <ConnectionProvider>
+              <SidebarProvider>
+                <MainLayout>{children}</MainLayout>
+                <Toaster />
+              </SidebarProvider>
+            </ConnectionProvider>
           </NuqsAdapter>
         </ThemeProvider>
       </body>
