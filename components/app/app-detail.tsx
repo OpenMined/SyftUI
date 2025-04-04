@@ -76,52 +76,36 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [isInstalled, setIsInstalled] = useState(app.installed)
+  const [isDisabled, setIsDisabled] = useState(app.disabled)
   const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(app.installed)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [securityReportOpen, setSecurityReportOpen] = useState(false)
 
-  const handleAction = () => {
+  const handleInstall = () => {
     setIsProcessing(true)
 
-    // Simulate process (install or uninstall)
+    // Simulate installation
     setTimeout(() => {
       setIsProcessing(false)
-      // In a real app, we would update the app's installed status here
-    }, 2000)
-  }
-
-  const handleDisable = () => {
-    setIsProcessing(true)
-
-    // Simulate disabling
-    setTimeout(() => {
-      setIsProcessing(false)
+      setIsInstalled(true)
     }, 1500)
   }
 
   const handleUninstall = () => {
-    setIsProcessing(true)
+    setIsProcessing(true);
 
-    // Simulate uninstalling
+    // Simulate uninstallation process
     setTimeout(() => {
-      setIsProcessing(false)
-      // Would redirect back to apps list after uninstall
-      onBack()
-    }, 2000)
+      setIsProcessing(false);
+      setIsInstalled(false);
+    }, 2000);
   }
 
   return (
     <div className="flex flex-col h-full">
       <Toolbar title="App Details" icon={<ChevronLeft className="h-4 w-4 cursor-pointer" onClick={onBack} />}>
         {!isInstalled ? (
-          <Button onClick={() => {
-            setIsProcessing(true);
-            // Simulate installation process
-            setTimeout(() => {
-              setIsProcessing(false);
-              setIsInstalled(true);
-            }, 2000);
-          }} disabled={isProcessing}>
+          <Button onClick={handleInstall} disabled={isProcessing}>
             {isProcessing ? "Installing..." : "Install"}
           </Button>
         ) : (
@@ -132,18 +116,11 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                 Auto-update
               </Label>
             </div>
-            <Button variant="outline" onClick={handleDisable} disabled={isProcessing}>
-              {isProcessing ? "Disabling..." : "Disable"}
+            <Button variant="outline" onClick={() => setIsDisabled(!isDisabled)} disabled={isProcessing}>
+              {isDisabled ? "Enable" : "Disable"}
             </Button>
-            <Button variant="destructive" onClick={() => {
-              setIsProcessing(true);
-              // Simulate uninstallation process
-              setTimeout(() => {
-                setIsProcessing(false);
-                setIsInstalled(false);
-              }, 2000);
-            }} disabled={isProcessing}>
-              Uninstall
+            <Button variant="destructive" onClick={handleUninstall} disabled={isProcessing}>
+              {isProcessing ? "Uninstalling..." : "Uninstall"}
             </Button>
           </div>
         )}

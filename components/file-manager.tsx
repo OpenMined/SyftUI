@@ -259,7 +259,7 @@ function FileManagerContent({
     if (currentPath.length === 0) {
       return {
         id: "root-directory",
-        name: "Workspace Directory",
+        name: "Workspace",
         type: "folder" as const,
         children: getCurrentItems(),
         createdAt: new Date().toISOString(),
@@ -401,7 +401,7 @@ function FileManagerContent({
                 <div className="bg-card border-2 border-dashed border-primary rounded-lg p-8 text-center">
                   <div className="text-2xl font-bold mb-2">Drop files here</div>
                   <div className="text-muted-foreground">
-                    Files will be added to {currentPath.length > 0 ? `/${currentPath.join("/")}` : "root"}
+                    Files will be added to {currentPath.length > 0 ? `/${currentPath.join("/")}` : "the Workspace root"}
                   </div>
                 </div>
               </motion.div>

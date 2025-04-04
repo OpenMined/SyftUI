@@ -1,5 +1,6 @@
 "use client"
 
+import { useQueryState } from 'nuqs'
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppWindow, Search, Plus } from "lucide-react"
@@ -13,8 +14,7 @@ import { Toolbar } from "@/components/ui/toolbar"
 
 export default function AppsPage() {
     const router = useRouter();
-    const params = useSearchParams();
-    const [selectedApp, setSelectedApp] = useState<string | null>(null)
+    const [selectedApp, setSelectedApp] = useQueryState('id');
     const [searchQuery, setSearchQuery] = useState("")
 
     // Filter to only show installed apps
@@ -24,11 +24,6 @@ export default function AppsPage() {
         // Logic to uninstall the app would go here
         console.log(`Uninstalling app with id: ${appId}`)
     }
-
-    useEffect(() => {
-        const id = params.get("id") || null;
-        setSelectedApp(id);
-    }, [params])
 
     if (selectedApp) {
         return <AppDetail appId={selectedApp} onBack={() => router.push("/apps")} />;

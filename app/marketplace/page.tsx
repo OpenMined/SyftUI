@@ -1,5 +1,6 @@
 "use client"
 
+import { useQueryState } from 'nuqs'
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShoppingBag, Search, Plus, Filter, ArrowUpDown } from "lucide-react"
@@ -15,8 +16,7 @@ import { toast } from "@/hooks/use-toast"
 
 export default function MarketplacePage() {
     const router = useRouter();
-    const params = useSearchParams();
-    const [selectedApp, setSelectedApp] = useState<string | null>(null)
+    const [selectedApp, setSelectedApp] = useQueryState('id')
     const [searchQuery, setSearchQuery] = useState("")
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
     const [repoUrl, setRepoUrl] = useState("")
@@ -62,11 +62,6 @@ export default function MarketplacePage() {
             console.log(`${updatedApps[appIndex].installed ? 'Installing' : 'Uninstalling'} app with id: ${appId}`);
         }
     }
-
-    useEffect(() => {
-        const id = params.get("id") || null;
-        setSelectedApp(id);
-    }, [params])
 
     if (selectedApp) {
         return <AppDetail appId={selectedApp} onBack={() => router.push("/marketplace")} />;

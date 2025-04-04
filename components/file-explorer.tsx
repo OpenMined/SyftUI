@@ -64,7 +64,7 @@ function BackgroundContextMenuContent({
   pasteItems
 }: BackgroundContextMenuContentProps) {
   // Get current directory name
-  const currentDirName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : "Root"
+  const currentDirName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : "Workspace root"
 
   // State for the permissions dialog
   const [permissionsDialogItem, setPermissionsDialogItem] = useState<FileSystemItem | null>(null)
@@ -103,7 +103,7 @@ function BackgroundContextMenuContent({
     if (currentPath.length === 0) {
       addToFavorites({
         id: "root", // Using "root" as ID for root directory
-        name: "Root",
+        name: "Workspace",
         type: "folder",
         path: []
       });
@@ -734,7 +734,7 @@ export function FileExplorer({
           if (!getCurrentDirectoryInfo) {
             return currentPath.length > 0
               ? { id: `dir-${currentPath[currentPath.length - 1]}`, name: currentPath[currentPath.length - 1], type: 'folder' as const }
-              : { id: 'root', name: 'Root', type: 'folder' as const };
+              : { id: 'root', name: 'Workspace', type: 'folder' as const };
           }
           return getCurrentDirectoryInfo();
         }}
@@ -811,7 +811,7 @@ export function FileExplorer({
             if (!getCurrentDirectoryInfo) {
               return currentPath.length > 0
                 ? { id: `dir-${currentPath[currentPath.length - 1]}`, name: currentPath[currentPath.length - 1], type: 'folder' as const }
-                : { id: 'root', name: 'Root', type: 'folder' as const };
+                : { id: 'root', name: 'Workspace', type: 'folder' as const };
             }
             return getCurrentDirectoryInfo();
           }}
