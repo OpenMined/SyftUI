@@ -18,8 +18,8 @@ import {
     ConnectionStatus as StatusType,
     DEFAULT_CONNECTION_SETTINGS,
     connectionFormSchema,
-    useConnection
-} from "@/components/contexts/connection-context"
+    useConnectionStore
+} from "@/stores"
 import { toast } from "@/hooks/use-toast"
 import { LogoComponent } from "@/components/logo"
 import { FloatingConnectionStatus } from "@/components/floating-connection-status"
@@ -41,7 +41,7 @@ export default function HomePage() {
         status,
         connect,
         displayUrl
-    } = useConnection();
+    } = useConnectionStore();
 
     const connectionForm = useForm<ConnectionFormValues>({
         resolver: zodResolver(connectionFormSchema),

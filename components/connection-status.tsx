@@ -12,8 +12,8 @@ import {
   DEFAULT_CONNECTION_SETTINGS,
   connectionFormSchema,
   ConnectionFormValues,
-  useConnection
-} from "@/components/contexts/connection-context"
+  useConnectionStore
+} from "@/stores"
 import { ConnectionForm } from "@/components/connection/connection-form"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -24,7 +24,7 @@ export function ConnectionStatus() {
     status,
     displayUrl,
     connect
-  } = useConnection();
+  } = useConnectionStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);

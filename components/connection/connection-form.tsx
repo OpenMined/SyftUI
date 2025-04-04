@@ -6,7 +6,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { ConnectionFormValues, ConnectionStatus, DEFAULT_CONNECTION_SETTINGS } from "@/components/contexts/connection-context"
+import { ConnectionFormValues, ConnectionStatus, DEFAULT_CONNECTION_SETTINGS } from "@/stores"
 
 interface ConnectionFormProps {
   form: UseFormReturn<ConnectionFormValues>;

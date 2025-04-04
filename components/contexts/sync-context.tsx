@@ -32,7 +32,7 @@ export function SyncProvider({
 }) {
   const [syncPaused, setSyncPaused] = useState(false)
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
-  const { addNotification } = useNotificationsStore()
+  const { addNotification } = useNotificationStore()
 
   const updateSyncStatus = (itemId: string, status: SyncStatus) => {
     const updateStatus = (items: FileSystemItem[]): FileSystemItem[] => {

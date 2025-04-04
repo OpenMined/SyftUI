@@ -5,7 +5,6 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
-import { ConnectionProvider } from "@/components/contexts/connection-context"
 import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
 import { Sidebar } from "@/components/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -56,12 +55,10 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NuqsAdapter>
-            <ConnectionProvider>
-              <SidebarProvider>
-                <MainLayout>{children}</MainLayout>
-                <Toaster />
-              </SidebarProvider>
-            </ConnectionProvider>
+            <SidebarProvider>
+              <MainLayout>{children}</MainLayout>
+              <Toaster />
+            </SidebarProvider>
           </NuqsAdapter>
         </ThemeProvider>
       </body>

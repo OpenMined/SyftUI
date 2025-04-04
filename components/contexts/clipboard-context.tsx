@@ -26,7 +26,7 @@ export function ClipboardProvider({
   currentPath: string[]
 }) {
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null)
-  const { addNotification } = useNotificationsStore()
+  const { addNotification } = useNotificationStore()
   const { findItemsByIds, moveItems, deepCloneItems } = useFileOperations(fileSystem, setFileSystem, currentPath)
 
   const cutItems = (itemIds: string[]) => {
