@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import type { FileSystemItem, Permission, PermissionType } from "@/lib/types"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,7 +31,7 @@ interface FolderLimits {
 }
 
 export function PermissionsDialog({ item, onClose, setDetailsItem }: PermissionsDialogProps) {
-  const { updatePermissions } = useFileSystem()
+  const { updatePermissions } = useFileSystemStore()
   // Initialize with an empty array if no permissions exist
   const [permissions, setPermissions] = useState<Permission[]>(
     item.permissions || [

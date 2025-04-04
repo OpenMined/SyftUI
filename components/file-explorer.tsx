@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useCallback, useMemo } from "react"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { useSync } from "@/components/contexts/sync-context"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
@@ -489,7 +489,7 @@ export function FileExplorer({
   viewMode: externalViewMode,
   getCurrentDirectoryInfo
 }: FileExplorerProps) {
-  const fileSystemContext = useFileSystem()
+  const fileSystemContext = useFileSystemStore()
   const { toggleSyncPause, syncPaused } = useSync()
 
   // Use either provided props or context values

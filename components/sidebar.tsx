@@ -18,7 +18,6 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { navigateToPath } from "@/lib/utils/url"
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -35,6 +34,7 @@ import { ConnectionStatus } from "@/components/connection-status"
 import { useTheme } from "next-themes"
 import { useRouter, usePathname } from "next/navigation"
 import { LogoComponent } from "./logo"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 
 interface SidebarProps {
   closeSidebar: () => void
@@ -50,6 +50,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const isMobile = useIsMobile()
+  const { navigateTo } = useFileSystemStore.getState()
 
   // Load favorites from localStorage on initial render
   useEffect(() => {
@@ -131,7 +132,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       label: "Workspace",
       action: () => {
         setActiveItem("Workspace")
-        navigateToPath([])
+        navigateTo([])
         router.push("/workspace/")
         closeSidebar()
       },
@@ -278,8 +279,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                     <div key={fav.id} className="flex items-center justify-between group">
                       <button
                         onClick={() => {
-                          navigateToPath(fav.path)
-                          // Need to push to router as well for it to work across other pages like /marketplace, /logs, etc
+                          navigateTo(fav.path)
                           router.push(`/workspace/?path=${fav.path.join('/')}`)
                           closeSidebar()
                         }}

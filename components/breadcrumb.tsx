@@ -3,12 +3,12 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { ChevronRight, Briefcase } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function Breadcrumb() {
-  const { currentPath, navigateTo, moveItems } = useFileSystem()
+  const { currentPath, navigateTo, moveItems } = useFileSystemStore()
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
 
   const handleNavigate = (index: number) => {

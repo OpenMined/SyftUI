@@ -10,11 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import type { SortOption, SortDirection } from "@/components/contexts/file-system-context"
 
 export function SortOptions() {
-  const { sortConfig = { sortBy: "name", direction: "asc" }, setSortConfig } = useFileSystem()
+  const { sortConfig = { sortBy: "name", direction: "asc" }, setSortConfig } = useFileSystemStore()
 
   return (
     <DropdownMenu>

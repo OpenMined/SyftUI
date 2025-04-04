@@ -2,10 +2,10 @@
 
 import { Grid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 
 export function ViewToggle() {
-  const { viewMode, setViewMode } = useFileSystem()
+  const { viewMode, setViewMode } = useFileSystemStore()
 
   return (
     <div className="flex border rounded-md overflow-hidden">

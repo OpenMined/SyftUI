@@ -20,6 +20,7 @@ import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { updateUrlWithPath, getPathFromUrl, processPath, findFileInPath } from "@/lib/utils/url"
 import { mockFileSystem } from "@/lib/mock-data"
+import { useFileSystemStore, initializeFileSystemStore } from "@/stores/useFileSystemStore"
 
 interface FileManagerProps {
   fileSystem: FileSystemItem[]
@@ -29,148 +30,14 @@ interface FileManagerProps {
   onViewModeChange: (mode: "grid" | "list") => void
 }
 
-interface FileManagerContentProps extends FileManagerProps {
-  currentPath: string[];
-  setCurrentPath: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedItems: string[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>;
-  viewMode: 'grid' | 'list';
-  setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
-  previewFile: FileSystemItem | null;
-  setPreviewFile: React.Dispatch<React.SetStateAction<FileSystemItem | null>>;
-  sortConfig?: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" };
-  setSortConfig?: React.Dispatch<React.SetStateAction<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>>;
-  detailsItem?: FileSystemItem | null;
-  setDetailsItem?: (item: FileSystemItem | null) => void;
-  mobileDetailsOpen?: boolean;
-  setMobileDetailsOpen?: (open: boolean) => void;
-}
-
-// Create a wrapper component that will have access to all providers and be able to initialize file operations
-function FileSystemProviderContent({
-  fileSystem,
-  setFileSystem,
-  currentPath,
-  selectedItems,
-  viewMode,
-  sortConfig,
-  syncPaused,
-  setSelectedItems,
-  navigateTo,
-  setPreviewFile,
-  setDetailsItem,
-  setViewMode,
-  setSortConfig,
-  setSyncPaused,
-  setSyncDialogOpen,
-  children
-}: {
-  fileSystem: FileSystemItem[],
-  setFileSystem: React.Dispatch<React.SetStateAction<FileSystemItem[]>>,
-  currentPath: string[],
-  selectedItems: string[],
-  viewMode: "grid" | "list",
-  sortConfig: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" },
-  syncPaused: boolean,
-  setSelectedItems: (items: string[]) => void,
-  navigateTo: (path: string[]) => void,
-  setPreviewFile: (file: FileSystemItem | null) => void,
-  setDetailsItem: (item: FileSystemItem | null) => void,
-  setViewMode: (mode: "grid" | "list") => void,
-  setSortConfig: (config: { sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }) => void,
-  setSyncPaused: (paused: boolean) => void,
-  setSyncDialogOpen: (open: boolean) => void,
-  children: React.ReactNode
-}) {
-  const fileOperations = useFileOperations(fileSystem, setFileSystem, currentPath);
-  const { clipboard, cutItems, copyItems, pasteItems } = useClipboard();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const refreshFileSystem = () => {
-    setIsRefreshing(true);
-
-    // Simulate a minimum refresh time for better visual feedback
-    setTimeout(() => {
-      // For now, we just re-set the file system from the mock data
-      setFileSystem([...mockFileSystem]);
-      setIsRefreshing(false);
-    }, 750); // Show refreshing state for at least 750ms
-  }
-
-  return (
-    <FileSystemProvider
-      value={{
-        fileSystem,
-        setFileSystem,
-        currentPath,
-        selectedItems,
-        viewMode,
-        sortConfig,
-        clipboard,
-        syncPaused,
-        setSelectedItems,
-        setViewMode,
-        setSortConfig,
-        navigateTo,
-        handleCreateFolder: (name) => {
-          fileOperations.handleCreateFolder(name);
-        },
-        handleCreateFile: (name) => {
-          fileOperations.handleCreateFile(name);
-        },
-        handleDelete: (itemIds) => {
-          fileOperations.handleDelete(itemIds, setSelectedItems, setDetailsItem);
-        },
-        handleRename: (itemId, newName) => {
-          fileOperations.handleRename(itemId, newName, setDetailsItem);
-        },
-        setPreviewFile,
-        setDetailsItem,
-        moveItems: (itemIds, targetPath) => {
-          fileOperations.moveItems(itemIds, targetPath, setDetailsItem);
-        },
-        cutItems,
-        copyItems,
-        pasteItems,
-        updateSyncStatus: (itemId, status) => {
-          // This will be handled by the sync context
-        },
-        updatePermissions: (itemId, permissions) => {
-          fileOperations.updatePermissions(itemId, permissions, setDetailsItem);
-        },
-        toggleSyncPause: () => {
-          toggleSyncPause();
-        },
-        triggerManualSync: () => {
-          // This would trigger a manual sync if implemented
-        },
-        isRefreshing,
-        refreshFileSystem,
-        setSyncDialogOpen
-      }}
-    >
-      {children}
-    </FileSystemProvider>
-  );
+interface FileManagerContentProps {
+  initialViewMode: "grid" | "list"
+  onViewModeChange: (mode: "grid" | "list") => void
 }
 
 function FileManagerContent({
-  fileSystem,
-  setFileSystem,
-  currentPath,
-  setCurrentPath,
   initialViewMode,
   onViewModeChange,
-  selectedItems,
-  setSelectedItems,
-  viewMode,
-  setViewMode,
-  previewFile,
-  setPreviewFile,
-  detailsItem,
-  setDetailsItem,
-  mobileDetailsOpen,
-  setMobileDetailsOpen
 }: FileManagerContentProps) {
   // Get context providers
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
@@ -178,8 +45,27 @@ function FileManagerContent({
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotifications()
 
+  // Use file system store
+  const {
+    fileSystem,
+    currentPath,
+    selectedItems,
+    viewMode,
+    previewFile,
+    detailsItem,
+    setSelectedItems,
+    navigateTo,
+    setPreviewFile,
+    setDetailsItem,
+    setViewMode,
+    getCurrentItems,
+    getCurrentDirectoryInfo,
+    updateDetailsWithDirectory,
+  } = useFileSystemStore()
+
   // Local state
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
 
   const isMobile = useIsMobile()
   const fileManagerRef = useRef<HTMLDivElement>(null)
@@ -228,75 +114,7 @@ function FileManagerContent({
     };
   }, [fileManagerRef, handleExternalFileDrop]);
 
-  // Navigation function
-  const navigateTo = (path: string[]) => {
-    setCurrentPath(path)
-    setSelectedItems([])
-    setDetailsItem(null)
-
-    // Update URL with the new path
-    updateUrlWithPath(path);
-  }
-
-  // Get current directory items - changed to use the function in dependencies
-  const getCurrentItems = useCallback((): FileSystemItem[] => {
-    let current = fileSystem
-
-    for (const segment of currentPath) {
-      const folder = current.find((item) => item.type === "folder" && item.name === segment)
-      if (folder && folder.type === "folder" && folder.children) {
-        current = folder.children
-      } else {
-        return []
-      }
-    }
-
-    return current
-  }, [fileSystem, currentPath])
-
-  // Get current directory info for details panel
-  const getCurrentDirectoryInfo = useCallback(() => {
-    if (currentPath.length === 0) {
-      return {
-        id: "root-directory",
-        name: "Workspace",
-        type: "folder" as const,
-        children: getCurrentItems(),
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        syncStatus: "hidden" as const,
-        size: getCurrentItems().reduce((total, item) => total + (item.size || 0), 0),
-      };
-    }
-
-    let current = fileSystem;
-    let currentDir: FileSystemItem | null = null;
-
-    for (let i = 0; i < currentPath.length; i++) {
-      const segment = currentPath[i];
-      const folder = current.find(item => item.type === "folder" && item.name === segment);
-
-      if (folder && folder.type === "folder" && folder.children) {
-        current = folder.children;
-        if (i === currentPath.length - 1) {
-          currentDir = folder;
-        }
-      } else {
-        return null;
-      }
-    }
-
-    return currentDir;
-  }, [currentPath, fileSystem, getCurrentItems]);
-
   // Update details when directory changes
-  const updateDetailsWithDirectory = useCallback(() => {
-    if (selectedItems.length === 0) {
-      const dirInfo = getCurrentDirectoryInfo();
-      setDetailsItem(dirInfo);
-    }
-  }, [selectedItems, getCurrentDirectoryInfo]);
-
   useEffect(() => {
     updateDetailsWithDirectory();
   }, [currentPath, updateDetailsWithDirectory]);
@@ -357,6 +175,11 @@ function FileManagerContent({
     }
   }, [handleKeyDown])
 
+  // Update view mode when it changes
+  useEffect(() => {
+    onViewModeChange(viewMode)
+  }, [viewMode, onViewModeChange])
+
   // Close preview and update URL
   const closePreview = () => {
     setPreviewFile(null);
@@ -365,11 +188,18 @@ function FileManagerContent({
   }
 
   const handleCloseDetails = () => {
-    if (isMobile && setMobileDetailsOpen) {
+    if (isMobile) {
       setMobileDetailsOpen(false);
-    } else if (setSelectedItems && setDetailsItem) {
+    } else {
       setSelectedItems([]);
       updateDetailsWithDirectory();
+    }
+  };
+
+  const handleSetDetailsItem = (item: FileSystemItem | null) => {
+    setDetailsItem(item);
+    if (item && isMobile) {
+      setMobileDetailsOpen(true);
     }
   };
 
@@ -417,7 +247,7 @@ function FileManagerContent({
             transition={{ duration: 0.2 }}
             className="border-l border-border overflow-hidden hidden md:block"
           >
-            <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} setDetailsItem={setDetailsItem} />
+            <FileDetails item={detailsItem || getCurrentDirectoryInfo()} onClose={handleCloseDetails} setDetailsItem={handleSetDetailsItem} />
           </motion.div>
         )}
       </div>
@@ -432,7 +262,7 @@ function FileManagerContent({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 bg-background z-50"
           >
-            <FileDetails item={detailsItem} onClose={handleCloseDetails} setDetailsItem={setDetailsItem} />
+            <FileDetails item={detailsItem} onClose={handleCloseDetails} setDetailsItem={handleSetDetailsItem} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -446,7 +276,7 @@ function FileManagerContent({
       <FileConflictDialog
         conflicts={conflicts}
         onResolve={handleConflictResolution}
-        onCancel={() => setConflicts([])}
+        onCancel={() => {/* Handle cancel */ }}
         onApplyToAll={handleApplyToAll}
       />
 
@@ -463,63 +293,52 @@ function FileManagerContent({
 }
 
 export function FileManager({ fileSystem, setFileSystem, initialViewMode, initialPath = [], onViewModeChange }: FileManagerProps) {
-  const [currentPath, setCurrentPath] = useState<string[]>(initialPath);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
-  const [sortConfig, setSortConfig] = useState<{ sortBy: "name" | "date" | "size" | "type", direction: "asc" | "desc" }>({ sortBy: "name", direction: "asc" });
   const [syncPaused, setSyncPaused] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const [previewFile, setPreviewFile] = useState<FileSystemItem | null>(null);
-  const [detailsItem, setDetailsItem] = useState<FileSystemItem | null>(null);
-  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  // Enhanced function to set details item and handle mobile visibility
-  const handleSetDetailsItem = useCallback((item: FileSystemItem | null) => {
-    setDetailsItem(item);
-    if (item && isMobile) {
-      setMobileDetailsOpen(true);
-    }
-  }, [isMobile]);
-
-  // Check for file in path on initial load
+  // Initialize the file system store
   useEffect(() => {
+    // Set initial state in the store
+    initializeFileSystemStore(fileSystem, setFileSystem, initialPath, initialViewMode);
+
+    // Check for file in path on initial load
     const pathFromUrl = getPathFromUrl();
     const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
+
+    if (dirPath.length > 0) {
+      useFileSystemStore.getState().setCurrentPath(dirPath);
+    }
 
     if (fileName) {
       const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
       if (fileToOpen) {
-        setPreviewFile(fileToOpen);
+        useFileSystemStore.getState().setPreviewFile(fileToOpen);
       }
     }
-  }, [fileSystem, setPreviewFile]);
-
-
-  useEffect(() => {
-    onViewModeChange(viewMode);
-  }, [viewMode, onViewModeChange]);
+  }, [fileSystem, setFileSystem, initialPath, initialViewMode]);
 
   // Listen for popstate events (when browser back/forward buttons are used)
   useEffect(() => {
     const handlePopState = () => {
       const pathSegments = getPathFromUrl();
       const { dirPath, fileName } = processPath(pathSegments, fileSystem);
+      const store = useFileSystemStore.getState();
 
       // Update directory path
-      setCurrentPath(dirPath);
+      store.setCurrentPath(dirPath);
 
       // If there's a file in the path, find and open it
       if (fileName) {
         setTimeout(() => {
           const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
           if (fileToOpen) {
-            setPreviewFile(fileToOpen);
+            store.setPreviewFile(fileToOpen);
           }
         }, 100); // Allow time for path change to complete
       } else {
         // If no file in path, close any open preview
-        setPreviewFile(null);
+        store.setPreviewFile(null);
       }
     };
 
@@ -527,61 +346,16 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [setPreviewFile, fileSystem]);
+  }, [fileSystem]);
 
   return (
     <SyncProvider fileSystem={fileSystem} setFileSystem={setFileSystem}>
-      <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={currentPath}>
-        <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={currentPath}>
-          <FileSystemProviderContent
-            fileSystem={fileSystem}
-            setFileSystem={setFileSystem}
-            currentPath={currentPath}
-            selectedItems={selectedItems}
-            viewMode={viewMode}
-            sortConfig={sortConfig}
-            syncPaused={syncPaused}
-            setSelectedItems={setSelectedItems}
-            navigateTo={(path) => {
-              setCurrentPath(path);
-              setSelectedItems([]);
-
-              // Update URL with the new path
-              updateUrlWithPath(path);
-            }}
-            setPreviewFile={setPreviewFile}
-            setDetailsItem={(item) => {
-              setDetailsItem(item);
-              if (item && isMobile) {
-                setMobileDetailsOpen(true);
-              }
-            }}
-            setViewMode={setViewMode}
-            setSortConfig={setSortConfig}
-            setSyncPaused={setSyncPaused}
-            setSyncDialogOpen={setSyncDialogOpen}
-          >
-            <FileManagerContent
-              fileSystem={fileSystem}
-              setFileSystem={setFileSystem}
-              currentPath={currentPath}
-              setCurrentPath={setCurrentPath}
-              initialViewMode={initialViewMode}
-              onViewModeChange={onViewModeChange}
-              selectedItems={selectedItems}
-              setSelectedItems={setSelectedItems}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              previewFile={previewFile}
-              setPreviewFile={setPreviewFile}
-              sortConfig={sortConfig}
-              setSortConfig={setSortConfig}
-              detailsItem={detailsItem}
-              setDetailsItem={setDetailsItem}
-              mobileDetailsOpen={mobileDetailsOpen}
-              setMobileDetailsOpen={setMobileDetailsOpen}
-            />
-          </FileSystemProviderContent>
+      <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
+        <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
+          <FileManagerContent
+            initialViewMode={initialViewMode}
+            onViewModeChange={onViewModeChange}
+          />
         </ClipboardProvider>
       </UploadProvider>
     </SyncProvider>

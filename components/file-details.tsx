@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SyncStatus } from "@/components/sync-status"
 import { PermissionsDialog } from "@/components/permissions-dialog"
-import { useFileSystem } from "@/components/contexts/file-system-context"
 import { motion } from "framer-motion"
 import type { FileSystemItem } from "@/lib/types"
 import { formatFileSize } from "@/lib/utils"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 
 interface FileDetailsProps {
   item: FileSystemItem
@@ -29,9 +29,11 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
   }
 
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
-  const { handleDelete, handleRename } = useFileSystem()
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
+  
+  // Get file operations from the store
+  const { handleDelete, handleRename } = useFileSystemStore()
 
   useEffect(() => {
     setNewName(item.name)
@@ -304,4 +306,3 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
     </div>
   )
 }
-

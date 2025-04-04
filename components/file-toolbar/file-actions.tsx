@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useFileSystem } from "@/components/contexts/file-system-context"
+import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { useClipboard } from "@/components/contexts/clipboard-context"
 import { useSync } from "@/components/contexts/sync-context"
 import { addToFavorites } from "@/lib/utils/favorites"
@@ -35,7 +35,7 @@ import {
 
 export function FileActions() {
   // Get context hooks
-  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, handleRename, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystem()
+  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, handleRename, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystemStore()
   const { syncPaused, setSyncDialogOpen } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 

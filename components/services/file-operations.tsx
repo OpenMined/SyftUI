@@ -6,8 +6,7 @@ const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
 
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
-import { useNotifications, Notification } from "@/components/contexts/notification-context"
-import { useSync } from "@/components/contexts/sync-context"
+import { Notification } from "@/components/contexts/notification-context"
 
 export function useFileOperations(
   fileSystem: FileSystemItem[],
@@ -16,12 +15,8 @@ export function useFileOperations(
   notificationService?: { addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void },
   syncService?: { updateSyncStatus: (id: string, status: SyncStatus) => void }
 ) {
-  // Use injected services if provided, otherwise use hooks
-  const defaultNotifications = useNotifications()
-  const defaultSync = useSync()
-
-  const { addNotification } = notificationService || defaultNotifications
-  const { updateSyncStatus } = syncService || defaultSync
+  const { addNotification } = notificationService || { addNotification: () => { } }
+  const { updateSyncStatus } = syncService || { updateSyncStatus: () => { } }
 
   const findItemById = (itemId: string, items: FileSystemItem[] = fileSystem): FileSystemItem | null => {
     for (const item of items) {
