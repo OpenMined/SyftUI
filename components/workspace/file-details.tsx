@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { X, Share2, Download, Trash2, Edit, Clock, Lock, Info } from "lucide-react"
-import { FileIcon } from "@/components/file-icon"
+import { FileIcon } from "@/components/workspace/file-icon"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SyncStatus } from "@/components/sync-status"
-import { PermissionsDialog } from "@/components/permissions-dialog"
+import { SyncStatus } from "@/components/workspace/sync-status"
+import { PermissionsDialog } from "@/components/workspace/permissions-dialog"
 import { motion } from "framer-motion"
 import type { FileSystemItem } from "@/lib/types"
 import { formatFileSize } from "@/lib/utils"
@@ -31,7 +31,7 @@ export function FileDetails({ item, onClose, setDetailsItem }: FileDetailsProps)
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [newName, setNewName] = useState(item.name)
-  
+
   // Get file operations from the store
   const { handleDelete, handleRename } = useFileSystemStore()
 

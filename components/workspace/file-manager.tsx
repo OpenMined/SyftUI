@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from "react"
-import { FileExplorer } from "@/components/file-explorer"
-import { Breadcrumb } from "@/components/breadcrumb"
-import { FileToolbar } from "@/components/file-toolbar"
-import { FilePreview } from "@/components/file-preview"
-import { FileDetails } from "@/components/file-details"
+import { FileExplorer } from "@/components/workspace/file-explorer"
+import { Breadcrumb } from "@/components/workspace/breadcrumb"
+import { FileToolbar } from "@/components/workspace/file-toolbar"
+import { FilePreview } from "@/components/workspace/file-preview"
+import { FileDetails } from "@/components/workspace/file-details"
 import { useNotificationStore } from "@/stores"
-import { UploadProgress } from "@/components/upload-progress"
-import { FileConflictDialog } from "@/components/file-conflict-dialog"
-import { SyncStatusDialog } from "@/components/sync-status-dialog"
+import { UploadProgress } from "@/components/workspace/upload-progress"
+import { FileConflictDialog } from "@/components/workspace/file-conflict-dialog"
+import { SyncStatusDialog } from "@/components/workspace/sync-status-dialog"
 import { motion, AnimatePresence } from "framer-motion"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -35,7 +35,7 @@ function FileManagerContent({
 }: FileManagerContentProps) {
   const { addNotification } = useNotificationStore()
 
-  // Use file system store
+  // Stores
   const {
     clipboard,
     cutItems,
@@ -67,7 +67,7 @@ function FileManagerContent({
     handleApplyToAll
   } = useFileSystemStore()
 
-  // Local state
+  // Local states
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
 

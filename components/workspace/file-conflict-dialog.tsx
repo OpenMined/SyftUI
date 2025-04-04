@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { FileIcon } from "@/components/file-icon"
+import { FileIcon } from "@/components/workspace/file-icon"
 import type { FileSystemItem } from "@/lib/types"
 import { formatFileSize } from "@/lib/utils"
 

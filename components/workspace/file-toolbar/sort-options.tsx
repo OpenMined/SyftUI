@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
-import type { SortOption, SortDirection } from "@/components/contexts/file-system-context"
 
 export function SortOptions() {
   const { sortConfig = { sortBy: "name", direction: "asc" }, setSortConfig } = useFileSystemStore()
@@ -27,7 +26,7 @@ export function SortOptions() {
         <DropdownMenuRadioGroup
           value={sortConfig.sortBy}
           onValueChange={(value) =>
-            setSortConfig({ ...sortConfig, sortBy: value as SortOption })
+            setSortConfig({ ...sortConfig, sortBy: value })
           }
         >
           <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
@@ -38,7 +37,7 @@ export function SortOptions() {
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={sortConfig.direction}
-          onValueChange={(value) => setSortConfig({ ...sortConfig, direction: value as SortDirection })}
+          onValueChange={(value) => setSortConfig({ ...sortConfig, direction: value })}
         >
           <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>

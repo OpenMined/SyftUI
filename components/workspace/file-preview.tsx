@@ -2,7 +2,7 @@
 import { X, Download } from "lucide-react"
 import type { FileSystemItem } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { FileIcon } from "@/components/file-icon"
+import { FileIcon } from "@/components/workspace/file-icon"
 import { motion, AnimatePresence } from "framer-motion"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus, prism } from "react-syntax-highlighter/dist/esm/styles/prism"

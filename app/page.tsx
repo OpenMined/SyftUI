@@ -23,7 +23,7 @@ import {
 import { toast } from "@/hooks/use-toast"
 import { LogoComponent } from "@/components/logo"
 import { FloatingConnectionStatus } from "@/components/floating-connection-status"
-import { ConnectionStatus } from "@/components/connection-status"
+import { ConnectionStatus } from "@/components/connection/connection-status"
 
 export default function HomePage() {
     const router = useRouter()

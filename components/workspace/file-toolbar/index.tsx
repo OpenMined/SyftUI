@@ -3,8 +3,8 @@
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Toolbar } from "@/components/ui/toolbar"
-import { FileActions } from "@/components/file-toolbar/file-actions"
-import { ViewToggle } from "@/components/file-toolbar/view-toggle"
+import { FileActions } from "@/components/workspace/file-toolbar/file-actions"
+import { ViewToggle } from "@/components/workspace/file-toolbar/view-toggle"
 import { useState } from "react"
 
 interface FileToolbarProps {

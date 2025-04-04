@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { mockFileSystem } from "@/lib/mock-data"
-import { NotificationProvider } from "@/components/contexts/notification-context"
-import { FileManager } from "@/components/file-manager"
+import { FileManager } from "@/components/workspace/file-manager"
 import { getPathFromUrl, processPath } from "@/lib/utils/url"
 
 export default function FilesPage() {

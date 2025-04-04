@@ -30,7 +30,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { ConnectionStatus } from "@/components/connection-status"
+import { ConnectionStatus } from "@/components/connection/connection-status"
 import { useTheme } from "next-themes"
 import { useRouter, usePathname } from "next/navigation"
 import { LogoComponent } from "./logo"

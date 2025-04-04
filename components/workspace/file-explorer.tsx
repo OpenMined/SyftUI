@@ -3,10 +3,10 @@
 import React, { useState, useCallback, useMemo } from "react"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
-import { FileIcon } from "@/components/file-icon"
-import { SyncStatus } from "@/components/sync-status"
+import { FileIcon } from "@/components/workspace/file-icon"
+import { SyncStatus } from "@/components/workspace/sync-status"
 import { addToFavorites } from "@/lib/utils/favorites"
-import { PermissionsDialog } from "@/components/permissions-dialog"
+import { PermissionsDialog } from "@/components/workspace/permissions-dialog"
 import {
   ContextMenu,
   ContextMenuContent,
