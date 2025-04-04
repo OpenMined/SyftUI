@@ -3,7 +3,6 @@
 import { useState, useRef } from "react"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { useClipboard } from "@/components/contexts/clipboard-context"
-import { useSync } from "@/components/contexts/sync-context"
 import { addToFavorites } from "@/lib/utils/favorites"
 import {
   FolderPlus,
@@ -34,9 +33,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function FileActions() {
-  // Get context hooks
-  const { selectedItems, handleCreateFolder, handleCreateFile, handleDelete, handleRename, isRefreshing, refreshFileSystem, sortConfig, setSortConfig, viewMode, setViewMode, fileSystem, currentPath } = useFileSystemStore()
-  const { syncPaused, setSyncDialogOpen } = useSync()
+  const {
+    selectedItems,
+    handleCreateFolder,
+    handleCreateFile,
+    handleDelete,
+    handleRename,
+    isRefreshing,
+    refreshFileSystem,
+    sortConfig,
+    setSortConfig,
+    viewMode,
+    setViewMode,
+    fileSystem,
+    currentPath,
+    syncPaused,
+    setSyncDialogOpen
+  } = useFileSystemStore()
+
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
   // Check if any selected items are folders

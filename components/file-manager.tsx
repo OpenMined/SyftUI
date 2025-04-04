@@ -10,7 +10,6 @@ import { useNotificationStore } from "@/stores"
 import { UploadProgress } from "@/components/upload-progress"
 import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
-import { SyncProvider, useSync } from "@/components/contexts/sync-context"
 import { UploadProvider, useUpload } from "@/components/contexts/upload-context"
 import { ClipboardProvider, useClipboard } from "@/components/contexts/clipboard-context"
 import { motion, AnimatePresence } from "framer-motion"
@@ -41,7 +40,6 @@ function FileManagerContent({
 }: FileManagerContentProps) {
   // Get context providers
   const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
-  const { syncDialogOpen, setSyncDialogOpen, syncPaused, setSyncPaused, toggleSyncPause } = useSync()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotificationStore()
 
@@ -61,6 +59,11 @@ function FileManagerContent({
     getCurrentItems,
     getCurrentDirectoryInfo,
     updateDetailsWithDirectory,
+    syncDialogOpen,
+    setSyncDialogOpen,
+    syncPaused,
+    setSyncPaused,
+    toggleSyncPause,
   } = useFileSystemStore()
 
   // Local state
@@ -349,15 +352,13 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   }, [fileSystem]);
 
   return (
-    <SyncProvider fileSystem={fileSystem} setFileSystem={setFileSystem}>
-      <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
-        <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
-          <FileManagerContent
-            initialViewMode={initialViewMode}
-            onViewModeChange={onViewModeChange}
-          />
-        </ClipboardProvider>
-      </UploadProvider>
-    </SyncProvider>
+    <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
+      <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
+        <FileManagerContent
+          initialViewMode={initialViewMode}
+          onViewModeChange={onViewModeChange}
+        />
+      </ClipboardProvider>
+    </UploadProvider>
   )
 }

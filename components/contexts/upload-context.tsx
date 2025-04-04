@@ -1,8 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState } from "react"
-import { useNotificationStore } from "@/stores"
-import { useSync } from "@/components/contexts/sync-context"
+import { useFileSystemStore, useNotificationStore } from "@/stores"
 import type { FileSystemItem, UploadItem, ConflictItem } from "@/lib/types"
 
 interface UploadContextType {
@@ -30,7 +29,7 @@ export function UploadProvider({
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const [conflicts, setConflicts] = useState<ConflictItem[]>([])
   const { addNotification } = useNotificationStore()
-  const { updateSyncStatus } = useSync()
+  const { updateSyncStatus } = useFileSystemStore()
 
   const getCurrentItems = (): FileSystemItem[] => {
     let current = fileSystem

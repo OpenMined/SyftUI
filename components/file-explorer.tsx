@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useMemo } from "react"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
-import { useSync } from "@/components/contexts/sync-context"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 import { FileIcon } from "@/components/file-icon"
 import { SyncStatus } from "@/components/sync-status"
@@ -489,20 +488,14 @@ export function FileExplorer({
   viewMode: externalViewMode,
   getCurrentDirectoryInfo
 }: FileExplorerProps) {
-  const fileSystemContext = useFileSystemStore()
-  const { toggleSyncPause, syncPaused } = useSync()
-
-  // Use either provided props or context values
-  const viewMode = externalViewMode || fileSystemContext.viewMode
-  const currentPath = externalCurrentPath || fileSystemContext.currentPath
-  const selectedItems = externalSelectedItems || fileSystemContext.selectedItems
-  const setSelectedItems = onSelectedItemsChange || fileSystemContext.setSelectedItems
-  const navigateTo = onNavigate || fileSystemContext.navigateTo
-  const setPreviewFile = externalSetPreviewFile || fileSystemContext.setPreviewFile
-  const sortConfig = fileSystemContext.sortConfig || { sortBy: "name", direction: "asc" }
-
-  // Always use these from context
   const {
+    viewMode: fsViewMode,
+    currentPath: fsCurrentPath,
+    selectedItems: fsSelectedItems,
+    setSelectedItems: fsSetSelectedItems,
+    navigateTo: fsNavigateTo,
+    setPreviewFile: fsSetPreviewFile,
+    sortConfig,
     handleDelete,
     handleRename,
     setDetailsItem,
@@ -511,7 +504,25 @@ export function FileExplorer({
     copyItems,
     pasteItems,
     clipboard,
-  } = fileSystemContext
+    handleCreateFolder,
+    handleCreateFile,
+    isRefreshing,
+    refreshFileSystem,
+    toggleSyncPause,
+    syncPaused,
+    setSortConfig,
+    setViewMode: fsSetViewMode
+  } = useFileSystemStore()
+
+  // Use either provided props or context values
+  const viewMode = externalViewMode || fsViewMode
+  const currentPath = externalCurrentPath || fsCurrentPath
+  const selectedItems = externalSelectedItems || fsSelectedItems
+  const setSelectedItems = onSelectedItemsChange || fsSetSelectedItems
+  const navigateTo = onNavigate || fsNavigateTo
+  const setPreviewFile = externalSetPreviewFile || fsSetPreviewFile
+
+  // Empty unused block since we're already destructuring these values above
 
   // Group all state variables together for better readability
   const [renameItem, setRenameItem] = useState<FileSystemItem | null>(null)
@@ -726,8 +737,8 @@ export function FileExplorer({
       <BackgroundContextMenuContent
         currentPath={currentPath}
         sortConfig={sortConfig}
-        setSortConfig={fileSystemContext.setSortConfig}
-        setViewMode={fileSystemContext.setViewMode}
+        setSortConfig={setSortConfig}
+        setViewMode={fsSetViewMode}
         viewMode={viewMode}
         getCurrentDirectoryInfo={() => {
           // Create a dummy implementation if none provided
@@ -738,15 +749,15 @@ export function FileExplorer({
           }
           return getCurrentDirectoryInfo();
         }}
-        handleCreateFolder={fileSystemContext.handleCreateFolder}
-        handleCreateFile={fileSystemContext.handleCreateFile}
+        handleCreateFolder={handleCreateFolder}
+        handleCreateFile={handleCreateFile}
         toggleSyncPause={toggleSyncPause}
         syncPaused={syncPaused}
-        clipboard={fileSystemContext.clipboard}
-        pasteItems={fileSystemContext.pasteItems}
+        clipboard={clipboard}
+        pasteItems={pasteItems}
       />
     </ContextMenu>
-  ), [handleDragOver, handleDrop, handleBackgroundClick, handleBackgroundContextMenu, currentPath, sortConfig, fileSystemContext, viewMode])
+  ), [handleDragOver, handleDrop, handleBackgroundClick, handleBackgroundContextMenu, currentPath, sortConfig, viewMode, handleCreateFolder, handleCreateFile, toggleSyncPause, syncPaused, clipboard, pasteItems, getCurrentDirectoryInfo, setSortConfig, fsSetViewMode])
 
   if (items.length === 0) {
     return renderEmptyState()
@@ -803,8 +814,8 @@ export function FileExplorer({
         <BackgroundContextMenuContent
           currentPath={currentPath}
           sortConfig={sortConfig}
-          setSortConfig={fileSystemContext.setSortConfig}
-          setViewMode={fileSystemContext.setViewMode}
+          setSortConfig={setSortConfig}
+          setViewMode={fsSetViewMode}
           viewMode={viewMode}
           getCurrentDirectoryInfo={() => {
             // Create a dummy implementation if none provided
@@ -815,14 +826,14 @@ export function FileExplorer({
             }
             return getCurrentDirectoryInfo();
           }}
-          handleCreateFolder={fileSystemContext.handleCreateFolder}
-          handleCreateFile={fileSystemContext.handleCreateFile}
-          isRefreshing={fileSystemContext.isRefreshing}
-          refreshFileSystem={fileSystemContext.refreshFileSystem}
+          handleCreateFolder={handleCreateFolder}
+          handleCreateFile={handleCreateFile}
+          isRefreshing={isRefreshing}
+          refreshFileSystem={refreshFileSystem}
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}
-          clipboard={fileSystemContext.clipboard}
-          pasteItems={fileSystemContext.pasteItems}
+          clipboard={clipboard}
+          pasteItems={pasteItems}
         />
       </ContextMenu>
 
