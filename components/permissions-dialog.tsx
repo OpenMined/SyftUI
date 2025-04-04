@@ -201,6 +201,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
                   id="email"
                   placeholder="Email address"
                   type="email"
+                  autoComplete="off"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   className="h-9"

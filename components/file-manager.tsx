@@ -304,7 +304,7 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   // Initialize the file system store
   useEffect(() => {
     // Set initial state in the store
-    initializeFileSystemStore(fileSystem, setFileSystem, initialPath, initialViewMode);
+    initializeFileSystemStore(fileSystem, initialPath, initialViewMode);
 
     // Check for file in path on initial load
     const pathFromUrl = getPathFromUrl();
