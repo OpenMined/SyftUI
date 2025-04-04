@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
-import { useClipboard } from "@/components/contexts/clipboard-context"
 import { addToFavorites } from "@/lib/utils/favorites"
 import {
   FolderPlus,
@@ -34,6 +33,10 @@ import {
 
 export function FileActions() {
   const {
+    clipboard,
+    cutItems,
+    copyItems,
+    pasteItems,
     selectedItems,
     handleCreateFolder,
     handleCreateFile,
@@ -50,8 +53,6 @@ export function FileActions() {
     syncPaused,
     setSyncDialogOpen
   } = useFileSystemStore()
-
-  const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
 
   // Check if any selected items are folders
   const hasSelectedFolder = selectedItems.length === 1 && fileSystem

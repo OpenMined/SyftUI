@@ -10,14 +10,10 @@ import { useNotificationStore } from "@/stores"
 import { UploadProgress } from "@/components/upload-progress"
 import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
-import { ClipboardProvider, useClipboard } from "@/components/contexts/clipboard-context"
 import { motion, AnimatePresence } from "framer-motion"
-import { FileSystemProvider, ClipboardItem } from "@/components/contexts/file-system-context"
-import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem } from "@/lib/types"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { updateUrlWithPath, getPathFromUrl, processPath, findFileInPath } from "@/lib/utils/url"
-import { mockFileSystem } from "@/lib/mock-data"
 import { useFileSystemStore, initializeFileSystemStore } from "@/stores/useFileSystemStore"
 
 interface FileManagerProps {
@@ -37,12 +33,14 @@ function FileManagerContent({
   initialViewMode,
   onViewModeChange,
 }: FileManagerContentProps) {
-  // Get context providers
-  const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotificationStore()
 
   // Use file system store
   const {
+    clipboard,
+    cutItems,
+    copyItems,
+    pasteItems,
     fileSystem,
     currentPath,
     selectedItems,
@@ -355,11 +353,9 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   }, [fileSystem]);
 
   return (
-    <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
-      <FileManagerContent
-        initialViewMode={initialViewMode}
-        onViewModeChange={onViewModeChange}
-      />
-    </ClipboardProvider>
+    <FileManagerContent
+      initialViewMode={initialViewMode}
+      onViewModeChange={onViewModeChange}
+    />
   )
 }

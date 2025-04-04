@@ -1,6 +1,7 @@
 export type SyncStatus = "synced" | "syncing" | "pending" | "rejected" | "error" | "ignored" | "hidden"
 export type PermissionType = "read" | "write" | "admin"
 export type UploadStatus = "uploading" | "completed" | "error" | "paused"
+export type ClipboardOperation = "cut" | "copy"
 
 export interface Permission {
   id: string
@@ -34,4 +35,10 @@ export interface ConflictItem {
   file: File
   existingItem: FileSystemItem
   path: string[]
+}
+
+export interface ClipboardItem {
+  items: FileSystemItem[]
+  sourcePath: string[]
+  operation: ClipboardOperation
 }

@@ -1,11 +1,10 @@
 import { create } from 'zustand'
 import { useFileOperations } from '@/components/services/file-operations'
 import { mockFileSystem } from '@/lib/mock-data'
-import type { FileSystemItem, SyncStatus, UploadItem, ConflictItem } from '@/lib/types'
+import type { FileSystemItem, SyncStatus, UploadItem, ConflictItem, ClipboardItem, Permission } from '@/lib/types'
 import { updateUrlWithPath } from '@/lib/utils/url'
 import { useNotificationStore } from './useNotificationStore'
 
-// Configuration constants for sync timing
 const SYNC_DELAY_MS = 1000;
 const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
@@ -29,6 +28,9 @@ interface FileSystemState {
   uploads: UploadItem[]
   conflicts: ConflictItem[]
 
+  // Clipboard state
+  clipboard: ClipboardItem | null
+
   // Actions
   setFileSystem: (fs: FileSystemItem[] | ((prev: FileSystemItem[]) => FileSystemItem[])) => void
   setCurrentPath: (path: string[]) => void
@@ -51,6 +53,11 @@ interface FileSystemState {
   handleApplyToAll: (resolution: "replace" | "rename" | "skip") => void
   clearUpload: (id: string) => void
   processFiles: (files: File[]) => void
+
+  // Clipboard actions
+  cutItems: (itemIds: string[]) => void
+  copyItems: (itemIds: string[]) => void
+  pasteItems: () => void
 
   // Navigation
   navigateTo: (path: string[]) => void
@@ -90,6 +97,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     // Upload state
     uploads: [],
     conflicts: [],
+
+    // Clipboard state
+    clipboard: null,
 
     // Basic state setters
     setFileSystem: (fs) => set(state => ({
@@ -190,7 +200,6 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const state = get();
       const newPausedState = !state.syncPaused;
       set({ syncPaused: newPausedState });
-      
       const notificationStore = useNotificationStore.getState();
       notificationStore.addNotification({
         title: newPausedState ? "Sync Paused" : "Sync Resumed",
@@ -395,6 +404,101 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       set(state => ({
         uploads: state.uploads.filter(upload => upload.id !== id)
       }));
+    },
+
+    // Clipboard actions
+    cutItems: (itemIds) => {
+      const state = get();
+      const { fileSystem, currentPath } = state;
+      const notificationStore = useNotificationStore.getState();
+      const fileOperations = useFileOperations(fileSystem, state.setFileSystem, currentPath, notificationStore);
+
+      const foundItems = fileOperations.findItemsByIds(itemIds);
+      if (foundItems.length > 0) {
+        const { items, path } = foundItems[0];
+        set({
+          clipboard: {
+            items: items,
+            sourcePath: path,
+            operation: "cut",
+          }
+        });
+
+        notificationStore.addNotification({
+          title: "Items Cut",
+          message: `${items.length} item(s) have been cut to clipboard`,
+          type: "info",
+        });
+      }
+    },
+
+    copyItems: (itemIds) => {
+      const state = get();
+      const { fileSystem, currentPath } = state;
+      const notificationStore = useNotificationStore.getState();
+      const fileOperations = useFileOperations(fileSystem, state.setFileSystem, currentPath, notificationStore);
+
+      const foundItems = fileOperations.findItemsByIds(itemIds);
+      if (foundItems.length > 0) {
+        const { items, path } = foundItems[0];
+        set({
+          clipboard: {
+            items: items,
+            sourcePath: path,
+            operation: "copy",
+          }
+        });
+
+        notificationStore.addNotification({
+          title: "Items Copied",
+          message: `${items.length} item(s) have been copied to clipboard`,
+          type: "info",
+        });
+      }
+    },
+
+    pasteItems: () => {
+      const state = get();
+      const { clipboard, fileSystem, currentPath } = state;
+      const notificationStore = useNotificationStore.getState();
+
+      if (!clipboard) return;
+
+      const fileOperations = useFileOperations(fileSystem, state.setFileSystem, currentPath, notificationStore);
+
+      if (clipboard.operation === "cut") {
+        const itemIds = clipboard.items.map((item) => item.id);
+        fileOperations.moveItems(itemIds, currentPath);
+        set({ clipboard: null });
+      } else {
+        const clonedItems = fileOperations.deepCloneItems(clipboard.items);
+
+        const addItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+          if (depth === path.length) {
+            return [...items, ...clonedItems];
+          }
+
+          return items.map((item) => {
+            if (item.type === "folder" && item.name === path[depth]) {
+              return {
+                ...item,
+                children: addItems(item.children || [], path, depth + 1),
+              };
+            }
+            return item;
+          });
+        };
+
+        set(state => ({
+          fileSystem: addItems([...state.fileSystem], currentPath, 0)
+        }));
+
+        notificationStore.addNotification({
+          title: "Items Pasted",
+          message: `${clonedItems.length} item(s) have been pasted`,
+          type: "success",
+        });
+      }
     },
 
     // Navigation
