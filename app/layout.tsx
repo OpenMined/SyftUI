@@ -20,14 +20,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const isHomePage = pathname === '/' || pathname === ''
   const [isMounted, setIsMounted] = useState(false);
 
-  // Ensure the component is mounted before rendering client-side dependent elements
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   // Run initialization once when the app starts
   useEffect(() => {
-    // Run initialization only on client side
+    setIsMounted(true);
     if (typeof window !== 'undefined') {
       initializationService.initialize().catch(console.error);
     }
