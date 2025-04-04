@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { useFileOperations } from '@/components/services/file-operations'
 import { mockFileSystem } from '@/lib/mock-data'
-import type { FileSystemItem, SyncStatus } from '@/lib/types'
+import type { FileSystemItem, SyncStatus, UploadItem, ConflictItem } from '@/lib/types'
 import { updateUrlWithPath } from '@/lib/utils/url'
 import { useNotificationStore } from './useNotificationStore'
 
@@ -25,6 +25,10 @@ interface FileSystemState {
   syncPaused: boolean
   syncDialogOpen: boolean
 
+  // Upload state
+  uploads: UploadItem[]
+  conflicts: ConflictItem[]
+
   // Actions
   setFileSystem: (fs: FileSystemItem[] | ((prev: FileSystemItem[]) => FileSystemItem[])) => void
   setCurrentPath: (path: string[]) => void
@@ -40,6 +44,13 @@ interface FileSystemState {
   updateSyncStatus: (itemId: string, status: SyncStatus) => void
   triggerManualSync: () => void
   toggleSyncPause: () => void
+
+  // Upload actions
+  handleExternalFileDrop: (files: FileList) => void
+  handleConflictResolution: (resolution: "replace" | "rename" | "skip", conflict: ConflictItem) => void
+  handleApplyToAll: (resolution: "replace" | "rename" | "skip") => void
+  clearUpload: (id: string) => void
+  processFiles: (files: File[]) => void
 
   // Navigation
   navigateTo: (path: string[]) => void
@@ -75,6 +86,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     // Sync state
     syncPaused: false,
     syncDialogOpen: false,
+
+    // Upload state
+    uploads: [],
+    conflicts: [],
 
     // Basic state setters
     setFileSystem: (fs) => set(state => ({
@@ -175,13 +190,211 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const state = get();
       const newPausedState = !state.syncPaused;
       set({ syncPaused: newPausedState });
-
+      
       const notificationStore = useNotificationStore.getState();
       notificationStore.addNotification({
         title: newPausedState ? "Sync Paused" : "Sync Resumed",
         message: newPausedState ? "File synchronization has been paused" : "File synchronization has been resumed",
         type: "info",
       });
+    },
+
+    // Upload actions
+    processFiles: (files) => {
+      const state = get();
+      const { fileSystem, currentPath, updateSyncStatus } = state;
+      const notificationStore = useNotificationStore.getState();
+
+      const uploadItems: UploadItem[] = files.map((file) => ({
+        id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        name: file.name,
+        progress: 0,
+        size: file.size,
+        status: "uploading",
+      }));
+
+      set(state => ({ uploads: [...state.uploads, ...uploadItems] }));
+
+      uploadItems.forEach((item) => {
+        const interval = setInterval(() => {
+          set(state => ({
+            uploads: state.uploads.map((upload) => {
+              if (upload.id === item.id) {
+                const newProgress = Math.min(upload.progress + 10, 100);
+                if (newProgress === 100) {
+                  clearInterval(interval);
+                  return { ...upload, progress: newProgress, status: "completed" };
+                }
+                return { ...upload, progress: newProgress };
+              }
+              return upload;
+            }),
+          }));
+        }, 300);
+      });
+
+      const newFiles: FileSystemItem[] = files.map((file) => ({
+        id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        name: file.name,
+        type: "file",
+        size: file.size,
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        syncStatus: "pending",
+      }));
+
+      const addFiles = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+        if (depth === path.length) {
+          return [...items, ...newFiles];
+        }
+
+        return items.map((item) => {
+          if (item.type === "folder" && item.name === path[depth]) {
+            return {
+              ...item,
+              children: addFiles(item.children || [], path, depth + 1),
+            };
+          }
+          return item;
+        });
+      };
+
+      set(state => ({
+        fileSystem: addFiles([...state.fileSystem], currentPath, 0)
+      }));
+
+      newFiles.forEach((file) => {
+        setTimeout(() => {
+          updateSyncStatus(file.id, "syncing");
+
+          setTimeout(() => {
+            updateSyncStatus(file.id, "synced");
+          }, 2000);
+        }, 1000);
+      });
+
+      setTimeout(() => {
+        set(state => ({
+          uploads: state.uploads.filter(upload => upload.status !== "completed")
+        }));
+      }, 5000);
+
+      notificationStore.addNotification({
+        title: "Files Uploaded",
+        message: `${files.length} file(s) have been uploaded`,
+        type: "success",
+      });
+    },
+
+    handleExternalFileDrop: (files) => {
+      const state = get();
+      const { fileSystem, currentPath, processFiles } = state;
+      const currentItems = state.getCurrentItems();
+      const conflictsList: ConflictItem[] = [];
+      const nonConflictingFiles: File[] = [];
+
+      Array.from(files).forEach((file) => {
+        const existingItem = currentItems.find((item) => item.name === file.name);
+        if (existingItem) {
+          conflictsList.push({
+            file,
+            existingItem,
+            path: currentPath,
+          });
+        } else {
+          nonConflictingFiles.push(file);
+        }
+      });
+
+      if (conflictsList.length > 0) {
+        set({ conflicts: conflictsList });
+      }
+
+      if (nonConflictingFiles.length > 0) {
+        processFiles(nonConflictingFiles);
+      }
+    },
+
+    handleConflictResolution: (resolution, conflict) => {
+      const state = get();
+      const { processFiles } = state;
+
+      if (resolution === "replace") {
+        set(state => {
+          const deleteFile = (items: FileSystemItem[]): FileSystemItem[] => {
+            return items.filter(item => item.id !== conflict.existingItem.id)
+              .map(item => {
+                if (item.type === "folder" && item.children) {
+                  return {
+                    ...item,
+                    children: deleteFile(item.children)
+                  };
+                }
+                return item;
+              });
+          };
+          return { fileSystem: deleteFile([...state.fileSystem]) };
+        });
+
+        processFiles([conflict.file]);
+      } else if (resolution === "rename") {
+        const nameParts = conflict.file.name.split(".");
+        const extension = nameParts.length > 1 ? nameParts.pop() : "";
+        const baseName = nameParts.join(".");
+        const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
+
+        const newFile = new File([conflict.file], newName, { type: conflict.file.type });
+        processFiles([newFile]);
+      }
+
+      set(state => ({
+        conflicts: state.conflicts.filter(c => c.file !== conflict.file)
+      }));
+    },
+
+    handleApplyToAll: (resolution) => {
+      const state = get();
+      const { conflicts, processFiles } = state;
+
+      if (resolution === "replace") {
+        const itemIds = conflicts.map(conflict => conflict.existingItem.id);
+
+        set(state => {
+          const deleteFiles = (items: FileSystemItem[]): FileSystemItem[] => {
+            return items.filter(item => !itemIds.includes(item.id))
+              .map(item => {
+                if (item.type === "folder" && item.children) {
+                  return {
+                    ...item,
+                    children: deleteFiles(item.children)
+                  };
+                }
+                return item;
+              });
+          };
+          return { fileSystem: deleteFiles([...state.fileSystem]) };
+        });
+
+        const files = conflicts.map(conflict => conflict.file);
+        processFiles(files);
+      } else if (resolution === "rename") {
+        const files = conflicts.map(conflict => {
+          const nameParts = conflict.file.name.split(".");
+          const extension = nameParts.length > 1 ? nameParts.pop() : "";
+          const baseName = nameParts.join(".");
+          const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
+          return new File([conflict.file], newName, { type: conflict.file.type });
+        });
+        processFiles(files);
+      }
+
+      set({ conflicts: [] });
+    },
+
+    clearUpload: (id) => {
+      set(state => ({
+        uploads: state.uploads.filter(upload => upload.id !== id)
+      }));
     },
 
     // Navigation

@@ -1,5 +1,6 @@
 export type SyncStatus = "synced" | "syncing" | "pending" | "rejected" | "error" | "ignored" | "hidden"
 export type PermissionType = "read" | "write" | "admin"
+export type UploadStatus = "uploading" | "completed" | "error" | "paused"
 
 export interface Permission {
   id: string
@@ -21,3 +22,16 @@ export interface FileSystemItem {
   permissions?: Permission[]
 }
 
+export interface UploadItem {
+  id: string
+  name: string
+  progress: number
+  size: number
+  status: UploadStatus
+}
+
+export interface ConflictItem {
+  file: File
+  existingItem: FileSystemItem
+  path: string[]
+}

@@ -10,7 +10,6 @@ import { useNotificationStore } from "@/stores"
 import { UploadProgress } from "@/components/upload-progress"
 import { FileConflictDialog } from "@/components/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/sync-status-dialog"
-import { UploadProvider, useUpload } from "@/components/contexts/upload-context"
 import { ClipboardProvider, useClipboard } from "@/components/contexts/clipboard-context"
 import { motion, AnimatePresence } from "framer-motion"
 import { FileSystemProvider, ClipboardItem } from "@/components/contexts/file-system-context"
@@ -39,7 +38,6 @@ function FileManagerContent({
   onViewModeChange,
 }: FileManagerContentProps) {
   // Get context providers
-  const { uploads, conflicts, handleExternalFileDrop, handleConflictResolution, handleApplyToAll } = useUpload()
   const { clipboard, cutItems, copyItems, pasteItems } = useClipboard()
   const { addNotification } = useNotificationStore()
 
@@ -64,6 +62,11 @@ function FileManagerContent({
     syncPaused,
     setSyncPaused,
     toggleSyncPause,
+    uploads,
+    conflicts,
+    handleExternalFileDrop,
+    handleConflictResolution,
+    handleApplyToAll
   } = useFileSystemStore()
 
   // Local state
@@ -352,13 +355,11 @@ export function FileManager({ fileSystem, setFileSystem, initialViewMode, initia
   }, [fileSystem]);
 
   return (
-    <UploadProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
-      <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
-        <FileManagerContent
-          initialViewMode={initialViewMode}
-          onViewModeChange={onViewModeChange}
-        />
-      </ClipboardProvider>
-    </UploadProvider>
+    <ClipboardProvider fileSystem={fileSystem} setFileSystem={setFileSystem} currentPath={useFileSystemStore(state => state.currentPath)}>
+      <FileManagerContent
+        initialViewMode={initialViewMode}
+        onViewModeChange={onViewModeChange}
+      />
+    </ClipboardProvider>
   )
 }
