@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
-import { SidebarProvider, useSidebar } from "@/components/contexts/sidebar-context"
+import { useSidebarStore } from "@/stores"
 import { Sidebar } from "@/components/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -13,7 +13,7 @@ import { initializationService } from "@/lib/initialization"
 import { metadata } from './metadata'
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen, setSidebarOpen } = useSidebar()
+  const { sidebarOpen, setSidebarOpen } = useSidebarStore()
   const pathname = usePathname()
   const isHomePage = pathname === '/' || pathname === ''
   const [isMounted, setIsMounted] = useState(false);
@@ -55,10 +55,8 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NuqsAdapter>
-            <SidebarProvider>
-              <MainLayout>{children}</MainLayout>
-              <Toaster />
-            </SidebarProvider>
+          <MainLayout>{children}</MainLayout>
+          <Toaster />
           </NuqsAdapter>
         </ThemeProvider>
       </body>
