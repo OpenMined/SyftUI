@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState } from "react"
-import { useNotifications } from "@/components/notification-context"
+import { useNotifications } from "@/components/contexts/notification-context"
 import { useSync } from "@/components/contexts/sync-context"
 import type { FileSystemItem, UploadItem, ConflictItem } from "@/lib/types"
 
@@ -185,7 +185,7 @@ export function UploadProvider({
   const handleApplyToAll = (resolution: "replace" | "rename" | "skip") => {
     if (resolution === "replace") {
       const itemIds = conflicts.map((conflict) => conflict.existingItem.id)
-      
+
       const deleteFiles = (items: FileSystemItem[]): FileSystemItem[] => {
         return items.filter(item => !itemIds.includes(item.id))
           .map(item => {
@@ -200,7 +200,7 @@ export function UploadProvider({
       }
 
       setFileSystem(deleteFiles([...fileSystem]))
-      
+
       const files = conflicts.map((conflict) => conflict.file)
       processFiles(files)
     } else if (resolution === "rename") {

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useNotifications } from "@/components/notification-context"
+import { useNotifications } from "@/components/contexts/notification-context"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 

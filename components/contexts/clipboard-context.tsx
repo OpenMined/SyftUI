@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState } from "react"
-import { useNotifications } from "@/components/notification-context"
+import { useNotifications } from "@/components/contexts/notification-context"
 import { useFileOperations } from "@/components/services/file-operations"
 import type { FileSystemItem, ClipboardItem } from "@/lib/types"
 

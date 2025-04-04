@@ -6,7 +6,7 @@ const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
 
 import type { FileSystemItem, SyncStatus, Permission } from "@/lib/types"
-import { useNotifications, Notification } from "@/components/notification-context"
+import { useNotifications, Notification } from "@/components/contexts/notification-context"
 import { useSync } from "@/components/contexts/sync-context"
 
 export function useFileOperations(
@@ -319,7 +319,7 @@ export function useFileOperations(
     try {
       // Find the item before updating to check if it's currently displayed in details
       const originalItem = findItemById(itemId);
-      
+
       const updateItemPermissions = (items: FileSystemItem[]): FileSystemItem[] => {
         return items.map((item) => {
           if (item.id === itemId) {
@@ -341,7 +341,7 @@ export function useFileOperations(
       }
 
       setFileSystem(prevState => updateItemPermissions(prevState))
-      
+
       // Update the details panel if this item is currently displayed
       if (setDetailsItem && originalItem) {
         const updatedItem = findItemById(itemId)
