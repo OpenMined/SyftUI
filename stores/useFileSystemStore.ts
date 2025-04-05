@@ -461,18 +461,22 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
-        const { items, path } = foundItems[0];
+        // Collect all items from all found locations
+        const allItems = foundItems.flatMap(result => result.items);
+        // Use the path from the first result since we need a single source path
+        const sourcePath = foundItems[0].path;
+
         set({
           clipboard: {
-            items: items,
-            sourcePath: path,
+            items: allItems,
+            sourcePath: sourcePath,
             operation: "cut",
           }
         });
 
         notificationStore.addNotification({
           title: "Items Cut",
-          message: `${items.length} item(s) have been cut to clipboard`,
+          message: `${allItems.length} item(s) have been cut to clipboard`,
           type: "info",
         });
       }
@@ -485,18 +489,22 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
-        const { items, path } = foundItems[0];
+        // Collect all items from all found locations
+        const allItems = foundItems.flatMap(result => result.items);
+        // Use the path from the first result since we need a single source path
+        const sourcePath = foundItems[0].path;
+
         set({
           clipboard: {
-            items: items,
-            sourcePath: path,
+            items: allItems,
+            sourcePath: sourcePath,
             operation: "copy",
           }
         });
 
         notificationStore.addNotification({
           title: "Items Copied",
-          message: `${items.length} item(s) have been copied to clipboard`,
+          message: `${allItems.length} item(s) have been copied to clipboard`,
           type: "info",
         });
       }
