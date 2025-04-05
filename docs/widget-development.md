@@ -24,7 +24,7 @@ SyftUI app widgets use a simple approach:
    - SyftUI handles consistent theming by automatically injecting our [widget.css](https://syftboxstage.openmined.org/datasites/tauquir@openmined.org/syftui/widget.css) stylesheet.
 
 6. **Security and Isolation**:
-   - Widget content is sanitized using [DOMPurify](https://www.npmjs.com/package/dompurify) and displayed in an iframe for added security and isolation.
+   - Widget content is displayed in a sandboxed iframe for added security and isolation.
 
 ## Widget Template
 
@@ -113,7 +113,6 @@ You're free to use any charting library that works in a browser (Chart.js, D3.js
 
 ## Security Considerations
 
-- Widgets are sanitized using [DOMPurify](https://www.npmjs.com/package/dompurify) during runtime
 - Widgets run in a sandboxed iframe with limited permissions
 - Only `allow-scripts` permissions are granted
 - External API calls must respect CORS policies

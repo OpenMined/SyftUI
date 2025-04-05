@@ -7,7 +7,8 @@
     "build": "prettier --check . && next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "5.0.1",
@@ -76,6 +77,8 @@
     "eslint": "^9.24.0",
     "eslint-config-next": "^15.2.4",
     "eslint-config-prettier": "^10.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
     "postcss": "8.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "4.1.3",
