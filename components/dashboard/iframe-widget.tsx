@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
+import DOMPurify from 'dompurify';
 
 interface IframeWidgetProps {
   widget: {
@@ -95,10 +96,11 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
         // Finally add the widget content to the iframe
         const fullHtml = doc.documentElement.outerHTML;
-        setWidgetContent(fullHtml);
+        // Sanitize HTML with DOMPurify before setting it to state
+        setWidgetContent(DOMPurify.sanitize(fullHtml));
       } catch (error) {
         console.error('Error loading widget content:', error);
-        setWidgetContent(`
+        const errorHtml = `
           <html>
             <body>
               <div style="color: red; padding: 20px; text-align: center;">
@@ -106,7 +108,9 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
               </div>
             </body>
           </html>
-        `);
+        `;
+        // Sanitize error message HTML as well
+        setWidgetContent(DOMPurify.sanitize(errorHtml));
       } finally {
         setIsLoading(false);
       }
