@@ -1,12 +1,23 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { UseFormReturn } from "react-hook-form"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { ConnectionFormValues, ConnectionStatus, DEFAULT_CONNECTION_SETTINGS } from "@/stores"
+import { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  ConnectionFormValues,
+  ConnectionStatus,
+  DEFAULT_CONNECTION_SETTINGS,
+} from "@/stores";
 
 interface ConnectionFormProps {
   form: UseFormReturn<ConnectionFormValues>;
@@ -25,7 +36,7 @@ export function ConnectionForm({
   onSettingsChange,
   status,
   showCancelButton = true,
-  submitButtonText = "Connect"
+  submitButtonText = "Connect",
 }: ConnectionFormProps) {
   const [showToken, setShowToken] = useState(false);
 
@@ -33,7 +44,7 @@ export function ConnectionForm({
   const handleFieldChange = (
     field: { onChange: (e: React.ChangeEvent<HTMLInputElement>) => void },
     e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: keyof ConnectionFormValues
+    fieldName: keyof ConnectionFormValues,
   ) => {
     field.onChange(e);
     if (onSettingsChange) {
@@ -81,11 +92,15 @@ export function ConnectionForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
+                    className="absolute top-0 right-0 h-full px-3"
                     onClick={() => setShowToken(!showToken)}
                     aria-label={showToken ? "Hide token" : "Show token"}
                   >
-                    {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showToken ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </FormControl>
@@ -96,11 +111,20 @@ export function ConnectionForm({
 
         <div className="flex justify-end space-x-2 pt-2">
           {showCancelButton && onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer select-none">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="cursor-pointer select-none"
+            >
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={status === "connecting"} className="cursor-pointer select-none">
+          <Button
+            type="submit"
+            disabled={status === "connecting"}
+            className="cursor-pointer select-none"
+          >
             {status === "connecting" ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

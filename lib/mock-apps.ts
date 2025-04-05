@@ -96,21 +96,24 @@ After an API is sent, datasite owners will receive notifications (desktop and em
         author: "Data Scientist X",
         rating: 5,
         date: "2023-11-20",
-        comment: "Essential tool for our multi-organization data collaboration project. Makes API sharing seamless.",
+        comment:
+          "Essential tool for our multi-organization data collaboration project. Makes API sharing seamless.",
       },
       {
         id: "2",
         author: "Privacy Engineer Y",
         rating: 4,
         date: "2023-10-15",
-        comment: "Very useful for our privacy-preserving data analysis workflow. Easy to integrate.",
-      }
-    ]
+        comment:
+          "Very useful for our privacy-preserving data analysis workflow. Easy to integrate.",
+      },
+    ],
   },
   {
     id: "2",
     name: "Sync Status Indicators",
-    description: "Add sync status indicators to all datasite files in MacOS native file manager",
+    description:
+      "Add sync status indicators to all datasite files in MacOS native file manager",
     longDescription: `# Sync Status Indicators
 This app adds sync status indicators to all datasite files in the MacOS native file manager. It provides a visual representation of the sync status of your files, making it easier to manage and monitor your data.
 ## Features
@@ -160,7 +163,8 @@ This app adds sync status indicators to all datasite files in the MacOS native f
         author: "john@acme.com",
         rating: 5,
         date: "2023-12-01",
-        comment: "Great app! The sync status indicators are a game changer for managing my datasite files. Highly recommend!",
+        comment:
+          "Great app! The sync status indicators are a game changer for managing my datasite files. Highly recommend!",
       },
       {
         id: "2",
@@ -183,7 +187,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
         date: "2024-01-02",
         comment: "Good app, but could impact performance.",
       },
-    ]
+    ],
   },
   {
     id: "3",
@@ -202,7 +206,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     enabled: true,
     lastUsed: "Yesterday",
     pricing: "Free",
-    license: "MIT"
+    license: "MIT",
   },
   {
     id: "4",
@@ -214,7 +218,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     tags: ["federated-learning", "client", "pets"],
     verified: true,
     icon: "👥",
-    installed: false
+    installed: false,
   },
   {
     id: "5",
@@ -234,7 +238,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     lastUsed: "Last week",
     pricing: "Free",
     license: "MIT",
-    repository: "https://github.com/OpenMined/github-app-updater"
+    repository: "https://github.com/OpenMined/github-app-updater",
   },
   {
     id: "6",
@@ -246,7 +250,7 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     tags: ["ftop", "syftbox", "data"],
     verified: true,
     icon: "📈",
-    installed: false
+    installed: false,
   },
   {
     id: "7",
@@ -268,14 +272,15 @@ This app adds sync status indicators to all datasite files in the MacOS native f
   {
     id: "8",
     name: "Pretrained Model Aggregator",
-    description: "Create an aggregation pipeline for pretrained MNIST models using SyftBox",
+    description:
+      "Create an aggregation pipeline for pretrained MNIST models using SyftBox",
     author: "OpenMined",
     stars: 1,
     downloads: 2464,
     tags: ["MNIST", "pretrained", "model", "aggregator", "server"],
     verified: true,
     icon: "📊",
-    installed: false
+    installed: false,
   },
   {
     id: "9",
@@ -287,6 +292,6 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     tags: ["ring", "he", "homomorphic-encryption", "encryption"],
     verified: true,
     icon: "💍",
-    installed: false
-  }
+    installed: false,
+  },
 ];

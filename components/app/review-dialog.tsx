@@ -1,33 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Star } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Star } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 interface ReviewDialogProps {
-  appName: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit?: (rating: number, reviewText: string) => void
+  appName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit?: (rating: number, reviewText: string) => void;
 }
 
-export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDialogProps) {
-  const [rating, setRating] = useState(0)
-  const [hoverRating, setHoverRating] = useState(0)
-  const [reviewText, setReviewText] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function ReviewDialog({
+  appName,
+  open,
+  onOpenChange,
+  onSubmit,
+}: ReviewDialogProps) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = () => {
-    if (rating === 0) return
+    if (rating === 0) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     // Simulate API call
     setTimeout(() => {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
 
       // Show toast notification
       toast({
@@ -35,19 +46,19 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
         title: "Review Submitted!",
         description: `Thank you for reviewing ${appName}. Your feedback helps others make informed decisions.`,
         variant: "default",
-      })
+      });
 
       // Call onSubmit callback if provided
       if (onSubmit) {
-        onSubmit(rating, reviewText)
+        onSubmit(rating, reviewText);
       }
 
       // Reset and close dialog
-      setRating(0)
-      setReviewText("")
-      onOpenChange(false)
-    }, 1500)
-  }
+      setRating(0);
+      setReviewText("");
+      onOpenChange(false);
+    }, 1500);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,14 +71,15 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm font-medium">Rating</label>
-              <div className="flex items-center gap-1 mt-2">
+              <div className="mt-2 flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-8 w-8 cursor-pointer ${star <= (hoverRating || rating)
-                        ? "text-yellow-500 fill-yellow-500"
+                    className={`h-8 w-8 cursor-pointer ${
+                      star <= (hoverRating || rating)
+                        ? "fill-yellow-500 text-yellow-500"
                         : "text-gray-300"
-                      }`}
+                    }`}
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
@@ -105,5 +117,5 @@ export function ReviewDialog({ appName, open, onOpenChange, onSubmit }: ReviewDi
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

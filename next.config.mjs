@@ -1,20 +1,17 @@
 /** @type {import('next').NextConfig} */
 
-const basePath = process.env.NODE_ENV === 'production' ? "/datasites/tauquir@openmined.org/syftui" : ""
+const basePath =
+  process.env.NODE_ENV === "production"
+    ? "/datasites/tauquir@openmined.org/syftui"
+    : "";
 
 // Make basePath available to the client as an environment variable
-process.env.NEXT_PUBLIC_BASE_PATH = basePath
+process.env.NEXT_PUBLIC_BASE_PATH = basePath;
 
 const nextConfig = {
   output: "export",
   basePath,
   trailingSlash: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },
@@ -23,6 +20,6 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

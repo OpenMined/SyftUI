@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import type { FileSystemItem } from "./types"
+import type { FileSystemItem } from "./types";
 
 export const mockFileSystem: FileSystemItem[] = [
   {
@@ -297,5 +297,4 @@ export const mockFileSystem: FileSystemItem[] = [
     size: 8000,
     syncStatus: "hidden",
   },
-]
-
+];

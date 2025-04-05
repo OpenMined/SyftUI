@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Logs } from "@/components/logs"
+import { Logs } from "@/components/logs";
 
 export default function LogsPage() {
-    return <Logs />
+  return <Logs />;
 }

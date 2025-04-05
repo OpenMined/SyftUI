@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { Grid, List } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useFileSystemStore } from "@/stores/useFileSystemStore"
+import { Grid, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 export function ViewToggle() {
-  const { viewMode, setViewMode } = useFileSystemStore()
+  const { viewMode, setViewMode } = useFileSystemStore();
 
   return (
-    <div className="flex border rounded-md overflow-hidden">
+    <div className="flex overflow-hidden rounded-md border">
       <Button
         variant={viewMode === "grid" ? "default" : "ghost"}
         size="sm"
@@ -26,5 +26,5 @@ export function ViewToggle() {
         <List className="h-4 w-4" />
       </Button>
     </div>
-  )
+  );
 }

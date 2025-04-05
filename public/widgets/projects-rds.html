@@ -1,182 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <title>Projects</title>
+    <meta name="description" content="Track remote data science projects" />
+    <meta name="author" content="OpenMined Foundation" />
+    <style>
+      .project-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
 
-<head>
-  <title>Projects</title>
-  <meta name="description" content="Track remote data science projects">
-  <meta name="author" content="OpenMined Foundation">
-  <style>
-    .project-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+      .project-item {
+        background: var(--widget-bg, #ffffff);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: row;
+        gap: 0.75rem;
+        justify-content: flex-start;
+        position: relative;
+        width: 100%;
+        padding: 0.5rem;
+        transition-property:
+          color, background-color, border-color, text-decoration-color, fill,
+          stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
 
-    .project-item {
-      background: var(--widget-bg, #ffffff);
-      border-radius: 0.5rem;
-      cursor: pointer;
-      display: flex;
-      flex-direction: row;
-      gap: 0.75rem;
-      justify-content: flex-start;
-      position: relative;
-      width: 100%;
-      padding: 0.5rem;
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-    }
+      .project-item:hover {
+        background: var(--widget-bg-muted);
+      }
 
-    .project-item:hover {
-      background: var(--widget-bg-muted);
-    }
+      .project-info {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    .project-info {
-      display: flex;
-      flex-grow: 1;
-      align-items: center;
-      gap: 12px;
-      text-align: left;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      .project-name {
+        color: var(--widget-text, #1f2937);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        word-break: break-all;
+      }
 
-    .project-name {
-      color: var(--widget-text, #1f2937);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      word-break: break-all;
-    }
+      .project-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
 
-    .project-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
+      .project-indicator-draft {
+        background-color: var(--widget-muted, #6b7280);
+      }
 
-    .project-indicator-draft {
-      background-color: var(--widget-muted, #6b7280);
-    }
+      .project-indicator-awaiting {
+        background-color: var(--widget-warning, #f59e0b);
+      }
 
-    .project-indicator-awaiting {
-      background-color: var(--widget-warning, #f59e0b);
-    }
+      .project-indicator-processing {
+        background-color: var(--widget-info, #3b82f6);
+      }
 
-    .project-indicator-processing {
-      background-color: var(--widget-info, #3b82f6);
-    }
+      .project-indicator-result {
+        background-color: var(--widget-success, #10b981);
+      }
 
-    .project-indicator-result {
-      background-color: var(--widget-success, #10b981);
-    }
+      .project-indicator-rejected {
+        background-color: var(--widget-danger, #dc2626);
+      }
 
-    .project-indicator-rejected {
-      background-color: var(--widget-danger, #dc2626);
-    }
+      .status {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        height: fit-content;
+        line-height: 1rem;
+        padding: 0.25rem 0.5rem;
+        border: solid;
+        border-width: 1px;
+        border-radius: 9999px;
+      }
 
-    .status {
-      display: flex;
-      align-items: center;
-      align-self: center;
-      flex-shrink: 0;
-      font-size: 0.75rem;
-      height: fit-content;
-      line-height: 1rem;
-      padding: 0.25rem 0.5rem;
-      border: solid;
-      border-width: 1px;
-      border-radius: 9999px;
-    }
+      .status-draft {
+        border-color: rgb(229 231 235);
+        background-color: rgb(243 244 246);
+        color: rgb(75 85 99);
+      }
 
-    .status-draft {
-      border-color: rgb(229 231 235);
-      background-color: rgb(243 244 246);
-      color: rgb(75 85 99);
-    }
+      .status-awaiting {
+        border-color: rgb(254 240 138);
+        background-color: rgb(254 249 195);
+        color: rgb(202 138 4);
+      }
 
-    .status-awaiting {
-      border-color: rgb(254 240 138);
-      background-color: rgb(254 249 195);
-      color: rgb(202 138 4);
-    }
+      .status-processing {
+        border-color: rgb(191 219 254);
+        background-color: rgb(219 234 254);
+        color: rgb(37 99 235);
+      }
 
-    .status-processing {
-      border-color: rgb(191 219 254);
-      background-color: rgb(219 234 254);
-      color: rgb(37 99 235);
-    }
+      .status-rejected {
+        border-color: rgb(254 202 202);
+        background-color: rgb(254 226 226);
+        color: rgb(220 38 38);
+      }
 
-    .status-rejected {
-      border-color: rgb(254 202 202);
-      background-color: rgb(254 226 226);
-      color: rgb(220 38 38);
-    }
+      .status-result {
+        border-color: rgb(187 247 208);
+        background-color: rgb(220 252 231);
+        color: rgb(22 163 74);
+      }
+    </style>
+  </head>
 
-    .status-result {
-      border-color: rgb(187 247 208);
-      background-color: rgb(220 252 231);
-      color: rgb(22 163 74);
-    }
-  </style>
-</head>
-
-<body>
-  <div class="project-list">
-    <div class="project-item">
-      <div class="project-info">
-        <p class="project-name">Customer Segmentation</p>
-        <div class="project-indicator project-indicator-result"></div>
+  <body>
+    <div class="project-list">
+      <div class="project-item">
+        <div class="project-info">
+          <p class="project-name">Customer Segmentation</p>
+          <div class="project-indicator project-indicator-result"></div>
+        </div>
+        <div class="status status-result">Result available</div>
       </div>
-      <div class="status status-result">
-        Result available
-      </div>
-    </div>
 
-    <div class="project-item">
-      <div class="project-info">
-        <p class="project-name">Sales Forecasting</p>
-        <div class="project-indicator project-indicator-processing"></div>
+      <div class="project-item">
+        <div class="project-info">
+          <p class="project-name">Sales Forecasting</p>
+          <div class="project-indicator project-indicator-processing"></div>
+        </div>
+        <div class="status status-processing">Processing</div>
       </div>
-      <div class="status status-processing">
-        Processing
-      </div>
-    </div>
 
-    <div class="project-item">
-      <div class="project-info">
-        <p class="project-name">Anomaly Detection</p>
-        <div class="project-indicator project-indicator-awaiting"></div>
+      <div class="project-item">
+        <div class="project-info">
+          <p class="project-name">Anomaly Detection</p>
+          <div class="project-indicator project-indicator-awaiting"></div>
+        </div>
+        <div class="status status-awaiting">Awaiting approval</div>
       </div>
-      <div class="status status-awaiting">
-        Awaiting approval
-      </div>
-    </div>
 
-    <div class="project-item">
-      <div class="project-info">
-        <p class="project-name">Text Classification</p>
-        <div class="project-indicator project-indicator-draft"></div>
+      <div class="project-item">
+        <div class="project-info">
+          <p class="project-name">Text Classification</p>
+          <div class="project-indicator project-indicator-draft"></div>
+        </div>
+        <div class="status status-draft">Draft</div>
       </div>
-      <div class="status status-draft">
-        Draft
-      </div>
-    </div>
 
-    <div class="project-item">
-      <div class="project-info">
-        <p class="project-name">Sales Forecasting</p>
-        <div class="project-indicator project-indicator-rejected"></div>
-      </div>
-      <div class="status status-rejected">
-        Rejected
+      <div class="project-item">
+        <div class="project-info">
+          <p class="project-name">Sales Forecasting</p>
+          <div class="project-indicator project-indicator-rejected"></div>
+        </div>
+        <div class="status status-rejected">Rejected</div>
       </div>
     </div>
-  </div>
-</body>
-
+  </body>
 </html>

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,29 +8,29 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { toast } from "@/hooks/use-toast"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/hooks/use-toast";
 
 interface BugReportDialogProps {
-  trigger: React.ReactNode
+  trigger: React.ReactNode;
 }
 
 export function BugReportDialog({ trigger }: BugReportDialogProps) {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [shareLogs, setShareLogs] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [shareLogs, setShareLogs] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       // Here you would implement the actual logic to submit the bug report
@@ -38,8 +38,8 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
       console.log("Bug report submitted:", {
         title,
         description,
-        shareLogs
-      })
+        shareLogs,
+      });
 
       // Success! Show toast, close the dialog and reset the form
       toast({
@@ -47,30 +47,29 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
         title: "Bug report submitted",
         description: "Thank you for helping us improve our platform.",
         variant: "default",
-      })
+      });
 
-      setIsOpen(false)
-      setTitle("")
-      setDescription("")
-      setShareLogs(false)
+      setIsOpen(false);
+      setTitle("");
+      setDescription("");
+      setShareLogs(false);
     } catch (error) {
-      console.error("Error submitting bug report:", error)
+      console.error("Error submitting bug report:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Report a Bug</DialogTitle>
             <DialogDescription>
-              Please describe the issue you&apos;re experiencing. This information will help us improve our platform.
+              Please describe the issue you&apos;re experiencing. This
+              information will help us improve our platform.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -111,7 +110,7 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
                 />
                 <Label
                   htmlFor="share-logs"
-                  className="text-sm text-muted-foreground font-normal cursor-pointer"
+                  className="text-muted-foreground cursor-pointer text-sm font-normal"
                 >
                   Share logs with this report (recommended)
                 </Label>
@@ -119,7 +118,11 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
@@ -129,5 +132,5 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

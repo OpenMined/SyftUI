@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
-import { z } from "zod"
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { z } from "zod";
 
 // Connection settings types and constants
 export interface ConnectionSettings {
@@ -19,7 +19,7 @@ export const DEFAULT_CONNECTION_SETTINGS: ConnectionSettings = {
 };
 
 // Key used for storing connection settings in session storage
-export const CONNECTION_STORAGE_KEY = 'connectionSettings';
+export const CONNECTION_STORAGE_KEY = "connectionSettings";
 
 // Connection simulation
 export const SIMULATED_CONNECTION_DELAY = 750; // ms
@@ -57,8 +57,8 @@ export const useConnectionStore = create<ConnectionState>()(
       status: "disconnected",
 
       updateSettings: (newSettings) => {
-        set(state => ({
-          settings: { ...state.settings, ...newSettings }
+        set((state) => ({
+          settings: { ...state.settings, ...newSettings },
         }));
       },
 
@@ -70,7 +70,7 @@ export const useConnectionStore = create<ConnectionState>()(
         // Convert settings to the format expected by zod schema
         const result = connectionFormSchema.safeParse({
           url: settings.url,
-          token: settings.token
+          token: settings.token,
         });
 
         if (result.success) {
@@ -79,7 +79,7 @@ export const useConnectionStore = create<ConnectionState>()(
 
         // Convert zod errors to our error format
         const errors: ConnectionErrors = {};
-        result.error.errors.forEach(err => {
+        result.error.errors.forEach((err) => {
           const path = err.path[0] as keyof ConnectionErrors;
           errors[path] = err.message;
         });
@@ -99,7 +99,7 @@ export const useConnectionStore = create<ConnectionState>()(
           setTimeout(() => {
             set({
               displayUrl: settings.url,
-              status: "connected"
+              status: "connected",
             });
           }, SIMULATED_CONNECTION_DELAY);
 
@@ -111,7 +111,7 @@ export const useConnectionStore = create<ConnectionState>()(
     }),
     {
       name: CONNECTION_STORAGE_KEY,
-      storage: createJSONStorage(() => sessionStorage)
-    }
-  )
+      storage: createJSONStorage(() => sessionStorage),
+    },
+  ),
 );

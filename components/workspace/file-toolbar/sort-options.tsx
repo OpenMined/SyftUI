@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { ArrowUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,11 +9,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useFileSystemStore } from "@/stores/useFileSystemStore"
+} from "@/components/ui/dropdown-menu";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 export function SortOptions() {
-  const { sortConfig = { sortBy: "name", direction: "asc" }, setSortConfig } = useFileSystemStore()
+  const { sortConfig = { sortBy: "name", direction: "asc" }, setSortConfig } =
+    useFileSystemStore();
 
   return (
     <DropdownMenu>
@@ -30,19 +31,23 @@ export function SortOptions() {
           }
         >
           <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="date">Date Modified</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="date">
+            Date Modified
+          </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="type">Type</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={sortConfig.direction}
-          onValueChange={(value) => setSortConfig({ ...sortConfig, direction: value })}
+          onValueChange={(value) =>
+            setSortConfig({ ...sortConfig, direction: value })
+          }
         >
           <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

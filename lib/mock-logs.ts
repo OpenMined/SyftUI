@@ -1,18 +1,16 @@
 interface Log {
-    timestamp: string
-    app: string
-    level: "debug" | "info" | "warning" | "error"
-    message: string
+  timestamp: string;
+  app: string;
+  level: "debug" | "info" | "warning" | "error";
+  message: string;
 }
 
-
-
 export const mockLogs: Log[] = [
-    {
-        timestamp: "2025-03-26T07:50:40.790Z",
-        app: "System",
-        level: "info",
-        message: `Client metadata
+  {
+    timestamp: "2025-03-26T07:50:40.790Z",
+    app: "System",
+    level: "info",
+    message: `Client metadata
 {
   "client_config": {
     "data_dir": "/Users/tauquir/SyftBoxStage",
@@ -30,54 +28,55 @@ export const mockLogs: Log[] = [
     "DISABLE_ICONS": false,
     "CLIENT_CONFIG_PATH": "/Users/tauquir/.syftbox/config.json"
   }
-}`
-    },
-    {
-        timestamp: "2025-03-26T07:50:41.963Z",
-        app: "system",
-        level: "info",
-        message: "Started SyftBox"
-    },
-    {
-        timestamp: "2025-03-26T07:50:42.040Z",
-        app: "System",
-        level: "info",
-        message: "Sync started, syncing every 1 seconds"
-    },
-    {
-        timestamp: "2025-03-26T07:50:42.040Z",
-        app: "system",
-        level: "info",
-        message: "Starting local server on http://127.0.0.1:8080/"
-    },
-    {
-        timestamp: "2025-03-26T07:50:42.040Z",
-        app: "System",
-        level: "info",
-        message: "Default apps directory not found: /Users/tauquir/.local/share/uv/tools/syftbox/lib/python3.13/site-packages/default_apps"
-    },
-    {
-        timestamp: "2025-03-26T07:50:42.690Z",
-        app: "System",
-        level: "debug",
-        message: "Health check succeeded, server is available."
-    },
-    {
-        timestamp: "2025-03-26T07:50:44.077Z",
-        app: "System",
-        level: "debug",
-        message: "Syncing 142 datasites"
-    },
-    {
-        timestamp: "2025-03-26T07:50:44.101Z",
-        app: "System",
-        level: "info",
-        message: "Downloading 0 files in batch"
-    },
-    {
-        timestamp: "2025-03-26T07:50:46.386Z",
-        app: "System",
-        level: "debug",
-        message: "Syncing 142 datasites"
-    }
-]
+}`,
+  },
+  {
+    timestamp: "2025-03-26T07:50:41.963Z",
+    app: "system",
+    level: "info",
+    message: "Started SyftBox",
+  },
+  {
+    timestamp: "2025-03-26T07:50:42.040Z",
+    app: "System",
+    level: "info",
+    message: "Sync started, syncing every 1 seconds",
+  },
+  {
+    timestamp: "2025-03-26T07:50:42.040Z",
+    app: "system",
+    level: "info",
+    message: "Starting local server on http://127.0.0.1:8080/",
+  },
+  {
+    timestamp: "2025-03-26T07:50:42.040Z",
+    app: "System",
+    level: "info",
+    message:
+      "Default apps directory not found: /Users/tauquir/.local/share/uv/tools/syftbox/lib/python3.13/site-packages/default_apps",
+  },
+  {
+    timestamp: "2025-03-26T07:50:42.690Z",
+    app: "System",
+    level: "debug",
+    message: "Health check succeeded, server is available.",
+  },
+  {
+    timestamp: "2025-03-26T07:50:44.077Z",
+    app: "System",
+    level: "debug",
+    message: "Syncing 142 datasites",
+  },
+  {
+    timestamp: "2025-03-26T07:50:44.101Z",
+    app: "System",
+    level: "info",
+    message: "Downloading 0 files in batch",
+  },
+  {
+    timestamp: "2025-03-26T07:50:46.386Z",
+    app: "System",
+    level: "debug",
+    message: "Syncing 142 datasites",
+  },
+];

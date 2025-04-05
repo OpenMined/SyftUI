@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Database,
@@ -16,37 +16,43 @@ import {
   Settings,
   User,
   X,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { loadFavorites, saveFavorites } from "@/lib/utils/favorites"
-import { useIsMobile } from "@/hooks/use-mobile"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Button } from "@/components/ui/button"
-import { ConnectionStatus } from "@/components/connection/connection-status"
-import { useRouter, usePathname } from "next/navigation"
-import { LogoComponent } from "./logo"
-import { useFileSystemStore } from "@/stores/useFileSystemStore"
+} from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { ConnectionStatus } from "@/components/connection/connection-status";
+import { useRouter, usePathname } from "next/navigation";
+import { LogoComponent } from "./logo";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 interface SidebarProps {
-  closeSidebar: () => void
+  closeSidebar: () => void;
 }
 
 export function Sidebar({ closeSidebar }: SidebarProps) {
-  const [favorites, setFavorites] = useState<{ id: string; name: string; path: string[] }[]>([])
+  const [favorites, setFavorites] = useState<
+    { id: string; name: string; path: string[] }[]
+  >([]);
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
-  })
-  const router = useRouter()
-  const pathname = usePathname()
-  const isMobile = useIsMobile()
-  const { navigateTo } = useFileSystemStore.getState()
+  });
+  const router = useRouter();
+  const pathname = usePathname();
+  const isMobile = useIsMobile();
+  const { navigateTo } = useFileSystemStore.getState();
 
   // Load favorites from localStorage on initial render
   useEffect(() => {
@@ -54,32 +60,32 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     if (savedFavorites.length > 0) {
       setFavorites(savedFavorites);
     }
-  }, [])
+  }, []);
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
     saveFavorites(favorites);
-  }, [favorites])
+  }, [favorites]);
 
   // User email for "My datasite" path
-  const userEmail = "user@example.com"
+  const userEmail = "user@example.com";
 
   const getActiveItem = (pathname: string) => {
-    if (pathname.startsWith("/diagnostic")) return "Diagnostic"
-    if (pathname.startsWith("/logs")) return "Logs"
-    if (pathname.startsWith("/marketplace")) return "Marketplace"
-    if (pathname.startsWith("/apps")) return "Apps"
-    if (pathname.startsWith("/workspace")) return "Workspace"
-    if (pathname.startsWith("/dashboard")) return "Dashboard"
-    return ""
-  }
+    if (pathname.startsWith("/diagnostic")) return "Diagnostic";
+    if (pathname.startsWith("/logs")) return "Logs";
+    if (pathname.startsWith("/marketplace")) return "Marketplace";
+    if (pathname.startsWith("/apps")) return "Apps";
+    if (pathname.startsWith("/workspace")) return "Workspace";
+    if (pathname.startsWith("/dashboard")) return "Dashboard";
+    return "";
+  };
 
-  const [activeItem, setActiveItem] = useState(getActiveItem(pathname))
+  const [activeItem, setActiveItem] = useState(getActiveItem(pathname));
 
   // Update activeItem when pathname changes
   useEffect(() => {
-    setActiveItem(getActiveItem(pathname))
-  }, [pathname])
+    setActiveItem(getActiveItem(pathname));
+  }, [pathname]);
 
   // Listen for add-to-favorites events
   useEffect(() => {
@@ -96,98 +102,104 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               name: detail.name,
               path: detail.path || [],
             },
-          ])
+          ]);
         }
       }
     };
 
-    window.addEventListener('add-to-favorites', handleAddToFavorites);
+    window.addEventListener("add-to-favorites", handleAddToFavorites);
 
     return () => {
-      window.removeEventListener('add-to-favorites', handleAddToFavorites);
+      window.removeEventListener("add-to-favorites", handleAddToFavorites);
     };
-  }, [favorites])
+  }, [favorites]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
       ...prev,
       [section]: !prev[section],
-    }))
-  }
+    }));
+  };
 
   const mainNavItems = [
     {
-      icon: LayoutDashboard, label: "Dashboard", action: () => {
-        setActiveItem("Dashboard")
-        router.push("/dashboard/")
-        closeSidebar()
-      }
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      action: () => {
+        setActiveItem("Dashboard");
+        router.push("/dashboard/");
+        closeSidebar();
+      },
     },
     {
       icon: Database,
       label: "Workspace",
       action: () => {
-        setActiveItem("Workspace")
-        navigateTo([])
-        router.push("/workspace/")
-        closeSidebar()
+        setActiveItem("Workspace");
+        navigateTo([]);
+        router.push("/workspace/");
+        closeSidebar();
       },
     },
     {
-      icon: AppWindow, label: "Apps", action: () => {
-        setActiveItem("Apps")
-        router.push("/apps/")
-        closeSidebar()
-      }
+      icon: AppWindow,
+      label: "Apps",
+      action: () => {
+        setActiveItem("Apps");
+        router.push("/apps/");
+        closeSidebar();
+      },
     },
     {
       icon: ShoppingBag,
       label: "Marketplace",
       action: () => {
-        setActiveItem("Marketplace")
-        router.push("/marketplace/")
-        closeSidebar()
+        setActiveItem("Marketplace");
+        router.push("/marketplace/");
+        closeSidebar();
       },
     },
     {
       icon: ScrollText,
       label: "Logs",
       action: () => {
-        setActiveItem("Logs")
-        router.push("/logs/")
-        closeSidebar()
-      }
+        setActiveItem("Logs");
+        router.push("/logs/");
+        closeSidebar();
+      },
     },
     {
-      icon: Gauge, label: "Diagnostic", action: () => {
-        setActiveItem("Diagnostic")
-        router.push("/diagnostic/")
-        closeSidebar()
-      }
+      icon: Gauge,
+      label: "Diagnostic",
+      action: () => {
+        setActiveItem("Diagnostic");
+        router.push("/diagnostic/");
+        closeSidebar();
+      },
     },
-  ]
+  ];
 
   const handleProfileClick = () => {
-    router.push("/profile/")
-    closeSidebar()
-  }
+    router.push("/profile/");
+    closeSidebar();
+  };
 
   const handleSettingsClick = () => {
-    router.push("/settings/")
-    closeSidebar()
-  }
+    router.push("/settings/");
+    closeSidebar();
+  };
 
   const handleLogoutClick = () => {
-    router.push("/")
-    closeSidebar()
-  }
+    router.push("/");
+    closeSidebar();
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    const data = e.dataTransfer.getData("application/json")
+    e.preventDefault();
+    const data = e.dataTransfer.getData("application/json");
     if (data) {
       try {
-        const item = JSON.parse(data)
+        const item = JSON.parse(data);
         if (item.type === "folder") {
           // Check if already in favorites
           if (!favorites.some((fav) => fav.id === item.id)) {
@@ -200,38 +212,43 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                 name: item.name,
                 path: [...item.path, item.name],
               },
-            ])
+            ]);
           }
         }
       } catch (err) {
-        console.error("Failed to parse drag data", err)
+        console.error("Failed to parse drag data", err);
       }
     }
-  }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = "copy"
-  }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  };
 
   const removeFavorite = (id: string, e: React.MouseEvent) => {
-    e?.stopPropagation()
-    setFavorites((prev) => prev.filter((fav) => fav.id !== id))
-  }
+    e?.stopPropagation();
+    setFavorites((prev) => prev.filter((fav) => fav.id !== id));
+  };
 
   return (
-    <div className="w-full h-full bg-card border-r border-border flex flex-col">
-      <div className="flex justify-between items-center mx-4 pt-4 gap-2">
+    <div className="bg-card border-border flex h-full w-full flex-col border-r">
+      <div className="mx-4 flex items-center justify-between gap-2 pt-4">
         <LogoComponent />
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={closeSidebar}
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <div className="flex justify-between items-center mx-4 pt-2 pb-4 border-b border-border">
+      <div className="border-border mx-4 flex items-center justify-between border-b pt-2 pb-4">
         <ConnectionStatus />
       </div>
       <nav className="flex-1 overflow-auto p-2">
-        <ul className="space-y-1 mb-4">
+        <ul className="mb-4 space-y-1">
           {mainNavItems.map((item, index) => (
             <li key={index}>
               <Button
@@ -239,8 +256,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                 size="small"
                 onClick={item.action}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 justify-start font-normal",
-                  activeItem === item.label && "bg-accent text-accent-foreground",
+                  "flex w-full items-center justify-start gap-3 px-3 py-2 font-normal",
+                  activeItem === item.label &&
+                    "bg-accent text-accent-foreground",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -251,34 +269,44 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         </ul>
 
         <div className="mb-4">
-          <Collapsible open={openSections.favorites} onOpenChange={() => toggleSection("favorites")}>
-            <CollapsibleTrigger className="flex items-center w-full px-3 py-2 text-sm font-medium">
+          <Collapsible
+            open={openSections.favorites}
+            onOpenChange={() => toggleSection("favorites")}
+          >
+            <CollapsibleTrigger className="flex w-full items-center px-3 py-2 text-sm font-medium">
               {openSections.favorites ? (
-                <ChevronDown className="h-4 w-4 mr-1" />
+                <ChevronDown className="mr-1 h-4 w-4" />
               ) : (
-                <ChevronRight className="h-4 w-4 mr-1" />
+                <ChevronRight className="mr-1 h-4 w-4" />
               )}
-              <Star className="h-4 w-4 mr-2" />
+              <Star className="mr-2 h-4 w-4" />
               <span>Favorites</span>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="pl-4 pr-2 py-2 space-y-1" onDrop={handleDrop} onDragOver={handleDragOver}>
+              <div
+                className="space-y-1 py-2 pr-2 pl-4"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+              >
                 {favorites.length === 0 ? (
-                  <p className="text-xs text-muted-foreground px-3 py-2">
-                    {isMobile ?
-                      "Use the star button to add favorites" :
-                      "Drag folders here to add to favorites"}
+                  <p className="text-muted-foreground px-3 py-2 text-xs">
+                    {isMobile
+                      ? "Use the star button to add favorites"
+                      : "Drag folders here to add to favorites"}
                   </p>
                 ) : (
                   favorites.map((fav) => (
-                    <div key={fav.id} className="flex items-center justify-between group">
+                    <div
+                      key={fav.id}
+                      className="group flex items-center justify-between"
+                    >
                       <button
                         onClick={() => {
-                          navigateTo(fav.path)
-                          router.push(`/workspace/?path=${fav.path.join('/')}`)
-                          closeSidebar()
+                          navigateTo(fav.path);
+                          router.push(`/workspace/?path=${fav.path.join("/")}`);
+                          closeSidebar();
                         }}
-                        className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="hover:bg-accent hover:text-accent-foreground flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                       >
                         <FolderHeart className="h-4 w-4" />
                         <span className="truncate">{fav.name}</span>
@@ -286,7 +314,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
                         onClick={() => removeFavorite(fav.id)}
                       >
                         <X className="h-3 w-3" />
@@ -299,16 +327,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           </Collapsible>
         </div>
       </nav>
-      <div className="p-4 border-t border-border">
+      <div className="border-border border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full">
-            <div className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground rounded-md p-2 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+            <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-md p-2 transition-colors">
+              <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
                 U
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium">User Name</p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
+                <p className="text-muted-foreground text-xs">{userEmail}</p>
               </div>
             </div>
           </DropdownMenuTrigger>
@@ -330,5 +358,5 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         </DropdownMenu>
       </div>
     </div>
-  )
+  );
 }

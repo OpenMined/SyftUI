@@ -1,4 +1,4 @@
-import type { FileSystemItem } from "@/lib/types"
+import type { FileSystemItem } from "@/lib/types";
 
 /**
  * Find a file in the file system by its name and parent path
@@ -7,12 +7,18 @@ import type { FileSystemItem } from "@/lib/types"
  * @param fileName Name of the file to find
  * @returns The file system item if found, or null
  */
-export function findFileInPath(fileSystem: FileSystemItem[], dirPath: string[], fileName: string): FileSystemItem | null {
+export function findFileInPath(
+  fileSystem: FileSystemItem[],
+  dirPath: string[],
+  fileName: string,
+): FileSystemItem | null {
   // Navigate to the directory
   let current = fileSystem;
 
   for (const segment of dirPath) {
-    const folder = current.find((item: FileSystemItem) => item.type === 'folder' && item.name === segment);
+    const folder = current.find(
+      (item: FileSystemItem) => item.type === "folder" && item.name === segment,
+    );
     if (folder && folder.children) {
       current = folder.children;
     } else {
@@ -21,7 +27,11 @@ export function findFileInPath(fileSystem: FileSystemItem[], dirPath: string[], 
   }
 
   // Look for the file in the current directory
-  return current.find((item: FileSystemItem) => item.type === 'file' && item.name === fileName) || null;
+  return (
+    current.find(
+      (item: FileSystemItem) => item.type === "file" && item.name === fileName,
+    ) || null
+  );
 }
 
 /**
@@ -29,19 +39,19 @@ export function findFileInPath(fileSystem: FileSystemItem[], dirPath: string[], 
  * @param path Array of path segments
  */
 export function updateUrlWithPath(path: string[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const url = new URL(window.location.href);
   if (path.length > 0) {
     // Join path segments with slashes
-    url.searchParams.set('path', path.join('/'));
+    url.searchParams.set("path", path.join("/"));
   } else {
     // Remove path parameter if we're at the root
-    url.searchParams.delete('path');
+    url.searchParams.delete("path");
   }
 
   // Update the URL without refreshing the page
-  window.history.pushState({}, '', url.toString());
+  window.history.pushState({}, "", url.toString());
 }
 
 /**
@@ -49,14 +59,14 @@ export function updateUrlWithPath(path: string[]): void {
  * @returns Array of path segments or empty array if no path parameter
  */
 export function getPathFromUrl(): string[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
 
   const url = new URL(window.location.href);
-  const pathParam = url.searchParams.get('path');
+  const pathParam = url.searchParams.get("path");
 
   if (pathParam) {
     // Split path by slashes and filter out empty segments
-    return pathParam.split('/').filter(segment => segment.length > 0);
+    return pathParam.split("/").filter((segment) => segment.length > 0);
   }
 
   return [];
@@ -68,7 +78,10 @@ export function getPathFromUrl(): string[] {
  * @param fileSystem The file system structure to check against
  * @returns Object with dirPath and fileName
  */
-export function processPath(path: string[], fileSystem?: FileSystemItem[]): { dirPath: string[], fileName: string | null } {
+export function processPath(
+  path: string[],
+  fileSystem?: FileSystemItem[],
+): { dirPath: string[]; fileName: string | null } {
   if (path.length === 0) {
     return { dirPath: [], fileName: null };
   }
@@ -87,7 +100,9 @@ export function processPath(path: string[], fileSystem?: FileSystemItem[]): { di
   // Navigate through the path segments
   while (i < path.length - 1 && current) {
     const segment = path[i];
-    const folder = current.find((item: FileSystemItem) => item.type === 'folder' && item.name === segment);
+    const folder = current.find(
+      (item: FileSystemItem) => item.type === "folder" && item.name === segment,
+    );
 
     if (folder && folder.children) {
       current = folder.children;
@@ -96,7 +111,7 @@ export function processPath(path: string[], fileSystem?: FileSystemItem[]): { di
       // Can't navigate further, return what we've got so far
       return {
         dirPath: path.slice(0, i),
-        fileName: null
+        fileName: null,
       };
     }
   }
@@ -104,9 +119,11 @@ export function processPath(path: string[], fileSystem?: FileSystemItem[]): { di
   // Now we've navigated to the last directory, check if the last segment is a file
   if (current && i < path.length) {
     const lastSegment = path[i];
-    const item = current.find((item: FileSystemItem) => item.name === lastSegment);
+    const item = current.find(
+      (item: FileSystemItem) => item.name === lastSegment,
+    );
 
-    if (item && item.type === 'file') {
+    if (item && item.type === "file") {
       isLastSegmentFile = true;
     }
   }
@@ -114,12 +131,12 @@ export function processPath(path: string[], fileSystem?: FileSystemItem[]): { di
   if (isLastSegmentFile) {
     return {
       dirPath: path.slice(0, -1),
-      fileName: path[path.length - 1]
+      fileName: path[path.length - 1],
     };
   }
 
   return {
     dirPath: path,
-    fileName: null
+    fileName: null,
   };
 }

@@ -1,6 +1,6 @@
-import React from 'react';
-import { IframeWidget } from './iframe-widget';
-import { WidgetDefinition } from './mock-data';
+import React from "react";
+import { IframeWidget } from "./iframe-widget";
+import { WidgetDefinition } from "./mock-data";
 
 interface WidgetProps {
   widget: WidgetDefinition;
@@ -8,7 +8,11 @@ interface WidgetProps {
   isEditing: boolean;
 }
 
-export const Widget: React.FC<WidgetProps> = ({ widget, onRemove, isEditing }) => {
+export const Widget: React.FC<WidgetProps> = ({
+  widget,
+  onRemove,
+  isEditing,
+}) => {
   // Get the content URL based on widget type
   const getContentUrl = () => {
     return `/widgets/${widget.type}.html`;
@@ -19,7 +23,7 @@ export const Widget: React.FC<WidgetProps> = ({ widget, onRemove, isEditing }) =
       widget={{
         id: widget.id,
         title: widget.title,
-        contentUrl: getContentUrl()
+        contentUrl: getContentUrl(),
       }}
       onRemove={onRemove}
       isEditing={isEditing}

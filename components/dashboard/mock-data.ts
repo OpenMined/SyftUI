@@ -1,5 +1,10 @@
 // Mock data for dashboard widgets and layout
-export type WidgetType = 'api-requests' | 'api-broadcast' | 'queue-rpc' | 'projects-rds' | 'system-load';
+export type WidgetType =
+  | "api-requests"
+  | "api-broadcast"
+  | "queue-rpc"
+  | "projects-rds"
+  | "system-load";
 
 export interface WidgetDefinition {
   id: string;
@@ -153,8 +158,10 @@ export const defaultDashboardLayout: DashboardLayout = {
 };
 
 // Mock function to save dashboard layout to backend
-export const saveDashboardLayout = async (layout: DashboardLayout): Promise<boolean> => {
-  console.log('Saving dashboard layout to backend:', layout);
+export const saveDashboardLayout = async (
+  layout: DashboardLayout,
+): Promise<boolean> => {
+  console.log("Saving dashboard layout to backend:", layout);
   // Mock delay to simulate API call
   // await new Promise(resolve => setTimeout(resolve, 500));
   return true;
@@ -162,7 +169,7 @@ export const saveDashboardLayout = async (layout: DashboardLayout): Promise<bool
 
 // Mock function to load dashboard layout from backend
 export const loadDashboardLayout = async (): Promise<DashboardLayout> => {
-  console.log('Loading dashboard layout from backend');
+  console.log("Loading dashboard layout from backend");
   // Mock delay to simulate API call
   // await new Promise(resolve => setTimeout(resolve, 500));
   return defaultDashboardLayout;

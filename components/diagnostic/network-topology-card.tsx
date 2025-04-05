@@ -1,17 +1,45 @@
-"use client"
-import React, { useEffect, useState } from "react"
-import { AlertTriangle, Check, Loader2, Monitor, Server, SquareTerminal, X, type LucideIcon } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
-import type { ConnectionStatus, NetworkTopology, Node as NetworkNode } from "@/components/diagnostic/diagnostic"
+"use client";
+import React, { useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  Check,
+  Loader2,
+  Monitor,
+  Server,
+  SquareTerminal,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import type {
+  ConnectionStatus,
+  NetworkTopology,
+  Node as NetworkNode,
+} from "@/components/diagnostic/diagnostic";
 
 interface NetworkTopologyCardProps {
-  topology?: NetworkTopology
-  className?: string
+  topology?: NetworkTopology;
+  className?: string;
 }
 
-const statusConfig: Record<ConnectionStatus, { icon: LucideIcon; color: string; tooltip: string }> = {
+const statusConfig: Record<
+  ConnectionStatus,
+  { icon: LucideIcon; color: string; tooltip: string }
+> = {
   connected: {
     icon: Check,
     color: "bg-green-500 dark:bg-green-600",
@@ -32,7 +60,7 @@ const statusConfig: Record<ConnectionStatus, { icon: LucideIcon; color: string; 
     color: "bg-yellow-500 dark:bg-yellow-600",
     tooltip: "Connected with limited functionality or performance issues",
   },
-}
+};
 
 // Default network topology
 const defaultTopology: NetworkTopology = {
@@ -75,11 +103,14 @@ const defaultTopology: NetworkTopology = {
       latency: 24,
     },
   ],
-}
+};
 
-export function NetworkTopologyCard({ topology, className }: NetworkTopologyCardProps) {
-  const { nodes, connections } = topology ?? defaultTopology
-  const [currentConnections, setCurrentConnections] = useState(connections)
+export function NetworkTopologyCard({
+  topology,
+  className,
+}: NetworkTopologyCardProps) {
+  const { nodes, connections } = topology ?? defaultTopology;
+  const [currentConnections, setCurrentConnections] = useState(connections);
 
   useEffect(() => {
     // Simulate connection status and latency changes every 5 seconds
@@ -89,8 +120,13 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
         return prevConnections.map((conn) => {
           const randomStatus = isAllConnected
             ? "connected"
-            : ["connected", "connecting", "disconnected", "degraded"][Math.floor(Math.random() * 4)];
-          const randomLatency = randomStatus === "connected" ? Math.floor(Math.random() * 100) + 1 : null;
+            : ["connected", "connecting", "disconnected", "degraded"][
+                Math.floor(Math.random() * 4)
+              ];
+          const randomLatency =
+            randomStatus === "connected"
+              ? Math.floor(Math.random() * 100) + 1
+              : null;
           return {
             ...conn,
             status: randomStatus,
@@ -109,15 +145,20 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
       (conn) =>
         (conn.sourceId === sourceId && conn.targetId === targetId) ||
         (conn.sourceId === targetId && conn.targetId === sourceId),
-    )
-  }
+    );
+  };
 
-  const isFullyConnected = currentConnections.every((conn) => conn.status === "connected")
+  const isFullyConnected = currentConnections.every(
+    (conn) => conn.status === "connected",
+  );
 
   // Calculate total ping latency when all connections are active
   const calculateTotalPing = () => {
     if (!isFullyConnected) return null;
-    const totalLatency = currentConnections.reduce((acc, conn) => acc + (conn.latency || 0), 0)
+    const totalLatency = currentConnections.reduce(
+      (acc, conn) => acc + (conn.latency || 0),
+      0,
+    );
     return Math.round(totalLatency);
   };
 
@@ -125,7 +166,7 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
 
   return (
     <TooltipProvider>
-      <Card className={cn("flex flex-col w-full overflow-hidden", className)}>
+      <Card className={cn("flex w-full flex-col overflow-hidden", className)}>
         <CardHeader className="pb-2">
           <div className="flex flex-row items-center justify-between">
             <div>
@@ -136,15 +177,19 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
               <TooltipTrigger>
                 <div className="text-3xl font-bold">
                   {isFullyConnected ? (
-                    <span className="text-green-500 dark:text-green-400">{totalPing}ms</span>
+                    <span className="text-green-500 dark:text-green-400">
+                      {totalPing}ms
+                    </span>
                   ) : (
-                    <span className="text-red-500 dark:text-red-400">Offline</span>
+                    <span className="text-red-500 dark:text-red-400">
+                      Offline
+                    </span>
                   )}
                 </div>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Total ping latency</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {isFullyConnected
                     ? `Total latency across all connections: ${totalPing} ms`
                     : "Not all connections are active"}
@@ -153,8 +198,8 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
             </Tooltip>
           </div>
         </CardHeader>
-        <CardContent className="p-6 flex-1">
-          <div className="h-full w-full flex items-center justify-between">
+        <CardContent className="flex-1 p-6">
+          <div className="flex h-full w-full items-center justify-between">
             {/* Network topology visualization */}
             {nodes.map((node, index) => (
               <React.Fragment key={node.id}>
@@ -163,7 +208,7 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
 
                 {/* Connection line to the next node */}
                 {index < nodes.length - 1 && (
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex flex-1 items-center justify-center">
                     <ConnectionLine
                       connection={findConnection(node.id, nodes[index + 1].id)}
                       isLast={index === nodes.length - 2}
@@ -175,81 +220,96 @@ export function NetworkTopologyCard({ topology, className }: NetworkTopologyCard
           </div>
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
-          <div className="leading-none text-muted-foreground">
+          <div className="text-muted-foreground leading-none">
             Last updated {new Date().toLocaleTimeString()} •
             {isFullyConnected
               ? ` All systems operational`
-              : ` ${currentConnections.filter(k => k.status !== "connected").length} connection issues detected`}
+              : ` ${currentConnections.filter((k) => k.status !== "connected").length} connection issues detected`}
           </div>
           {!isFullyConnected && (
             <div className="text-xs text-red-500 dark:text-red-400">
-              Connection issues may affect application performance. Raise an issue if problems persist.
+              Connection issues may affect application performance. Raise an
+              issue if problems persist.
             </div>
           )}
         </CardFooter>
       </Card>
     </TooltipProvider>
-  )
+  );
 }
 
 interface NodeItemProps {
-  node: NetworkNode
+  node: NetworkNode;
 }
 
 function NodeItem({ node }: NodeItemProps) {
-  const { name, icon: Icon, tooltip, address } = node
+  const { name, icon: Icon, tooltip, address } = node;
 
   return (
     <div className="flex flex-col items-center">
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="w-32 h-32 flex flex-col items-center justify-center border rounded-lg p-4 bg-card">
-            <Icon className="w-12 h-12 mb-2" />
-            <div className="text-md text-center text-nowrap font-medium">{name}</div>
+          <div className="bg-card flex h-32 w-32 flex-col items-center justify-center rounded-lg border p-4">
+            <Icon className="mb-2 h-12 w-12" />
+            <div className="text-md text-center font-medium text-nowrap">
+              {name}
+            </div>
           </div>
         </TooltipTrigger>
         <TooltipContent>
           <p>{tooltip}</p>
         </TooltipContent>
       </Tooltip>
-      <div className="mt-2 text-xs text-muted-foreground">{address}</div>
+      <div className="text-muted-foreground mt-2 text-xs">{address}</div>
     </div>
-  )
+  );
 }
 
 interface ConnectionLineProps {
   connection?: {
-    status: ConnectionStatus
-    latency?: number
-  }
+    status: ConnectionStatus;
+    latency?: number;
+  };
 }
 
 function ConnectionLine({ connection }: ConnectionLineProps) {
-  if (!connection) return null
+  if (!connection) return null;
 
-  const { status, latency } = connection
-  const { icon: StatusIcon, color, tooltip } = statusConfig[status]
+  const { status, latency } = connection;
+  const { icon: StatusIcon, color, tooltip } = statusConfig[status];
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex w-full flex-col items-center">
       {/* Latency indicator */}
-      <div className="text-sm text-muted-foreground mb-1">{latency ? `${latency} ms` : "— ms"}</div>
+      <div className="text-muted-foreground mb-1 text-sm">
+        {latency ? `${latency} ms` : "— ms"}
+      </div>
 
       {/* Connection line */}
-      <div className="flex items-center w-full">
-        <div className="h-px bg-border flex-1" />
+      <div className="flex w-full items-center">
+        <div className="bg-border h-px flex-1" />
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center mx-2", color)}>
-              <StatusIcon className={cn("w-5 h-5 text-white", status === "connecting" && "animate-spin")} />
+            <div
+              className={cn(
+                "mx-2 flex h-8 w-8 items-center justify-center rounded-full",
+                color,
+              )}
+            >
+              <StatusIcon
+                className={cn(
+                  "h-5 w-5 text-white",
+                  status === "connecting" && "animate-spin",
+                )}
+              />
             </div>
           </TooltipTrigger>
           <TooltipContent>
             <p>{tooltip}</p>
           </TooltipContent>
         </Tooltip>
-        <div className="h-px bg-border flex-1" />
+        <div className="bg-border h-px flex-1" />
       </div>
     </div>
-  )
+  );
 }

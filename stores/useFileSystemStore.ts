@@ -1,10 +1,17 @@
-"use client"
+"use client";
 
-import { create } from 'zustand'
-import { mockFileSystem } from '@/lib/mock-data'
-import type { FileSystemItem, SyncStatus, UploadItem, ConflictItem, ClipboardItem, Permission } from '@/lib/types'
-import { updateUrlWithPath } from '@/lib/utils/url'
-import { useNotificationStore } from './useNotificationStore'
+import { create } from "zustand";
+import { mockFileSystem } from "@/lib/mock-data";
+import type {
+  FileSystemItem,
+  SyncStatus,
+  UploadItem,
+  ConflictItem,
+  ClipboardItem,
+  Permission,
+} from "@/lib/types";
+import { updateUrlWithPath } from "@/lib/utils/url";
+import { useNotificationStore } from "./useNotificationStore";
 
 const SYNC_DELAY_MS = 1000;
 const SYNC_COMPLETION_MS = 2000;
@@ -12,75 +19,93 @@ const NOTIFICATION_DELAY_MS = 5000;
 
 interface FileSystemState {
   // Core state
-  fileSystem: FileSystemItem[]
-  currentPath: string[]
-  selectedItems: string[]
-  viewMode: 'grid' | 'list'
-  sortConfig: { sortBy: 'name' | 'date' | 'size' | 'type', direction: 'asc' | 'desc' }
-  previewFile: FileSystemItem | null
-  detailsItem: FileSystemItem | null
-  isRefreshing: boolean
+  fileSystem: FileSystemItem[];
+  currentPath: string[];
+  selectedItems: string[];
+  viewMode: "grid" | "list";
+  sortConfig: {
+    sortBy: "name" | "date" | "size" | "type";
+    direction: "asc" | "desc";
+  };
+  previewFile: FileSystemItem | null;
+  detailsItem: FileSystemItem | null;
+  isRefreshing: boolean;
 
   // Sync state
-  syncPaused: boolean
-  syncDialogOpen: boolean
+  syncPaused: boolean;
+  syncDialogOpen: boolean;
 
   // Upload state
-  uploads: UploadItem[]
-  conflicts: ConflictItem[]
+  uploads: UploadItem[];
+  conflicts: ConflictItem[];
 
   // Clipboard state
-  clipboard: ClipboardItem | null
+  clipboard: ClipboardItem | null;
 
   // File operations
-  findItemById: (itemId: string, items?: FileSystemItem[]) => FileSystemItem | null
-  findItemsByIds: (itemIds: string[], items?: FileSystemItem[], path?: string[]) => { items: FileSystemItem[]; path: string[] }[]
-  deepCloneItems: (items: FileSystemItem[]) => FileSystemItem[]
+  findItemById: (
+    itemId: string,
+    items?: FileSystemItem[],
+  ) => FileSystemItem | null;
+  findItemsByIds: (
+    itemIds: string[],
+    items?: FileSystemItem[],
+    path?: string[],
+  ) => { items: FileSystemItem[]; path: string[] }[];
+  deepCloneItems: (items: FileSystemItem[]) => FileSystemItem[];
 
   // Actions
-  setFileSystem: (fs: FileSystemItem[] | ((prev: FileSystemItem[]) => FileSystemItem[])) => void
-  setCurrentPath: (path: string[]) => void
-  setSelectedItems: (items: string[]) => void
-  setViewMode: (mode: 'grid' | 'list') => void
-  setSortConfig: (config: { sortBy: 'name' | 'date' | 'size' | 'type', direction: 'asc' | 'desc' }) => void
-  setPreviewFile: (file: FileSystemItem | null) => void
-  setDetailsItem: (item: FileSystemItem | null) => void
+  setFileSystem: (
+    fs: FileSystemItem[] | ((prev: FileSystemItem[]) => FileSystemItem[]),
+  ) => void;
+  setCurrentPath: (path: string[]) => void;
+  setSelectedItems: (items: string[]) => void;
+  setViewMode: (mode: "grid" | "list") => void;
+  setSortConfig: (config: {
+    sortBy: "name" | "date" | "size" | "type";
+    direction: "asc" | "desc";
+  }) => void;
+  setPreviewFile: (file: FileSystemItem | null) => void;
+  setDetailsItem: (item: FileSystemItem | null) => void;
 
   // Sync actions
-  setSyncPaused: (paused: boolean) => void
-  setSyncDialogOpen: (open: boolean) => void
-  updateSyncStatus: (itemId: string, status: SyncStatus) => void
-  triggerManualSync: () => void
-  toggleSyncPause: () => void
+  setSyncPaused: (paused: boolean) => void;
+  setSyncDialogOpen: (open: boolean) => void;
+  updateSyncStatus: (itemId: string, status: SyncStatus) => void;
+  triggerManualSync: () => void;
+  toggleSyncPause: () => void;
 
   // Upload actions
-  handleExternalFileDrop: (files: FileList) => void
-  handleConflictResolution: (resolution: "replace" | "rename" | "skip", conflict: ConflictItem) => void
-  handleApplyToAll: (resolution: "replace" | "rename" | "skip") => void
-  clearUpload: (id: string) => void
-  processFiles: (files: File[]) => void
+  handleExternalFileDrop: (files: FileList) => void;
+  handleConflictResolution: (
+    resolution: "replace" | "rename" | "skip",
+    conflict: ConflictItem,
+  ) => void;
+  handleApplyToAll: (resolution: "replace" | "rename" | "skip") => void;
+  clearUpload: (id: string) => void;
+  processFiles: (files: File[]) => void;
 
   // Clipboard actions
-  cutItems: (itemIds: string[]) => void
-  copyItems: (itemIds: string[]) => void
-  pasteItems: () => void
+  cutItems: (itemIds: string[]) => void;
+  copyItems: (itemIds: string[]) => void;
+  pasteItems: () => void;
 
   // Navigation
-  navigateTo: (path: string[]) => void
+  navigateTo: (path: string[]) => void;
 
   // File operations
-  handleCreateFolder: (name: string) => void
-  handleCreateFile: (name: string) => void
-  handleDelete: (itemIds: string[]) => void
-  handleRename: (itemId: string, newName: string) => void
-  moveItems: (itemIds: string[], targetPath: string[]) => void
-  updatePermissions: (itemId: string, permissions: Permission[]) => void
-  refreshFileSystem: () => void
+  handleCreateFolder: (name: string) => void;
+  handleCreateFile: (name: string) => void;
+  handleDelete: (itemIds: string[]) => void;
+  handleRename: (itemId: string, newName: string) => void;
+  moveItems: (itemIds: string[], targetPath: string[]) => void;
+  updatePermissions: (itemId: string, permissions: Permission[]) => void;
+  refreshFileSystem: () => void;
 
   // Helper methods
-  getCurrentItems: () => FileSystemItem[]
-  getCurrentDirectoryInfo: () => FileSystemItem | null
-  updateDetailsWithDirectory: () => void
+  getCurrentItems: () => FileSystemItem[];
+  getCurrentDirectoryInfo: () => FileSystemItem | null;
+  updateDetailsWithDirectory: () => void;
 }
 
 export const useFileSystemStore = create<FileSystemState>((set, get) => {
@@ -89,8 +114,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     fileSystem: mockFileSystem,
     currentPath: [],
     selectedItems: [],
-    viewMode: 'grid',
-    sortConfig: { sortBy: 'name', direction: 'asc' },
+    viewMode: "grid",
+    sortConfig: { sortBy: "name", direction: "asc" },
     previewFile: null,
     detailsItem: null,
     isRefreshing: false,
@@ -130,7 +155,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         }
 
         if (item.type === "folder" && item.children) {
-          const childResults = get().findItemsByIds(itemIds, item.children, [...path, item.name]);
+          const childResults = get().findItemsByIds(itemIds, item.children, [
+            ...path,
+            item.name,
+          ]);
           result.push(...childResults);
         }
       }
@@ -139,7 +167,11 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
     deepCloneItems: (items) => {
       return items.map((item) => {
-        const newItem = { ...item, id: `${item.id}-copy-${Date.now()}`, syncStatus: "pending" };
+        const newItem = {
+          ...item,
+          id: `${item.id}-copy-${Date.now()}`,
+          syncStatus: "pending",
+        };
 
         if (item.type === "folder" && item.children) {
           newItem.children = get().deepCloneItems(item.children);
@@ -149,9 +181,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     },
 
     // Basic state setters
-    setFileSystem: (fs) => set(state => ({
-      fileSystem: typeof fs === 'function' ? fs(state.fileSystem) : fs
-    })),
+    setFileSystem: (fs) =>
+      set((state) => ({
+        fileSystem: typeof fs === "function" ? fs(state.fileSystem) : fs,
+      })),
     setCurrentPath: (path) => set({ currentPath: path }),
     setSelectedItems: (items) => set({ selectedItems: items }),
     setViewMode: (mode) => set({ viewMode: mode }),
@@ -164,28 +197,28 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     setSyncDialogOpen: (open) => set({ syncDialogOpen: open }),
 
     updateSyncStatus: (itemId, status) => {
-      set(state => {
+      set((state) => {
         const updateStatus = (items: FileSystemItem[]): FileSystemItem[] => {
           return items.map((item) => {
             if (item.id === itemId) {
               return {
                 ...item,
                 syncStatus: status,
-              }
+              };
             }
 
             if (item.type === "folder" && item.children) {
               return {
                 ...item,
                 children: updateStatus(item.children),
-              }
+              };
             }
 
-            return item
-          })
-        }
-        return { fileSystem: updateStatus(state.fileSystem) }
-      })
+            return item;
+          });
+        };
+        return { fileSystem: updateStatus(state.fileSystem) };
+      });
     },
 
     triggerManualSync: () => {
@@ -197,50 +230,50 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const findPendingItems = (items: FileSystemItem[]) => {
         items.forEach((item) => {
           if (item.syncStatus === "pending" || item.syncStatus === "error") {
-            pendingItems.push(item)
+            pendingItems.push(item);
           }
 
           if (item.type === "folder" && item.children) {
-            findPendingItems(item.children)
+            findPendingItems(item.children);
           }
-        })
-      }
+        });
+      };
 
-      findPendingItems(fileSystem)
+      findPendingItems(fileSystem);
 
       if (pendingItems.length === 0) {
         notificationStore.addNotification({
           title: "Nothing to Sync",
           message: "All files are already synced",
           type: "info",
-        })
-        return
+        });
+        return;
       }
 
       notificationStore.addNotification({
         title: "Sync Started",
         message: `Syncing ${pendingItems.length} item(s)`,
         type: "info",
-      })
+      });
 
       pendingItems.forEach((item) => {
-        updateSyncStatus(item.id, "syncing")
+        updateSyncStatus(item.id, "syncing");
 
         setTimeout(
           () => {
-            updateSyncStatus(item.id, "synced")
+            updateSyncStatus(item.id, "synced");
           },
           SYNC_COMPLETION_MS + Math.random() * 3000,
-        )
-      })
+        );
+      });
 
       setTimeout(() => {
         notificationStore.addNotification({
           title: "Sync Complete",
           message: `${pendingItems.length} item(s) have been synced`,
           type: "success",
-        })
-      }, NOTIFICATION_DELAY_MS)
+        });
+      }, NOTIFICATION_DELAY_MS);
     },
 
     toggleSyncPause: () => {
@@ -250,7 +283,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const notificationStore = useNotificationStore.getState();
       notificationStore.addNotification({
         title: newPausedState ? "Sync Paused" : "Sync Resumed",
-        message: newPausedState ? "File synchronization has been paused" : "File synchronization has been resumed",
+        message: newPausedState
+          ? "File synchronization has been paused"
+          : "File synchronization has been resumed",
         type: "info",
       });
     },
@@ -269,17 +304,21 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         status: "uploading",
       }));
 
-      set(state => ({ uploads: [...state.uploads, ...uploadItems] }));
+      set((state) => ({ uploads: [...state.uploads, ...uploadItems] }));
 
       uploadItems.forEach((item) => {
         const interval = setInterval(() => {
-          set(state => ({
+          set((state) => ({
             uploads: state.uploads.map((upload) => {
               if (upload.id === item.id) {
                 const newProgress = Math.min(upload.progress + 10, 100);
                 if (newProgress === 100) {
                   clearInterval(interval);
-                  return { ...upload, progress: newProgress, status: "completed" };
+                  return {
+                    ...upload,
+                    progress: newProgress,
+                    status: "completed",
+                  };
                 }
                 return { ...upload, progress: newProgress };
               }
@@ -299,7 +338,11 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         syncStatus: "pending",
       }));
 
-      const addFiles = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+      const addFiles = (
+        items: FileSystemItem[],
+        path: string[],
+        depth: number,
+      ): FileSystemItem[] => {
         if (depth === path.length) {
           return [...items, ...newFiles];
         }
@@ -315,8 +358,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         });
       };
 
-      set(state => ({
-        fileSystem: addFiles([...state.fileSystem], currentPath, 0)
+      set((state) => ({
+        fileSystem: addFiles([...state.fileSystem], currentPath, 0),
       }));
 
       newFiles.forEach((file) => {
@@ -330,8 +373,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       });
 
       setTimeout(() => {
-        set(state => ({
-          uploads: state.uploads.filter(upload => upload.status !== "completed")
+        set((state) => ({
+          uploads: state.uploads.filter(
+            (upload) => upload.status !== "completed",
+          ),
         }));
       }, 5000);
 
@@ -350,7 +395,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const nonConflictingFiles: File[] = [];
 
       Array.from(files).forEach((file) => {
-        const existingItem = currentItems.find((item) => item.name === file.name);
+        const existingItem = currentItems.find(
+          (item) => item.name === file.name,
+        );
         if (existingItem) {
           conflictsList.push({
             file,
@@ -376,14 +423,15 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const { processFiles } = state;
 
       if (resolution === "replace") {
-        set(state => {
+        set((state) => {
           const deleteFile = (items: FileSystemItem[]): FileSystemItem[] => {
-            return items.filter(item => item.id !== conflict.existingItem.id)
-              .map(item => {
+            return items
+              .filter((item) => item.id !== conflict.existingItem.id)
+              .map((item) => {
                 if (item.type === "folder" && item.children) {
                   return {
                     ...item,
-                    children: deleteFile(item.children)
+                    children: deleteFile(item.children),
                   };
                 }
                 return item;
@@ -399,12 +447,14 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         const baseName = nameParts.join(".");
         const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
 
-        const newFile = new File([conflict.file], newName, { type: conflict.file.type });
+        const newFile = new File([conflict.file], newName, {
+          type: conflict.file.type,
+        });
         processFiles([newFile]);
       }
 
-      set(state => ({
-        conflicts: state.conflicts.filter(c => c.file !== conflict.file)
+      set((state) => ({
+        conflicts: state.conflicts.filter((c) => c.file !== conflict.file),
       }));
     },
 
@@ -413,16 +463,17 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const { conflicts, processFiles } = state;
 
       if (resolution === "replace") {
-        const itemIds = conflicts.map(conflict => conflict.existingItem.id);
+        const itemIds = conflicts.map((conflict) => conflict.existingItem.id);
 
-        set(state => {
+        set((state) => {
           const deleteFiles = (items: FileSystemItem[]): FileSystemItem[] => {
-            return items.filter(item => !itemIds.includes(item.id))
-              .map(item => {
+            return items
+              .filter((item) => !itemIds.includes(item.id))
+              .map((item) => {
                 if (item.type === "folder" && item.children) {
                   return {
                     ...item,
-                    children: deleteFiles(item.children)
+                    children: deleteFiles(item.children),
                   };
                 }
                 return item;
@@ -431,15 +482,17 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           return { fileSystem: deleteFiles([...state.fileSystem]) };
         });
 
-        const files = conflicts.map(conflict => conflict.file);
+        const files = conflicts.map((conflict) => conflict.file);
         processFiles(files);
       } else if (resolution === "rename") {
-        const files = conflicts.map(conflict => {
+        const files = conflicts.map((conflict) => {
           const nameParts = conflict.file.name.split(".");
           const extension = nameParts.length > 1 ? nameParts.pop() : "";
           const baseName = nameParts.join(".");
           const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
-          return new File([conflict.file], newName, { type: conflict.file.type });
+          return new File([conflict.file], newName, {
+            type: conflict.file.type,
+          });
         });
         processFiles(files);
       }
@@ -448,8 +501,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     },
 
     clearUpload: (id) => {
-      set(state => ({
-        uploads: state.uploads.filter(upload => upload.id !== id)
+      set((state) => ({
+        uploads: state.uploads.filter((upload) => upload.id !== id),
       }));
     },
 
@@ -462,7 +515,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
         // Collect all items from all found locations
-        const allItems = foundItems.flatMap(result => result.items);
+        const allItems = foundItems.flatMap((result) => result.items);
         // Use the path from the first result since we need a single source path
         const sourcePath = foundItems[0].path;
 
@@ -471,7 +524,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
             items: allItems,
             sourcePath: sourcePath,
             operation: "cut",
-          }
+          },
         });
 
         notificationStore.addNotification({
@@ -490,7 +543,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
         // Collect all items from all found locations
-        const allItems = foundItems.flatMap(result => result.items);
+        const allItems = foundItems.flatMap((result) => result.items);
         // Use the path from the first result since we need a single source path
         const sourcePath = foundItems[0].path;
 
@@ -499,7 +552,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
             items: allItems,
             sourcePath: sourcePath,
             operation: "copy",
-          }
+          },
         });
 
         notificationStore.addNotification({
@@ -524,7 +577,11 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       } else {
         const clonedItems = deepCloneItems(clipboard.items);
 
-        const addItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+        const addItems = (
+          items: FileSystemItem[],
+          path: string[],
+          depth: number,
+        ): FileSystemItem[] => {
           if (depth === path.length) {
             return [...items, ...clonedItems];
           }
@@ -540,8 +597,8 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        set(state => ({
-          fileSystem: addItems([...state.fileSystem], currentPath, 0)
+        set((state) => ({
+          fileSystem: addItems([...state.fileSystem], currentPath, 0),
         }));
 
         notificationStore.addNotification({
@@ -581,9 +638,13 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         };
 
         if (currentPath.length === 0) {
-          set(state => ({ fileSystem: [...state.fileSystem, newFolder] }));
+          set((state) => ({ fileSystem: [...state.fileSystem, newFolder] }));
         } else {
-          const updateFileSystem = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+          const updateFileSystem = (
+            items: FileSystemItem[],
+            path: string[],
+            depth: number,
+          ): FileSystemItem[] => {
             if (depth === path.length) {
               return [...items, newFolder];
             }
@@ -592,15 +653,19 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
               if (item.type === "folder" && item.name === path[depth]) {
                 return {
                   ...item,
-                  children: updateFileSystem(item.children || [], path, depth + 1),
+                  children: updateFileSystem(
+                    item.children || [],
+                    path,
+                    depth + 1,
+                  ),
                 };
               }
               return item;
             });
           };
 
-          set(state => ({
-            fileSystem: updateFileSystem([...state.fileSystem], currentPath, 0)
+          set((state) => ({
+            fileSystem: updateFileSystem([...state.fileSystem], currentPath, 0),
           }));
         }
 
@@ -644,9 +709,13 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         };
 
         if (currentPath.length === 0) {
-          set(state => ({ fileSystem: [...state.fileSystem, newFile] }));
+          set((state) => ({ fileSystem: [...state.fileSystem, newFile] }));
         } else {
-          const updateFileSystem = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+          const updateFileSystem = (
+            items: FileSystemItem[],
+            path: string[],
+            depth: number,
+          ): FileSystemItem[] => {
             if (depth === path.length) {
               return [...items, newFile];
             }
@@ -655,15 +724,19 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
               if (item.type === "folder" && item.name === path[depth]) {
                 return {
                   ...item,
-                  children: updateFileSystem(item.children || [], path, depth + 1),
+                  children: updateFileSystem(
+                    item.children || [],
+                    path,
+                    depth + 1,
+                  ),
                 };
               }
               return item;
             });
           };
 
-          set(state => ({
-            fileSystem: updateFileSystem([...state.fileSystem], currentPath, 0)
+          set((state) => ({
+            fileSystem: updateFileSystem([...state.fileSystem], currentPath, 0),
           }));
         }
 
@@ -713,7 +786,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        set(state => ({ fileSystem: findItems([...state.fileSystem]) }));
+        set((state) => ({ fileSystem: findItems([...state.fileSystem]) }));
 
         setSelectedItems([]);
 
@@ -769,7 +842,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        set(state => ({ fileSystem: renameItem(state.fileSystem) }));
+        set((state) => ({ fileSystem: renameItem(state.fileSystem) }));
 
         const detailsItem = findItemById(itemId);
         if (detailsItem && detailsItem.id === itemId) {
@@ -813,7 +886,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         const itemsToMove: FileSystemItem[] = [];
         let sourcePath: string[] = [];
 
-        const removeItems = (items: FileSystemItem[], path: string[] = []): FileSystemItem[] => {
+        const removeItems = (
+          items: FileSystemItem[],
+          path: string[] = [],
+        ): FileSystemItem[] => {
           const remainingItems = items.filter((item) => {
             if (itemIds.includes(item.id)) {
               itemsToMove.push({ ...item, syncStatus: "pending" });
@@ -834,7 +910,11 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        const addItems = (items: FileSystemItem[], path: string[], depth: number): FileSystemItem[] => {
+        const addItems = (
+          items: FileSystemItem[],
+          path: string[],
+          depth: number,
+        ): FileSystemItem[] => {
           if (depth === path.length) {
             return [...items, ...itemsToMove];
           }
@@ -850,7 +930,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        set(state => {
+        set((state) => {
           const newFileSystem = removeItems([...state.fileSystem]);
           return { fileSystem: addItems(newFileSystem, targetPath, 0) };
         });
@@ -895,7 +975,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         // Find the item before updating to check if it's currently displayed in details
         const originalItem = findItemById(itemId);
 
-        const updateItemPermissions = (items: FileSystemItem[]): FileSystemItem[] => {
+        const updateItemPermissions = (
+          items: FileSystemItem[],
+        ): FileSystemItem[] => {
           return items.map((item) => {
             if (item.id === itemId) {
               return {
@@ -915,7 +997,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           });
         };
 
-        set(state => ({ fileSystem: updateItemPermissions(state.fileSystem) }));
+        set((state) => ({
+          fileSystem: updateItemPermissions(state.fileSystem),
+        }));
 
         // Update the details panel if this item is currently displayed
         if (originalItem && originalItem.id === itemId) {
@@ -927,7 +1011,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
         notificationStore.addNotification({
           title: "Permissions Updated",
-          message: `Permissions for "${originalItem?.name || 'item'}" have been updated`,
+          message: `Permissions for "${originalItem?.name || "item"}" have been updated`,
           type: "success",
         });
       } catch (error) {
@@ -947,7 +1031,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       let current = fileSystem;
 
       for (const segment of currentPath) {
-        const folder = current.find((item) => item.type === "folder" && item.name === segment);
+        const folder = current.find(
+          (item) => item.type === "folder" && item.name === segment,
+        );
         if (folder && folder.type === "folder" && folder.children) {
           current = folder.children;
         } else {
@@ -970,7 +1056,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           syncStatus: "hidden" as const,
-          size: getCurrentItems().reduce((total, item) => total + (item.size || 0), 0),
+          size: getCurrentItems().reduce(
+            (total, item) => total + (item.size || 0),
+            0,
+          ),
         };
       }
 
@@ -979,7 +1068,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
       for (let i = 0; i < currentPath.length; i++) {
         const segment = currentPath[i];
-        const folder = current.find(item => item.type === "folder" && item.name === segment);
+        const folder = current.find(
+          (item) => item.type === "folder" && item.name === segment,
+        );
 
         if (folder && folder.type === "folder" && folder.children) {
           current = folder.children;
@@ -1012,7 +1103,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         // For now, we just re-set the file system from the mock data
         set({
           fileSystem: [...mockFileSystem],
-          isRefreshing: false
+          isRefreshing: false,
         });
       }, 750); // Show refreshing state for at least 750ms
     },

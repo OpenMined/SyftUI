@@ -1,30 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Responsive, WidthProvider } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
-import { v4 as uuidv4 } from 'uuid';
-import { Button } from '@/components/ui/button';
-import { Widget } from './widget-base';
+import { useState, useEffect } from "react";
+import { Responsive, WidthProvider } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import { v4 as uuidv4 } from "uuid";
+import { Button } from "@/components/ui/button";
+import { Widget } from "./widget-base";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DashboardLayout,
   availableWidgets,
   loadDashboardLayout,
   saveDashboardLayout,
-  WidgetDefinition
-} from './mock-data';
-import { Check, BarChart2, Inbox, List, Server, Send } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+  WidgetDefinition,
+} from "./mock-data";
+import { Check, BarChart2, Inbox, List, Server, Send } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 // LocalStorage key for saving dashboard layout
-const DASHBOARD_LAYOUT_KEY = 'syftui-dashboard-layout';
+const DASHBOARD_LAYOUT_KEY = "syftui-dashboard-layout";
 
 // Apply width provider to the responsive grid layout
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -49,24 +49,33 @@ interface DashboardProps {
   initialEditMode?: boolean;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false }) => {
+export const Dashboard: React.FC<DashboardProps> = ({
+  initialEditMode = false,
+}) => {
   const [isEditing, setIsEditing] = useState(initialEditMode);
-  const [originalLayout, setOriginalLayout] = useState<DashboardLayout | null>(null);
+  const [originalLayout, setOriginalLayout] = useState<DashboardLayout | null>(
+    null,
+  );
   const [isAddWidgetDialogOpen, setIsAddWidgetDialogOpen] = useState(false);
-  const [selectedWidgetType, setSelectedWidgetType] = useState<string | null>(null);
-  const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout | null>(null);
+  const [selectedWidgetType, setSelectedWidgetType] = useState<string | null>(
+    null,
+  );
+  const [dashboardLayout, setDashboardLayout] =
+    useState<DashboardLayout | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
 
   // Check if localStorage is available
   useEffect(() => {
     try {
-      localStorage.setItem('storage-test', 'test');
-      localStorage.removeItem('storage-test');
+      localStorage.setItem("storage-test", "test");
+      localStorage.removeItem("storage-test");
       setStorageAvailable(true);
     } catch (error) {
-      console.error('localStorage is not available:', error);
+      console.error("localStorage is not available:", error);
       setStorageAvailable(false);
-      console.warn('localStorage is not available. Layout will not persist between sessions.');
+      console.warn(
+        "localStorage is not available. Layout will not persist between sessions.",
+      );
     }
   }, []);
 
@@ -82,13 +91,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
           if (savedLayout) {
             try {
               layout = JSON.parse(savedLayout);
-              console.log('Loaded layout from localStorage');
+              console.log("Loaded layout from localStorage");
               setDashboardLayout(layout);
               // Store original layout for reset functionality
               setOriginalLayout(JSON.parse(JSON.stringify(layout)));
               return;
             } catch (error) {
-              console.warn('Failed to parse saved layout, falling back to default', error);
+              console.warn(
+                "Failed to parse saved layout, falling back to default",
+                error,
+              );
               // If parsing fails, continue to load default layout
             }
           }
@@ -100,12 +112,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
         // Store original layout for reset functionality
         setOriginalLayout(JSON.parse(JSON.stringify(layout)));
       } catch (error) {
-        console.error('Failed to load dashboard layout:', error);
+        console.error("Failed to load dashboard layout:", error);
         toast({
           variant: "destructive",
           title: "Error",
           description: "Failed to load dashboard layout",
-          icon: "❌"
+          icon: "❌",
         });
       }
     };
@@ -114,7 +126,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   }, [storageAvailable]);
 
   // Save layout on changes
-  const saveLayout = async (layout: DashboardLayout, updateOriginal: boolean = false) => {
+  const saveLayout = async (
+    layout: DashboardLayout,
+    updateOriginal: boolean = false,
+  ) => {
     try {
       // Save to localStorage if available
       if (storageAvailable) {
@@ -132,21 +147,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       toast({
         title: "Success",
         description: "Dashboard layout saved",
-        icon: "✅"
+        icon: "✅",
       });
     } catch (error) {
-      console.error('Failed to save dashboard layout:', error);
+      console.error("Failed to save dashboard layout:", error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to save dashboard layout",
-        icon: "❌"
+        icon: "❌",
       });
     }
   };
 
   // Handle layout change
-  const handleLayoutChange = (layout: ReactGridLayout.Layout, layouts: ReactGridLayout.Layouts) => {
+  const handleLayoutChange = (
+    layout: ReactGridLayout.Layout,
+    layouts: ReactGridLayout.Layouts,
+  ) => {
     if (!dashboardLayout || !layouts) return;
 
     const updatedLayout: DashboardLayout = {
@@ -162,7 +180,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   const handleAddWidget = () => {
     if (!selectedWidgetType || !dashboardLayout) return;
 
-    const widgetToAdd = availableWidgets.find(w => w.type === selectedWidgetType);
+    const widgetToAdd = availableWidgets.find(
+      (w) => w.type === selectedWidgetType,
+    );
     if (!widgetToAdd) return;
 
     const newWidgetId = `widget-${uuidv4()}`;
@@ -177,7 +197,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     const currentLayoutCount = dashboardLayout.widgets.length;
     const newLayoutItem = {
       i: newWidgetId,
-      x: currentLayoutCount % 2 * 2,
+      x: (currentLayoutCount % 2) * 2,
       y: Math.floor(currentLayoutCount / 2) * 2,
       w: widgetToAdd.width,
       h: widgetToAdd.height,
@@ -187,19 +207,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
     // Update layouts for all breakpoints
     const updatedLayouts = { ...dashboardLayout.layouts };
-    Object.keys(updatedLayouts).forEach(breakpoint => {
-      if (breakpoint === 'xs' || breakpoint === 'xxs') {
+    Object.keys(updatedLayouts).forEach((breakpoint) => {
+      if (breakpoint === "xs" || breakpoint === "xxs") {
         updatedLayouts[breakpoint] = [
           ...updatedLayouts[breakpoint],
-          { ...newLayoutItem, w: 1, x: 0, y: updatedLayouts[breakpoint].length * 2 }
+          {
+            ...newLayoutItem,
+            w: 1,
+            x: 0,
+            y: updatedLayouts[breakpoint].length * 2,
+          },
         ];
-      } else if (breakpoint === 'sm') {
+      } else if (breakpoint === "sm") {
         updatedLayouts[breakpoint] = [
           ...updatedLayouts[breakpoint],
-          { ...newLayoutItem, w: 2, x: 0, y: updatedLayouts[breakpoint].length * 2 }
+          {
+            ...newLayoutItem,
+            w: 2,
+            x: 0,
+            y: updatedLayouts[breakpoint].length * 2,
+          },
         ];
       } else {
-        updatedLayouts[breakpoint] = [...updatedLayouts[breakpoint], newLayoutItem];
+        updatedLayouts[breakpoint] = [
+          ...updatedLayouts[breakpoint],
+          newLayoutItem,
+        ];
       }
     });
 
@@ -217,7 +250,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     toast({
       title: "Widget Added",
       description: `Added ${widgetToAdd.title} widget`,
-      icon: "➕"
+      icon: "➕",
     });
   };
 
@@ -226,12 +259,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     if (!dashboardLayout) return;
 
     // Filter out the widget to remove
-    const updatedWidgets = dashboardLayout.widgets.filter(w => w.id !== widgetId);
+    const updatedWidgets = dashboardLayout.widgets.filter(
+      (w) => w.id !== widgetId,
+    );
 
     // Update layouts for all breakpoints
     const updatedLayouts = { ...dashboardLayout.layouts };
-    Object.keys(updatedLayouts).forEach(breakpoint => {
-      updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(item => item.i !== widgetId);
+    Object.keys(updatedLayouts).forEach((breakpoint) => {
+      updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(
+        (item) => item.i !== widgetId,
+      );
     });
 
     // Update dashboard layout state without saving
@@ -246,7 +283,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     toast({
       title: "Widget Removed",
       description: "Widget has been removed from dashboard",
-      icon: "🗑️"
+      icon: "🗑️",
     });
   };
 
@@ -272,7 +309,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     toast({
       title: "Changes Discarded",
       description: "Edit changes have been discarded",
-      icon: "ℹ️"
+      icon: "ℹ️",
     });
   };
 
@@ -286,23 +323,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
       // Save to localStorage if available
       if (storageAvailable) {
-        localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(defaultLayout));
+        localStorage.setItem(
+          DASHBOARD_LAYOUT_KEY,
+          JSON.stringify(defaultLayout),
+        );
       }
 
       toast({
         title: "Dashboard Reset",
         description: "Dashboard has been reset to default layout",
-        icon: "🔄"
+        icon: "🔄",
       });
       // Exit edit mode
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to reset dashboard:', error);
+      console.error("Failed to reset dashboard:", error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to reset dashboard",
-        icon: "❌"
+        icon: "❌",
       });
     }
   };
@@ -314,7 +354,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
         toggleEditMode,
         openAddWidgetDialog: () => setIsAddWidgetDialogOpen(true),
         cancelEditMode,
-        resetDashboard
+        resetDashboard,
       };
     }
     return () => {
@@ -326,9 +366,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
   // Render dashboard
   return (
-    <div className="h-full relative">
+    <div className="relative h-full">
       {dashboardLayout && (
-        <div className={`p-4 ${isEditing ? 'dashboard-editing' : ''}`}>
+        <div className={`p-4 ${isEditing ? "dashboard-editing" : ""}`}>
           <ResponsiveGridLayout
             className="layout"
             layouts={dashboardLayout.layouts}
@@ -345,7 +385,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
             useCSSTransforms={true}
             compactType="vertical"
           >
-            {dashboardLayout.widgets.map(widget => (
+            {dashboardLayout.widgets.map((widget) => (
               <div key={widget.id} className="widget-container select-none">
                 <Widget
                   widget={widget}
@@ -359,7 +399,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       )}
 
       {/* Add Widget Dialog */}
-      <Dialog open={isAddWidgetDialogOpen} onOpenChange={setIsAddWidgetDialogOpen}>
+      <Dialog
+        open={isAddWidgetDialogOpen}
+        onOpenChange={setIsAddWidgetDialogOpen}
+      >
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle>Add Widget</DialogTitle>
@@ -368,28 +411,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-4">
-            {availableWidgets.map(widget => (
+            {availableWidgets.map((widget) => (
               <div
                 key={widget.type}
-                className={`
-                  border rounded-lg p-3 cursor-pointer transition-all flex items-center justify-between
-                  ${selectedWidgetType === widget.type ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-                `}
+                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${selectedWidgetType === widget.type ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"} `}
                 onClick={() => setSelectedWidgetType(widget.type)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex items-center justify-center">
+                  <div className="bg-primary/10 flex items-center justify-center rounded-full p-2">
                     {getWidgetIcon(widget.type)}
                   </div>
                   <div>
                     <h3 className="font-medium">{widget.title}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {widget.subtitle || getWidgetDescription(widget.type)}
                     </p>
                   </div>
                 </div>
                 {selectedWidgetType === widget.type && (
-                  <div className="w-5 h-5 text-primary">
+                  <div className="text-primary h-5 w-5">
                     <Check className="h-5 w-5" />
                   </div>
                 )}
@@ -397,13 +437,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
             ))}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddWidgetDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddWidgetDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button
-              onClick={handleAddWidget}
-              disabled={!selectedWidgetType}
-            >
+            <Button onClick={handleAddWidget} disabled={!selectedWidgetType}>
               Add Widget
             </Button>
           </DialogFooter>
@@ -412,8 +452,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 
       {/* Mobile editing instructions */}
       {isEditing && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 md:hidden">
-          <p className="text-sm text-center">
+        <div className="bg-background fixed right-0 bottom-0 left-0 border-t p-4 md:hidden">
+          <p className="text-center text-sm">
             Tap and hold widget headers to move. Drag edges to resize.
           </p>
         </div>
@@ -451,16 +491,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
 // Helper function to get widget icon
 function getWidgetIcon(type: string): React.ReactNode {
   switch (type) {
-    case 'api-requests':
-      return <Inbox className="h-4 w-4 text-primary" />;
-    case 'api-broadcast':
-      return <Send className="h-4 w-4 text-primary" />;
-    case 'queue-rpc':
-      return <Server className="h-4 w-4 text-primary" />;
-    case 'projects-rds':
-      return <List className="h-4 w-4 text-primary" />;
-    case 'system-load':
-      return <BarChart2 className="h-4 w-4 text-primary" />;
+    case "api-requests":
+      return <Inbox className="text-primary h-4 w-4" />;
+    case "api-broadcast":
+      return <Send className="text-primary h-4 w-4" />;
+    case "queue-rpc":
+      return <Server className="text-primary h-4 w-4" />;
+    case "projects-rds":
+      return <List className="text-primary h-4 w-4" />;
+    case "system-load":
+      return <BarChart2 className="text-primary h-4 w-4" />;
     default:
       return <div className="h-4 w-4" />;
   }
@@ -469,15 +509,15 @@ function getWidgetIcon(type: string): React.ReactNode {
 // Helper function to get widget description
 function getWidgetDescription(type: string): string {
   switch (type) {
-    case 'api-requests':
-      return 'View and manage incoming API requests';
-    case 'queue-rpc':
-      return 'Monitor RPC queue status and progress';
-    case 'projects-rds':
-      return 'Track remote data science projects';
-    case 'system-load':
-      return 'Monitor system resource usage';
+    case "api-requests":
+      return "View and manage incoming API requests";
+    case "queue-rpc":
+      return "Monitor RPC queue status and progress";
+    case "projects-rds":
+      return "Track remote data science projects";
+    case "system-load":
+      return "Monitor system resource usage";
     default:
-      return 'Widget description';
+      return "Widget description";
   }
 }

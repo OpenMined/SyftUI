@@ -1,210 +1,264 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <title>API requests</title>
+    <meta name="description" content="View and manage incoming API requests" />
+    <meta name="author" content="OpenMined Foundation" />
+    <style>
+      .request-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
 
-<head>
-  <title>API requests</title>
-  <meta name="description" content="View and manage incoming API requests">
-  <meta name="author" content="OpenMined Foundation">
-  <style>
-    .request-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+      .request-item {
+        background: var(--widget-bg, #ffffff);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: row;
+        gap: 0.75rem;
+        justify-content: flex-start;
+        position: relative;
+        width: 100%;
+        padding: 0.5rem;
+        transition-property:
+          color, background-color, border-color, text-decoration-color, fill,
+          stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
 
-    .request-item {
-      background: var(--widget-bg, #ffffff);
-      border-radius: 0.5rem;
-      cursor: pointer;
-      display: flex;
-      flex-direction: row;
-      gap: 0.75rem;
-      justify-content: flex-start;
-      position: relative;
-      width: 100%;
-      padding: 0.5rem;
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
-    }
+      .request-item:hover {
+        background: var(--widget-bg-muted);
+      }
 
-    .request-item:hover {
-      background: var(--widget-bg-muted);
-    }
+      .request-info {
+        flex-grow: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    .request-info {
-      flex-grow: 1;
-      text-align: left;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      .request-title {
+        color: var(--widget-text, #1f2937);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
 
-    .request-title {
-      color: var(--widget-text, #1f2937);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-    }
+      .request-desc {
+        color: var(--widget-muted, #6b7280);
+        font-size: 0.75rem;
+        line-height: 1rem;
+      }
 
-    .request-desc {
-      color: var(--widget-muted, #6b7280);
-      font-size: 0.75rem;
-      line-height: 1rem;
-    }
+      .actions {
+        display: flex;
+        gap: 0.25rem;
+      }
 
-    .actions {
-      display: flex;
-      gap: 0.25rem;
-    }
+      .btn {
+        border: none;
+        border-radius: 0.5rem;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: transparent;
+        transition: all 0.2s;
+      }
 
-    .btn {
-      border: none;
-      border-radius: 0.5rem;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      background: transparent;
-      transition: all 0.2s;
-    }
+      .btn svg {
+        min-width: 20px;
+        min-height: 20px;
+      }
 
-    .btn svg {
-      min-width: 20px;
-      min-height: 20px;
-    }
+      .btn-accept {
+        color: var(--widget-success, #10b981);
+      }
 
-    .btn-accept {
-      color: var(--widget-success, #10b981);
-    }
+      .btn-accept:hover {
+        background: rgba(16, 185, 129, 0.1);
+      }
 
-    .btn-accept:hover {
-      background: rgba(16, 185, 129, 0.1);
-    }
+      .btn-reject {
+        color: var(--widget-danger, #ef4444);
+      }
 
-    .btn-reject {
-      color: var(--widget-danger, #ef4444);
-    }
+      .btn-reject:hover {
+        background: rgba(239, 68, 68, 0.1);
+      }
 
-    .btn-reject:hover {
-      background: rgba(239, 68, 68, 0.1);
-    }
+      .empty-state {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--widget-muted, #6b7280);
+        font-size: 15px;
+        border: 2px dashed var(--widget-border, #e5e7eb);
+        border-radius: 8px;
+        margin-top: 12px;
+      }
+    </style>
+  </head>
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 0;
-      color: var(--widget-muted, #6b7280);
-      font-size: 15px;
-      border: 2px dashed var(--widget-border, #e5e7eb);
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="request-list">
-    <div class="request-item">
-      <div class="request-info">
-        <p class="request-title">Add User Authentication</p>
-        <p class="request-desc">Implement OAuth2 flow</p>
+  <body>
+    <div class="request-list">
+      <div class="request-item">
+        <div class="request-info">
+          <p class="request-title">Add User Authentication</p>
+          <p class="request-desc">Implement OAuth2 flow</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-accept" title="Accept">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </button>
+          <button class="btn btn-reject" title="Reject">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn btn-accept" title="Accept">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-        </button>
-        <button class="btn btn-reject" title="Reject">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+
+      <div class="request-item">
+        <div class="request-info">
+          <p class="request-title">Create PDF Export API</p>
+          <p class="request-desc">Generate reports as PDF</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-accept" title="Accept">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </button>
+          <button class="btn btn-reject" title="Reject">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="request-item">
+        <div class="request-info">
+          <p class="request-title">Fix CORS issues</p>
+          <p class="request-desc">Update middleware config</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-accept" title="Accept">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </button>
+          <button class="btn btn-reject" title="Reject">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="request-item">
-      <div class="request-info">
-        <p class="request-title">Create PDF Export API</p>
-        <p class="request-desc">Generate reports as PDF</p>
-      </div>
-      <div class="actions">
-        <button class="btn btn-accept" title="Accept">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-        </button>
-        <button class="btn btn-reject" title="Reject">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
+    <script type="text/javascript">
+      // Add event listeners for buttons
+      document.querySelectorAll(".btn").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          // Animation for feedback
+          this.style.transform = "scale(0.9)";
+          setTimeout(() => (this.style.transform = "scale(1)"), 100);
 
-    <div class="request-item">
-      <div class="request-info">
-        <p class="request-title">Fix CORS issues</p>
-        <p class="request-desc">Update middleware config</p>
-      </div>
-      <div class="actions">
-        <button class="btn btn-accept" title="Accept">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-        </button>
-        <button class="btn btn-reject" title="Reject">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
+          // Remove item (just for demo)
+          const item = this.closest(".request-item");
+          item.style.opacity = "0";
+          item.style.height = "0";
+          item.style.marginTop = "0";
+          item.style.marginBottom = "0";
+          item.style.padding = "0";
+          item.style.overflow = "hidden";
+          item.style.transition = "all 0.3s ease";
 
-  <script type="text/javascript">
-    // Add event listeners for buttons
-    document.querySelectorAll('.btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        // Animation for feedback
-        this.style.transform = 'scale(0.9)';
-        setTimeout(() => this.style.transform = 'scale(1)', 100);
-
-        // Remove item (just for demo)
-        const item = this.closest('.request-item');
-        item.style.opacity = '0';
-        item.style.height = '0';
-        item.style.marginTop = '0';
-        item.style.marginBottom = '0';
-        item.style.padding = '0';
-        item.style.overflow = 'hidden';
-        item.style.transition = 'all 0.3s ease';
-
-        setTimeout(() => {
-          item.remove();
-          if (document.querySelectorAll('.request-item').length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.innerHTML = '<p>No API requests in inbox</p>';
-            document.querySelector('.request-list').appendChild(emptyState);
-          }
-        }, 300);
+          setTimeout(() => {
+            item.remove();
+            if (document.querySelectorAll(".request-item").length === 0) {
+              const emptyState = document.createElement("div");
+              emptyState.className = "empty-state";
+              emptyState.innerHTML = "<p>No API requests in inbox</p>";
+              document.querySelector(".request-list").appendChild(emptyState);
+            }
+          }, 300);
+        });
       });
-    });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
