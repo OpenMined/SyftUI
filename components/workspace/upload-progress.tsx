@@ -21,8 +21,6 @@ interface UploadProgressProps {
 
 export function UploadProgress({ uploads, onClear }: UploadProgressProps) {
   const activeUploads = uploads.filter((upload) => upload.status === "uploading")
-  const completedUploads = uploads.filter((upload) => upload.status === "completed")
-  const errorUploads = uploads.filter((upload) => upload.status === "error")
 
   const totalProgress =
     activeUploads.length > 0

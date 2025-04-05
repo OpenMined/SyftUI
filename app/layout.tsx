@@ -2,8 +2,8 @@
 
 import "./globals.css"
 import type React from "react"
-import { useEffect, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { useSidebarStore } from "@/stores"
 import { Sidebar } from "@/components/sidebar"
@@ -16,11 +16,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const { sidebarOpen, setSidebarOpen } = useSidebarStore()
   const pathname = usePathname()
   const isHomePage = pathname === '/' || pathname === ''
-  const [isMounted, setIsMounted] = useState(false);
 
   // Run initialization once when the app starts
   useEffect(() => {
-    setIsMounted(true);
     if (typeof window !== 'undefined') {
       initializationService.initialize().catch(console.error);
     }
@@ -28,7 +26,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
-      {isMounted && !isHomePage && (
+      {!isHomePage && (
         <div className={`fixed inset-0 z-40 md:relative md:z-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           } md:w-64 shrink-0`}>
           <Sidebar closeSidebar={() => setSidebarOpen(false)} />
@@ -55,8 +53,8 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <NuqsAdapter>
-          <MainLayout>{children}</MainLayout>
-          <Toaster />
+            <MainLayout>{children}</MainLayout>
+            <Toaster />
           </NuqsAdapter>
         </ThemeProvider>
       </body>

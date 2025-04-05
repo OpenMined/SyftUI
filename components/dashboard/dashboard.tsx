@@ -20,7 +20,7 @@ import {
   saveDashboardLayout,
   WidgetDefinition
 } from './mock-data';
-import { Pencil, Plus, Check, X, BarChart2, Inbox, List, Server, Send } from 'lucide-react';
+import { Check, BarChart2, Inbox, List, Server, Send } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // LocalStorage key for saving dashboard layout
@@ -55,7 +55,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   const [isAddWidgetDialogOpen, setIsAddWidgetDialogOpen] = useState(false);
   const [selectedWidgetType, setSelectedWidgetType] = useState<string | null>(null);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout | null>(null);
-  const [loading, setLoading] = useState(true);
   const [storageAvailable, setStorageAvailable] = useState(true);
 
   // Check if localStorage is available
@@ -64,7 +63,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       localStorage.setItem('storage-test', 'test');
       localStorage.removeItem('storage-test');
       setStorageAvailable(true);
-    } catch (e) {
+    } catch (error) {
+      console.error('localStorage is not available:', error);
       setStorageAvailable(false);
       console.warn('localStorage is not available. Layout will not persist between sessions.');
     }
@@ -86,10 +86,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
               setDashboardLayout(layout);
               // Store original layout for reset functionality
               setOriginalLayout(JSON.parse(JSON.stringify(layout)));
-              setLoading(false);
               return;
-            } catch (e) {
-              console.warn('Failed to parse saved layout, falling back to default');
+            } catch (error) {
+              console.warn('Failed to parse saved layout, falling back to default', error);
               // If parsing fails, continue to load default layout
             }
           }
@@ -108,8 +107,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
           description: "Failed to load dashboard layout",
           icon: "❌"
         });
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -149,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   };
 
   // Handle layout change
-  const handleLayoutChange = (layout: any, layouts: any) => {
+  const handleLayoutChange = (layout: ReactGridLayout.Layout, layouts: ReactGridLayout.Layouts) => {
     if (!dashboardLayout || !layouts) return;
 
     const updatedLayout: DashboardLayout = {
@@ -160,8 +157,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
     // Just update the state without saving to storage
     setDashboardLayout(updatedLayout);
   };
-
-
 
   // Handle adding a new widget
   const handleAddWidget = () => {
@@ -284,7 +279,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
   // Handle resetting dashboard to default
   const resetDashboard = async () => {
     try {
-      setLoading(true);
       // Load default layout from backend
       const defaultLayout = await loadDashboardLayout();
       setDashboardLayout(defaultLayout);
@@ -310,8 +304,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
         description: "Failed to reset dashboard",
         icon: "❌"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -331,15 +323,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialEditMode = false })
       }
     };
   }, [toggleEditMode, cancelEditMode, resetDashboard]);
-
-  // Render loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   // Render dashboard
   return (

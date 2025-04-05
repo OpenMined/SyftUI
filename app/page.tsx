@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { useTheme } from "next-themes"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -15,7 +13,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
     ConnectionFormValues,
-    ConnectionStatus as StatusType,
     DEFAULT_CONNECTION_SETTINGS,
     connectionFormSchema,
     useConnectionStore
@@ -23,11 +20,9 @@ import {
 import { toast } from "@/hooks/use-toast"
 import { LogoComponent } from "@/components/logo"
 import { FloatingConnectionStatus } from "@/components/floating-connection-status"
-import { ConnectionStatus } from "@/components/connection/connection-status"
 
 export default function HomePage() {
     const router = useRouter()
-    const { theme } = useTheme()
     const [mounted, setMounted] = useState(false)
     const [step, setStep] = useState<"connect" | "configure" | "email" | "verify">("connect")
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -36,7 +31,6 @@ export default function HomePage() {
     const [showToken, setShowToken] = useState(false)
 
     const {
-        settings,
         updateSettings,
         status,
         connect,
@@ -145,7 +139,7 @@ export default function HomePage() {
         })
     }
 
-    const handleConfigureClient = (values: ConfigFormValues) => {
+    const handleConfigureClient = () => {
         setIsLoading(true);
 
         // Simulate saving configuration
@@ -155,7 +149,7 @@ export default function HomePage() {
         }, 750);
     }
 
-    const handleSendVerification = (values: VerificationFormValues) => {
+    const handleSendVerification = () => {
         setIsLoading(true);
 
         // Simulate sending verification email
@@ -165,7 +159,7 @@ export default function HomePage() {
         }, 750);
     };
 
-    const handleCompleteSetup = (values: VerificationFormValues) => {
+    const handleCompleteSetup = () => {
         setIsLoading(true)
 
         // Simulate token verification
@@ -436,7 +430,7 @@ export default function HomePage() {
                                                 />
                                             </FormControl>
                                             <FormMessage />
-                                            <p className="text-sm text-muted-foreground">Also check your spam folder if you don't see the email.</p>
+                                            <p className="text-sm text-muted-foreground">Also check your spam folder if you don&apos;t see the email.</p>
                                         </FormItem>
                                     )}
                                 />

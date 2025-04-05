@@ -222,10 +222,9 @@ interface ConnectionLineProps {
     status: ConnectionStatus
     latency?: number
   }
-  isLast: boolean
 }
 
-function ConnectionLine({ connection, isLast }: ConnectionLineProps) {
+function ConnectionLine({ connection }: ConnectionLineProps) {
   if (!connection) return null
 
   const { status, latency } = connection

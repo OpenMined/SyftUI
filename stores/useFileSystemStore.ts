@@ -86,7 +86,7 @@ interface FileSystemState {
 export const useFileSystemStore = create<FileSystemState>((set, get) => {
   return {
     // Initial state
-    fileSystem: [],
+    fileSystem: mockFileSystem,
     currentPath: [],
     selectedItems: [],
     viewMode: 'grid',
@@ -1024,12 +1024,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 export const initializeFileSystemStore = (
   fileSystem: FileSystemItem[],
   initialPath: string[] = [],
-  initialViewMode: 'grid' | 'list' = 'grid',
 ) => {
   const store = useFileSystemStore.getState();
 
   // Initialize state
   store.setFileSystem(fileSystem);
   store.setCurrentPath(initialPath);
-  store.setViewMode(initialViewMode);
 };

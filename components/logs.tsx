@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react"
 import { ScrollText, Download, Trash2, Pause, Play, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,6 +12,8 @@ import { mockApps } from "@/lib/mock-apps"
 import { mockLogs } from "@/lib/mock-logs"
 import { cn } from "@/lib/utils"
 
+const installedApps = [{ id: "system", name: "System" }, ...mockApps.filter(app => app.installed)];
+const levels: Log["level"][] = ["debug", "info", "warn", "error"]
 interface Log {
     timestamp: string
     app: string
@@ -27,8 +28,6 @@ export function Logs() {
     const [filterApp, setFilterApp] = useState<string | null>(null)
     const [filterLevel, setFilterLevel] = useState<string | null>(null)
     const [isAutoScroll, setIsAutoScroll] = useState(true)
-    const installedApps = [{ id: "system", name: "System" }, ...mockApps.filter(app => app.installed)];
-    const levels: Log["level"][] = ["debug", "info", "warn", "error"]
     const scrollAreaRef = useRef<HTMLDivElement>(null)
 
     // Mock log stream generation

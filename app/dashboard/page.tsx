@@ -3,7 +3,7 @@
 import { Toolbar } from "@/components/ui/toolbar"
 import { Check, LayoutDashboard, Pencil, Plus, X, RotateCcw } from "lucide-react"
 import { Dashboard } from "@/components/dashboard"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,

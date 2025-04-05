@@ -1,9 +1,9 @@
 "use client"
 
 import { useQueryState } from 'nuqs'
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ShoppingBag, Search, Plus, Filter, ArrowUpDown } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ShoppingBag, Search, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -16,7 +16,7 @@ import { toast } from "@/hooks/use-toast"
 
 export default function MarketplacePage() {
     const router = useRouter();
-    const [selectedApp, setSelectedApp] = useQueryState('id')
+    const [selectedApp] = useQueryState('id')
     const [searchQuery, setSearchQuery] = useState("")
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
     const [repoUrl, setRepoUrl] = useState("")

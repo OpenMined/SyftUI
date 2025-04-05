@@ -1,4 +1,4 @@
-import { useFileSystemStore } from '@/stores/useFileSystemStore';
+import type { FileSystemItem } from "@/lib/types"
 
 /**
  * Find a file in the file system by its name and parent path
@@ -7,12 +7,12 @@ import { useFileSystemStore } from '@/stores/useFileSystemStore';
  * @param fileName Name of the file to find
  * @returns The file system item if found, or null
  */
-export function findFileInPath(fileSystem: any[], dirPath: string[], fileName: string): any | null {
+export function findFileInPath(fileSystem: FileSystemItem[], dirPath: string[], fileName: string): FileSystemItem | null {
   // Navigate to the directory
   let current = fileSystem;
 
   for (const segment of dirPath) {
-    const folder = current.find((item: any) => item.type === 'folder' && item.name === segment);
+    const folder = current.find((item: FileSystemItem) => item.type === 'folder' && item.name === segment);
     if (folder && folder.children) {
       current = folder.children;
     } else {
@@ -21,7 +21,7 @@ export function findFileInPath(fileSystem: any[], dirPath: string[], fileName: s
   }
 
   // Look for the file in the current directory
-  return current.find((item: any) => item.type === 'file' && item.name === fileName) || null;
+  return current.find((item: FileSystemItem) => item.type === 'file' && item.name === fileName) || null;
 }
 
 /**
@@ -68,7 +68,7 @@ export function getPathFromUrl(): string[] {
  * @param fileSystem The file system structure to check against
  * @returns Object with dirPath and fileName
  */
-export function processPath(path: string[], fileSystem?: any[]): { dirPath: string[], fileName: string | null } {
+export function processPath(path: string[], fileSystem?: FileSystemItem[]): { dirPath: string[], fileName: string | null } {
   if (path.length === 0) {
     return { dirPath: [], fileName: null };
   }
@@ -87,7 +87,7 @@ export function processPath(path: string[], fileSystem?: any[]): { dirPath: stri
   // Navigate through the path segments
   while (i < path.length - 1 && current) {
     const segment = path[i];
-    const folder = current.find((item: any) => item.type === 'folder' && item.name === segment);
+    const folder = current.find((item: FileSystemItem) => item.type === 'folder' && item.name === segment);
 
     if (folder && folder.children) {
       current = folder.children;
@@ -104,7 +104,7 @@ export function processPath(path: string[], fileSystem?: any[]): { dirPath: stri
   // Now we've navigated to the last directory, check if the last segment is a file
   if (current && i < path.length) {
     const lastSegment = path[i];
-    const item = current.find((item: any) => item.name === lastSegment);
+    const item = current.find((item: FileSystemItem) => item.name === lastSegment);
 
     if (item && item.type === 'file') {
       isLastSegmentFile = true;

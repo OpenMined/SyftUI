@@ -6,7 +6,6 @@ import { Breadcrumb } from "@/components/workspace/breadcrumb"
 import { FileToolbar } from "@/components/workspace/file-toolbar"
 import { FilePreview } from "@/components/workspace/file-preview"
 import { FileDetails } from "@/components/workspace/file-details"
-import { useNotificationStore } from "@/stores"
 import { UploadProgress } from "@/components/workspace/upload-progress"
 import { FileConflictDialog } from "@/components/workspace/file-conflict-dialog"
 import { SyncStatusDialog } from "@/components/workspace/sync-status-dialog"
@@ -17,24 +16,10 @@ import { updateUrlWithPath, getPathFromUrl, processPath, findFileInPath } from "
 import { useFileSystemStore, initializeFileSystemStore } from "@/stores/useFileSystemStore"
 
 interface FileManagerProps {
-  fileSystem: FileSystemItem[]
-  setFileSystem: React.Dispatch<React.SetStateAction<FileSystemItem[]>>
-  initialViewMode: "grid" | "list"
   initialPath?: string[]
-  onViewModeChange: (mode: "grid" | "list") => void
 }
 
-interface FileManagerContentProps {
-  initialViewMode: "grid" | "list"
-  onViewModeChange: (mode: "grid" | "list") => void
-}
-
-function FileManagerContent({
-  initialViewMode,
-  onViewModeChange,
-}: FileManagerContentProps) {
-  const { addNotification } = useNotificationStore()
-
+export function FileManager({ initialPath = [] }: FileManagerProps) {
   // Stores
   const {
     clipboard,
@@ -42,6 +27,7 @@ function FileManagerContent({
     copyItems,
     pasteItems,
     fileSystem,
+    setFileSystem,
     currentPath,
     selectedItems,
     viewMode,
@@ -51,7 +37,6 @@ function FileManagerContent({
     navigateTo,
     setPreviewFile,
     setDetailsItem,
-    setViewMode,
     getCurrentItems,
     getCurrentDirectoryInfo,
     updateDetailsWithDirectory,
@@ -59,7 +44,6 @@ function FileManagerContent({
     setSyncDialogOpen,
     syncPaused,
     setSyncPaused,
-    toggleSyncPause,
     uploads,
     conflicts,
     handleExternalFileDrop,
@@ -179,11 +163,6 @@ function FileManagerContent({
     }
   }, [handleKeyDown])
 
-  // Update view mode when it changes
-  useEffect(() => {
-    onViewModeChange(viewMode)
-  }, [viewMode, onViewModeChange])
-
   // Close preview and update URL
   const closePreview = () => {
     setPreviewFile(null);
@@ -206,6 +185,57 @@ function FileManagerContent({
       setMobileDetailsOpen(true);
     }
   };
+
+  // Initialize the file system store
+  useEffect(() => {
+    // Set initial state in the store
+    initializeFileSystemStore(fileSystem, initialPath);
+
+    // Check for file in path on initial load
+    const pathFromUrl = getPathFromUrl();
+    const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
+
+    if (dirPath.length > 0) {
+      useFileSystemStore.getState().setCurrentPath(dirPath);
+    }
+
+    if (fileName) {
+      const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
+      if (fileToOpen) {
+        useFileSystemStore.getState().setPreviewFile(fileToOpen);
+      }
+    }
+  }, [fileSystem, setFileSystem, initialPath]);
+
+  // Listen for popstate events (when browser back/forward buttons are used)
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathSegments = getPathFromUrl();
+      const { dirPath, fileName } = processPath(pathSegments, fileSystem);
+      const store = useFileSystemStore.getState();
+
+      // Update directory path
+      store.setCurrentPath(dirPath);
+
+      // If there's a file in the path, find and open it
+      if (fileName) {
+        setTimeout(() => {
+          const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
+          if (fileToOpen) {
+            store.setPreviewFile(fileToOpen);
+          }
+        }, 100); // Allow time for path change to complete
+      } else {
+        // If no file in path, close any open preview
+        store.setPreviewFile(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [fileSystem]);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden" ref={fileManagerRef}>
@@ -293,69 +323,5 @@ function FileManagerContent({
 
       {previewFile && <FilePreview file={previewFile} onClose={closePreview} />}
     </div>
-  )
-}
-
-export function FileManager({ fileSystem, setFileSystem, initialViewMode, initialPath = [], onViewModeChange }: FileManagerProps) {
-  const [syncPaused, setSyncPaused] = useState(false);
-  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
-  const isMobile = useIsMobile();
-
-  // Initialize the file system store
-  useEffect(() => {
-    // Set initial state in the store
-    initializeFileSystemStore(fileSystem, initialPath, initialViewMode);
-
-    // Check for file in path on initial load
-    const pathFromUrl = getPathFromUrl();
-    const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
-
-    if (dirPath.length > 0) {
-      useFileSystemStore.getState().setCurrentPath(dirPath);
-    }
-
-    if (fileName) {
-      const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
-      if (fileToOpen) {
-        useFileSystemStore.getState().setPreviewFile(fileToOpen);
-      }
-    }
-  }, [fileSystem, setFileSystem, initialPath, initialViewMode]);
-
-  // Listen for popstate events (when browser back/forward buttons are used)
-  useEffect(() => {
-    const handlePopState = () => {
-      const pathSegments = getPathFromUrl();
-      const { dirPath, fileName } = processPath(pathSegments, fileSystem);
-      const store = useFileSystemStore.getState();
-
-      // Update directory path
-      store.setCurrentPath(dirPath);
-
-      // If there's a file in the path, find and open it
-      if (fileName) {
-        setTimeout(() => {
-          const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
-          if (fileToOpen) {
-            store.setPreviewFile(fileToOpen);
-          }
-        }, 100); // Allow time for path change to complete
-      } else {
-        // If no file in path, close any open preview
-        store.setPreviewFile(null);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [fileSystem]);
-
-  return (
-    <FileManagerContent
-      initialViewMode={initialViewMode}
-      onViewModeChange={onViewModeChange}
-    />
   )
 }

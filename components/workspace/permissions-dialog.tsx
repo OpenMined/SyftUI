@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { X, Plus, Copy, Info } from "lucide-react"
+import { X, Plus, Info } from "lucide-react"
 
 interface PermissionsDialogProps {
   item: FileSystemItem
@@ -123,7 +123,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Permissions for "{item.name}"</DialogTitle>
+          <DialogTitle>Permissions for &ldquo;{item.name}&rdquo;</DialogTitle>
         </DialogHeader>
 
         <div className="text-sm font-medium bg-muted/50 p-2 rounded-md mb-2">
@@ -236,7 +236,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
                             <Info className="h-3 w-3 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs">Maximum total size (e.g., '1GB') for all files in this folder</p>
+                            <p className="text-xs">Maximum total size (e.g., &lsquo;1GB&rsquo;) for all files in this folder</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -284,7 +284,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
                             <Info className="h-3 w-3 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs">Maximum size of a single file (e.g., '50MB')</p>
+                            <p className="text-xs">Maximum size of a single file (e.g., &lsquo;50MB&rsquo;)</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -331,7 +331,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
                           <Info className="h-3 w-3 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs">List of allowed file extensions e.g., ['.txt', '.csv']</p>
+                          <p className="text-xs">List of allowed file extensions e.g., [&lsquo;.txt&rsquo;, &lsquo;.csv&rsquo;]</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -354,7 +354,7 @@ export function PermissionsDialog({ item, onClose, setDetailsItem }: Permissions
                           <Info className="h-3 w-3 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs">List of forbidden file extensions. e.g., ['.exe','.zip']</p>
+                          <p className="text-xs">List of forbidden file extensions. e.g., [&lsquo;.exe&rsquo;, &lsquo;.zip&rsquo;]</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

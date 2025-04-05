@@ -31,7 +31,7 @@ export function ConnectionForm({
 
   // Handle form field change with settings sync
   const handleFieldChange = (
-    field: { onChange: (e: any) => void },
+    field: { onChange: (e: React.ChangeEvent<HTMLInputElement>) => void },
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: keyof ConnectionFormValues
   ) => {

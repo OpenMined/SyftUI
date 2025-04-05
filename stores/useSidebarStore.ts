@@ -10,9 +10,9 @@ interface SidebarState {
 
 export const useSidebarStore = create<SidebarState>((set) => ({
   // Start with sidebar closed on mobile, open on desktop
-  sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : false,
-  
+  sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
+
   setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
-  
+
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen }))
 }))

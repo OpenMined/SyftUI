@@ -14,10 +14,10 @@ import { type App, mockApps } from "@/lib/mock-apps"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/chart"
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAssetPath } from "@/lib/utils"
+import Image from "next/image"
 
 interface AppDetailProps {
   appId: string
@@ -176,7 +176,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                       {app.longDescription ? (
                         <ReactMarkdown
                           components={{
-                            code({ node, inline, className, children, ...props }) {
+                            code({ inline, className, children, ...props }) {
                               const match = /language-(\w+)/.exec(className || "")
                               return !inline && match ? (
                                 <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
@@ -312,9 +312,11 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                     <h3 className="text-lg font-medium mb-2">Screenshots</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {app.screenshots.map((screenshot, index) => (
-                        <img
+                        <Image
                           key={index}
                           src={screenshot || getAssetPath("/placeholder.svg")}
+                          width={600}
+                          height={400}
                           alt={`${app.name} screenshot ${index + 1}`}
                           className="rounded-md border object-cover w-full aspect-video"
                         />
@@ -601,7 +603,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                   <h4 className="font-medium text-red-600">Dependency Vulnerability</h4>
                   <Badge variant="destructive">Critical</Badge>
                 </div>
-                <p className="text-sm mt-1">Outdated package "crypto-lib" contains known CVE-2023-4567</p>
+                <p className="text-sm mt-1">Outdated package &ldquo;crypto-lib&rdquo; contains known CVE-2023-4567</p>
                 <Button size="sm" variant="outline" className="mt-2">View Details</Button>
               </div>
             </div>
@@ -609,7 +611,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
             <div className="space-y-2">
               <h3 className="text-lg font-medium">Remediation Steps</h3>
               <ul className="space-y-2 text-sm list-disc list-inside">
-                <li>Update dependency "crypto-lib" to version 2.4.0 or later</li>
+                <li>Update dependency &ldquo;crypto-lib&rdquo; to version 2.4.0 or later</li>
                 <li>Implement proper input validation in API endpoints</li>
                 <li>Fix insecure data storage in user settings module</li>
                 <li>Enable content security policy headers</li>

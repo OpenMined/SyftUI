@@ -1,8 +1,8 @@
 "use client"
 
 import { useQueryState } from 'nuqs'
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { AppWindow, Search, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import { Toolbar } from "@/components/ui/toolbar"
 
 export default function AppsPage() {
     const router = useRouter();
-    const [selectedApp, setSelectedApp] = useQueryState('id');
+    const [selectedApp] = useQueryState('id');
     const [searchQuery, setSearchQuery] = useState("")
 
     // Filter to only show installed apps
@@ -73,7 +73,7 @@ export default function AppsPage() {
                             <div className="text-5xl mb-4">📦</div>
                             <h3 className="text-lg font-medium mb-2">No Apps Installed</h3>
                             <p className="text-muted-foreground mb-4">
-                                You haven't installed any apps yet. Visit the marketplace to find and install apps.
+                                You haven&apos;t installed any apps yet. Visit the marketplace to find and install apps.
                             </p>
                             <Button onClick={() => window.location.href = "/marketplace"}>
                                 Browse Marketplace

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getAssetPath } from "@/lib/utils"
-import { Trash2, Maximize2, Minimize2 } from 'lucide-react';
+import { Trash2, Maximize2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import DOMPurify from 'dompurify';
 
 interface IframeWidgetProps {
   widget: {
@@ -96,8 +95,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
 
         // Finally add the widget content to the iframe
         const fullHtml = doc.documentElement.outerHTML;
-        // Sanitize HTML with DOMPurify before setting it to state
-        setWidgetContent(DOMPurify.sanitize(fullHtml));
+        setWidgetContent(fullHtml);
       } catch (error) {
         console.error('Error loading widget content:', error);
         const errorHtml = `
@@ -110,14 +108,14 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
           </html>
         `;
         // Sanitize error message HTML as well
-        setWidgetContent(DOMPurify.sanitize(errorHtml));
+        setWidgetContent(errorHtml);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchWidgetContent();
-  }, [theme]);
+  }, [theme, widget.contentUrl]);
 
   return (
     <>
@@ -165,7 +163,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({ widget, onRemove, is
               title={widget.title}
               className="w-full h-full border-0"
               srcDoc={widgetContent}
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-scripts"
             />
           )}
         </CardContent>

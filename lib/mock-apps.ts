@@ -82,9 +82,9 @@ After an API is sent, datasite owners will receive notifications (desktop and em
     enabled: true,
     lastUsed: "2 hours ago",
     screenshots: [
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
     ],
     pricing: "Free",
     website: "https://github.com/OpenMined/inbox",
@@ -147,12 +147,12 @@ This app adds sync status indicators to all datasite files in the MacOS native f
     installed: false,
     lastUsed: "Never",
     screenshots: [
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
-      `${getAssetPath("/placeholder.svg?height=400&width=600")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
+      `${getAssetPath("/placeholder.svg")}`,
     ],
     reviews: [
       {

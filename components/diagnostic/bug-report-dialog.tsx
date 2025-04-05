@@ -1,14 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { 
-Dialog, 
-DialogContent, 
-DialogDescription, 
-DialogFooter, 
-DialogHeader, 
-DialogTitle, 
-DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -48,7 +48,7 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
         description: "Thank you for helping us improve our platform.",
         variant: "default",
       })
-      
+
       setIsOpen(false)
       setTitle("")
       setDescription("")
@@ -70,7 +70,7 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
           <DialogHeader>
             <DialogTitle>Report a Bug</DialogTitle>
             <DialogDescription>
-              Please describe the issue you're experiencing. This information will help us improve our platform.
+              Please describe the issue you&apos;re experiencing. This information will help us improve our platform.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

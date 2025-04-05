@@ -33,6 +33,19 @@ interface PingStatusCardProps {
   className?: string
 }
 
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    payload: {
+      time: string;
+      ping: number | null;
+    };
+  }>;
+  label?: string;
+}
+
+
 export function PingStatusCard({
   serverName = "cache server",
   serverAddress = "https://syftbox.openmined.org/",
@@ -54,7 +67,6 @@ export function PingStatusCard({
   const [pingHistory, setPingHistory] = useState<{ time: string; ping: number | null }[]>(initialData)
   const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...")
   const [statusColor, setStatusColor] = useState<string>("text-yellow-500")
-  const [isInitialized, setIsInitialized] = useState<boolean>(false)
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
 
   const chartConfig = {
@@ -95,8 +107,6 @@ export function PingStatusCard({
 
   // Simulate ping test
   useEffect(() => {
-    setIsInitialized(true)
-
     const interval = setInterval(() => {
       // Generate new ping value
       const newPing = generateRandomPing()
@@ -157,8 +167,8 @@ export function PingStatusCard({
     ? validPings.reduce((sum, ping) => sum + ping, 0) / validPings.length
     : 0
 
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }: any) => {
+
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length && payload[0].value !== null) {
       return (
         <div className="bg-background border border-border/50 rounded-lg p-2 shadow-md text-xs">

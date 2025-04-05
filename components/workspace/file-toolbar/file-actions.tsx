@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
 import { addToFavorites } from "@/lib/utils/favorites"
 import {
@@ -46,8 +46,6 @@ export function FileActions() {
     refreshFileSystem,
     sortConfig,
     setSortConfig,
-    viewMode,
-    setViewMode,
     fileSystem,
     currentPath,
     syncPaused,

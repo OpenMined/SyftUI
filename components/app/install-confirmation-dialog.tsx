@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { App } from '@/lib/mock-apps'
-import Link from 'next/link'
-import { set } from 'date-fns'
 
 interface InstallConfirmationDialogProps {
   isOpen: boolean
@@ -49,7 +47,7 @@ export function InstallConfirmationDialog({
           <div className="flex items-start">
             <AlertTriangle className="text-amber-500 mr-2 flex-shrink-0" />
             <AlertDialogTitle className="text-left">
-              Do you trust the publisher "{app.publisher}"?
+              Do you trust the publisher &ldquo;{app.publisher}&rdquo;?
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-left space-y-3 md:ml-8">
@@ -68,7 +66,7 @@ export function InstallConfirmationDialog({
               className="text-blue-600 hover:underline inline-flex m-0"
             >
               {app.publisher} <ExternalLink className="h-2 w-2 align-super" />
-            </a>. This is the first app you're installing from this publisher.
+            </a>. This is the first app you&apos;re installing from this publisher.
             <span className="flex items-center gap-2 text-sm my-3">
               <span className="inline-flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded-full p-1 h-6 w-6">
                 <ShieldAlert className="h-4 w-4 text-red-500" />

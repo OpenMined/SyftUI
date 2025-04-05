@@ -283,7 +283,7 @@ interface FileExplorerItemProps {
   cutItems: (ids: string[]) => void
   copyItems: (ids: string[]) => void
   pasteItems: () => void
-  clipboard: any
+  clipboard: ClipboardItem | null
   setDetailsItem: (item: FileSystemItem | null) => void
   openRenameDialog: (item: FileSystemItem) => void
   openShareDialog: (item: FileSystemItem) => void
@@ -478,6 +478,9 @@ const RenameDialog = React.memo(({ open, onOpenChange, name, setName, onSubmit }
   )
 })
 
+// Set display name for the RenameDialog component
+RenameDialog.displayName = "RenameDialog"
+
 export function FileExplorer({
   items,
   selectedItems: externalSelectedItems,
@@ -565,7 +568,11 @@ export function FileExplorer({
     } else {
       // Single select - show details panel
       setSelectedItems([item.id])
-      isMobile ? handleItemDoubleClick(item) : setDetailsItem(item)
+      if (isMobile) {
+        handleItemDoubleClick(item);
+      } else {
+        setDetailsItem(item);
+      }
     }
   }, [setSelectedItems, selectedItems, isMobile, handleItemDoubleClick, setDetailsItem, items])
 

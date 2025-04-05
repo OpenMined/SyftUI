@@ -29,9 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import { ConnectionStatus } from "@/components/connection/connection-status"
-import { useTheme } from "next-themes"
 import { useRouter, usePathname } from "next/navigation"
 import { LogoComponent } from "./logo"
 import { useFileSystemStore } from "@/stores/useFileSystemStore"
@@ -41,8 +39,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ closeSidebar }: SidebarProps) {
-  const { theme } = useTheme()
-  const isDarkTheme = theme === "dark"
   const [favorites, setFavorites] = useState<{ id: string; name: string; path: string[] }[]>([])
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
@@ -88,7 +84,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   // Listen for add-to-favorites events
   useEffect(() => {
     const handleAddToFavorites = (event: Event) => {
-      const detail = (event as any).detail;
+      const detail = event.detail;
 
       if (detail && detail.id && detail.name) {
         // Check if already in favorites
@@ -196,7 +192,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           // Check if already in favorites
           if (!favorites.some((fav) => fav.id === item.id)) {
             // Make sure path is properly formatted
-            const itemPath = item.path || []
 
             setFavorites((prev) => [
               ...prev,
