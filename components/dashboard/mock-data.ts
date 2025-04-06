@@ -104,11 +104,11 @@ export const defaultDashboardLayout: DashboardLayout = {
       { i: "widget-5", x: 2, y: 3, w: 2, h: 2, minW: 1, minH: 1 },
     ],
     sm: [
-      { i: "widget-1", x: 0, y: 0, w: 2, h: 2, minW: 1, minH: 1 },
-      { i: "widget-2", x: 0, y: 2, w: 2, h: 2, minW: 1, minH: 1 },
-      { i: "widget-3", x: 0, y: 4, w: 2, h: 2, minW: 1, minH: 1 },
-      { i: "widget-4", x: 0, y: 6, w: 2, h: 2, minW: 1, minH: 1 },
-      { i: "widget-5", x: 0, y: 8, w: 2, h: 2, minW: 1, minH: 1 },
+      { i: "widget-1", x: 0, y: 3, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-2", x: 1, y: 3, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-3", x: 0, y: 5, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-4", x: 0, y: 0, w: 2, h: 3, minW: 1, minH: 1 },
+      { i: "widget-5", x: 1, y: 5, w: 1, h: 2, minW: 1, minH: 1 },
     ],
     xs: [
       { i: "widget-1", x: 0, y: 0, w: 1, h: 2, minW: 1, minH: 1 },

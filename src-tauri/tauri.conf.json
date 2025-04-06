@@ -1,0 +1,38 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "syft-ui",
+  "version": "0.1.0",
+  "identifier": "org.openmined.syftui",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "bun dev",
+    "beforeBuildCommand": "bun build"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; img-src *; script-src 'self' 'unsafe-inline';"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "SyftBox",
+        "width": 1200,
+        "height": 720,
+        "resizable": true
+      }
+    ],
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

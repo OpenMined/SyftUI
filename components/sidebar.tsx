@@ -234,7 +234,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   return (
     <div className="bg-card border-border flex h-full w-full flex-col border-r">
       <div className="mx-4 flex items-center justify-between gap-2 pt-4">
-        <LogoComponent />
+        <LogoComponent className="h-16" />
         <Button
           variant="ghost"
           size="icon"

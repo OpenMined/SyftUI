@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { memo } from "react";
 
@@ -18,7 +19,8 @@ export const LogoComponent = memo(function LogoComponent({
       viewBox="0 0 243 72"
       fill={fillColor}
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      // Keep margin-left: -2 for alignment
+      className={cn("-ml-2", className)}
       aria-label="SyftBox Logo"
       role="img"
     >

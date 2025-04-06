@@ -13,3 +13,4 @@ playwright-report
 test-results
 junit.xml
 docs
+src-tauri

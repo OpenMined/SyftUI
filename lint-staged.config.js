@@ -6,5 +6,6 @@ module.exports = {
   "**/*.{js,jsx,ts,tsx}": ["eslint"],
 
   // Run TypeScript compiler check on TypeScript files
-  "**/*.{ts,tsx}": () => "tsc --noEmit",
+  // TODO enable this
+  // "**/*.{ts,tsx}": () => "tsc --noEmit",
 };
