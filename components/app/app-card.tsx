@@ -250,7 +250,9 @@ export function AppCard({
         app={app}
         onConfirm={() => {
           setIsInstalled(!isInstalled);
-          onActionClick(app.id);
+          if (onActionClick) {
+            onActionClick(app.id);
+          }
           setShowInstallDialog(false);
         }}
         onCancel={() => {

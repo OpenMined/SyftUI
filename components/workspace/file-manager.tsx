@@ -57,6 +57,7 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
     handleExternalFileDrop,
     handleConflictResolution,
     handleApplyToAll,
+    clearUpload,
   } = useFileSystemStore();
 
   // Local states
@@ -257,7 +258,7 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden" ref={fileManagerRef}>
       <FileToolbar />
-      <Breadcrumb currentPath={currentPath} navigateTo={navigateTo} />
+      <Breadcrumb />
       <div className="flex flex-1 overflow-hidden">
         <div className="relative flex-1 overflow-auto p-4">
           <FileExplorer
@@ -330,7 +331,9 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
       </AnimatePresence>
 
       <AnimatePresence>
-        {uploads.length > 0 && <UploadProgress uploads={uploads} />}
+        {uploads.length > 0 && (
+          <UploadProgress uploads={uploads} onClear={clearUpload} />
+        )}
       </AnimatePresence>
 
       <FileConflictDialog

@@ -107,8 +107,8 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInstalled, setIsInstalled] = useState(app.installed);
-  const [isDisabled, setIsDisabled] = useState(app.disabled);
-  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(app.installed);
+  const [isEnabled, setIsEnabled] = useState(app.enabled);
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(app.autoUpdate);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [securityReportOpen, setSecurityReportOpen] = useState(false);
 
@@ -158,10 +158,10 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
             </div>
             <Button
               variant="outline"
-              onClick={() => setIsDisabled(!isDisabled)}
+              onClick={() => setIsEnabled(!isEnabled)}
               disabled={isProcessing}
             >
-              {isDisabled ? "Enable" : "Disable"}
+              {isEnabled ? "Disable" : "Enable"}
             </Button>
             <Button
               variant="destructive"

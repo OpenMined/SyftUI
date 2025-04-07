@@ -1,10 +1,13 @@
 export { useNotificationStore } from "./useNotificationStore";
 export {
-  ConnectionStatus,
+  // Types
+  type ConnectionStatus,
+  type ConnectionFormValues,
+  // Values
   connectionFormSchema,
-  ConnectionFormValues,
-  useConnectionStore,
   DEFAULT_CONNECTION_SETTINGS,
+  // Hooks
+  useConnectionStore,
 } from "./useConnectionStore";
 export { useSidebarStore } from "./useSidebarStore";
 export {

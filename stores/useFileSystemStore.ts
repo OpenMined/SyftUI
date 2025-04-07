@@ -9,6 +9,7 @@ import type {
   ConflictItem,
   ClipboardItem,
   Permission,
+  SortConfig,
 } from "@/lib/types";
 import { updateUrlWithPath } from "@/lib/utils/url";
 import { useNotificationStore } from "./useNotificationStore";
@@ -23,10 +24,7 @@ interface FileSystemState {
   currentPath: string[];
   selectedItems: string[];
   viewMode: "grid" | "list";
-  sortConfig: {
-    sortBy: "name" | "date" | "size" | "type";
-    direction: "asc" | "desc";
-  };
+  sortConfig: SortConfig;
   previewFile: FileSystemItem | null;
   detailsItem: FileSystemItem | null;
   isRefreshing: boolean;
@@ -61,10 +59,7 @@ interface FileSystemState {
   setCurrentPath: (path: string[]) => void;
   setSelectedItems: (items: string[]) => void;
   setViewMode: (mode: "grid" | "list") => void;
-  setSortConfig: (config: {
-    sortBy: "name" | "date" | "size" | "type";
-    direction: "asc" | "desc";
-  }) => void;
+  setSortConfig: (config: SortConfig) => void;
   setPreviewFile: (file: FileSystemItem | null) => void;
   setDetailsItem: (item: FileSystemItem | null) => void;
 
@@ -115,7 +110,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     currentPath: [],
     selectedItems: [],
     viewMode: "grid",
-    sortConfig: { sortBy: "name", direction: "asc" },
+    sortConfig: { sortBy: "name", direction: "asc" } as SortConfig,
     previewFile: null,
     detailsItem: null,
     isRefreshing: false,
@@ -170,7 +165,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         const newItem = {
           ...item,
           id: `${item.id}-copy-${Date.now()}`,
-          syncStatus: "pending",
+          syncStatus: "pending" as SyncStatus,
         };
 
         if (item.type === "folder" && item.children) {
@@ -293,7 +288,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     // Upload actions
     processFiles: (files) => {
       const state = get();
-      const { fileSystem, currentPath, updateSyncStatus } = state;
+      const { currentPath, updateSyncStatus } = state;
       const notificationStore = useNotificationStore.getState();
 
       const uploadItems: UploadItem[] = files.map((file) => ({
@@ -884,7 +879,6 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         const notificationStore = useNotificationStore.getState();
 
         const itemsToMove: FileSystemItem[] = [];
-        let sourcePath: string[] = [];
 
         const removeItems = (
           items: FileSystemItem[],

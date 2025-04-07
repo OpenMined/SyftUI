@@ -10,7 +10,9 @@ import { Sidebar } from "@/components/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { initializationService } from "@/lib/initialization";
-import { metadata } from "./metadata";
+
+const title = "SyftBox";
+const description = "The internet of private data!";
 
 export default function RootLayout({
   children,
@@ -31,8 +33,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>{metadata.title}</title>
-        <meta name="description" content={metadata.description} />
+        <title>{title}</title>
+        <meta name="description" content={description} />
       </head>
       <body>
         <ThemeProvider

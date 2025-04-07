@@ -5,14 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-interface UploadItem {
-  id: string;
-  name: string;
-  progress: number;
-  size: number;
-  status: "uploading" | "completed" | "error";
-}
+import type { UploadItem } from "@/lib/types";
 
 interface UploadProgressProps {
   uploads: UploadItem[];

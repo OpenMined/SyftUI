@@ -220,7 +220,7 @@ export function FileDetails({
                   <div className="grid grid-cols-[minmax(0,_0.6fr)_minmax(0,_1fr)] gap-2 pl-6 text-sm">
                     <span className="text-muted-foreground">Owner:</span>
                     <span>
-                      {item.permissions.find((p) => p.type === "owner")?.name ||
+                      {item.permissions.find((p) => p.type === "admin")?.name ||
                         "You"}
                     </span>
 

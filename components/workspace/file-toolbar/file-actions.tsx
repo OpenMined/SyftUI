@@ -41,6 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { FileSystemItem } from "@/lib/types";
 
 export function FileActions() {
   const {
