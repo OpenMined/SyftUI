@@ -1,13 +1,13 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "syft-ui",
+  "productName": "SyftBox",
   "version": "0.1.0",
   "identifier": "org.openmined.syftui",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "bun dev",
-    "beforeBuildCommand": "bun build"
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build"
   },
   "app": {
     "security": {
@@ -33,6 +33,27 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "dmg": {
+        "background": "./images/dmg-background.png",
+        "windowPosition": {
+          "x": 200,
+          "y": 120
+        },
+        "windowSize": {
+          "width": 800,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 200,
+          "y": 190
+        },
+        "applicationFolderPosition": {
+          "x": 600,
+          "y": 190
+        }
+      }
+    }
   }
 }
