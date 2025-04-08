@@ -33,21 +33,35 @@ Perfect for headless setups or low-resource environments.
 
 To get started with development, just run the following steps:
 
-1. **Install dependencies**  
-   This will fetch everything you need to run the project:
+1. **Install [Bun](https://bun.sh/docs/installation)**
+
+   Our project runs on Bun for lightning-fast installs and dev experience. Other package managers might work, but we haven't tested them.
+
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   ```
+
+2. **Install Tauri prerequisites**
+
+   Tauri powers our desktop builds. Follow their [official setup guide](https://tauri.app/start/prerequisites/) to install any system dependencies (like Rust, Xcode, etc.).
+
+3. **Install dependencies**
+
+   This will grab all the packages needed to run the project:
 
    ```bash
    bun install
    ```
 
-2. **Set up pre-commit hooks**  
-   Keeps your code tidy before every commit:
+4. **Set up pre-commit hooks**
+
+   We use Husky to keep our codebase clean and consistent. This step sets up Git hooks to lint and check code automatically before each commit:
 
    ```bash
    bun husky
    ```
 
-That's it — you're ready to dive in!
+✅ That’s it — you’re all set to start building!
 
 ### 🖥️ Desktop App
 
