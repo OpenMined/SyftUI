@@ -29,6 +29,26 @@ Perfect for headless setups or low-resource environments.
 
 ## 🛠️ Development
 
+### 💅 Set Up
+
+To get started with development, just run the following steps:
+
+1. **Install dependencies**  
+   This will fetch everything you need to run the project:
+
+   ```bash
+   bun install
+   ```
+
+2. **Set up pre-commit hooks**  
+   Keeps your code tidy before every commit:
+
+   ```bash
+   bun husky
+   ```
+
+That's it — you're ready to dive in!
+
 ### 🖥️ Desktop App
 
 Work on the UI, the SyftBox client, AND the Tauri app — all at once with hot reload.
