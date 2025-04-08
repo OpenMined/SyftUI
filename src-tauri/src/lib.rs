@@ -15,50 +15,54 @@ pub fn run() {
                 )?;
             }
 
+            let show_dashboard_i =
+                MenuItem::with_id(app, "show_dashboard", "Open SyftBox", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let hide_show_i = MenuItem::with_id(app, "hide_show", "Hide", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&hide_show_i, &quit_i])?;
-
+            let menu = Menu::with_items(app, &[&show_dashboard_i, &quit_i])?;
             let tray = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(app.default_window_icon().unwrap().clone())
                 .build(app)
                 .unwrap();
 
-            let hide_show_i_clone = hide_show_i.clone();
             tray.on_menu_event(move |app, event| match event.id.as_ref() {
-                "quit" => {
-                    println!("quit menu item was clicked");
-                    app.exit(0);
-                }
-                "hide_show" => {
+                "show_dashboard" => {
                     let window = app.get_webview_window("main").unwrap();
-                    if window.is_visible().unwrap() {
-                        // Don't show in taskbar / dock
-                        window.set_skip_taskbar(true).unwrap();
-                        #[cfg(target_os = "macos")]
-                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-                        // Hide the window
-                        window.hide().unwrap();
-                        hide_show_i_clone.set_text("Show").unwrap();
-                    } else {
-                        // Show in taskbar / dock
-                        window.set_skip_taskbar(false).unwrap();
-                        #[cfg(target_os = "macos")]
-                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                    // Show in taskbar / dock
+                    window.set_skip_taskbar(false).unwrap(); // For Windows and Linux
+                    #[cfg(target_os = "macos")]
+                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
-                        // Show the window
-                        window.show().unwrap();
-                        window.set_focus().unwrap();
-                        hide_show_i_clone.set_text("Hide").unwrap();
-                    }
+                    // Show the window
+                    window.show().unwrap();
+                    window.set_focus().unwrap();
+                }
+                "quit" => {
+                    app.exit(0);
                 }
                 _ => {
                     println!("menu item {:?} not handled", event.id);
                 }
             });
             Ok(())
+        })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                // Prevent the window from being closed
+                api.prevent_close();
+
+                // Hide the window
+                window.hide().unwrap();
+
+                // Hide from taskbar / dock
+                window.set_skip_taskbar(true).unwrap(); // For windows and Linux
+                #[cfg(target_os = "macos")]
+                let _ = window
+                    .app_handle()
+                    .set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
+            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
