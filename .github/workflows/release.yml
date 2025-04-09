@@ -59,10 +59,10 @@ jobs:
 
       - name: Push changes to SyftUI repo
         run: |
-          # Push the current branch to the remote repo
-          git push origin
+          # Create a new tag for the release
+          git tag ${{ inputs.version }}
 
-          # Push the new version tag to the remote repo
+          # Push the tag to the remote repo
           git push origin ${{ inputs.version }}
 
       - name: Create release
