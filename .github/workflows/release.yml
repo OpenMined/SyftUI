@@ -38,7 +38,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.args }}
@@ -78,7 +78,7 @@ jobs:
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
 
-      - name: Push changes to SyftUI repo
+      - name: Push changes to the repo
         run: |
           # Create a new tag for the release
           git tag ${{ inputs.version }}

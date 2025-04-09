@@ -13,22 +13,21 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libglib2.0-dev
-          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
