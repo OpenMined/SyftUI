@@ -43,4 +43,4 @@ jobs:
           bun prettier --check .
           bun run lint
           # bun tsc --noEmit
-          bun commitlint --from=HEAD~1
+          bun commitlint --last
