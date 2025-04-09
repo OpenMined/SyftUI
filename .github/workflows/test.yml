@@ -26,16 +26,6 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            /var/cache/apt/archives
-            /var/lib/apt/lists
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -61,9 +51,9 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install Ubuntu dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        uses: Eeems-Org/apt-cache-action@v1
+        with:
+          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install dependencies
         run: bun install
