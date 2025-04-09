@@ -1,0 +1,39 @@
+name: Lint
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "dev"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run linters
+        run: |
+          prettier --check .
+          eslint .
+          tsc --noEmit
+
+      - name: Check commit messages
+        if: github.event_name == 'pull_request'
+        run: commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }}
+
+      - name: Check commit messages (branch push)
+        if: github.event_name == 'push'
+        run: commitlint --from=${{ github.event.before }} --to=${{ github.event.after }}

@@ -71,8 +71,6 @@ Work on the UI, the SyftBox client, AND the Tauri app — all at once with hot r
 bun run tauri dev
 ```
 
----
-
 ### 🌐 Web App (Frontend-Only)
 
 Run the frontend in dev mode. Make sure you have a SyftBox client running somewhere!
