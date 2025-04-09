@@ -47,7 +47,8 @@ jobs:
         run: bun install
 
       - name: Build app
-        run: bun run tauri build --target ${{ matrix.args }} --bundles dmg
+        run: |
+          bun run tauri build --ci --target ${{ matrix.args }} --bundles dmg
 
       - name: Setup git config
         env:
@@ -72,7 +73,7 @@ jobs:
           name: ${{ inputs.version }}
           generate_release_notes: true
           make_latest: true
-          files: SyftBox-${{ inputs.version }}-${{ matrix.args }}.dmg
+          files: ./src-tauri/target/release/bundle/dmg/*.dmg
 
       - name: Clean up all keychains
         if: always()
