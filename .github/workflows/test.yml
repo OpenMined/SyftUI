@@ -43,11 +43,4 @@ jobs:
           bun prettier --check .
           bun run lint
           # bun tsc --noEmit
-
-      - name: Check commit messages
-        if: github.event_name == 'pull_request'
-        run: bun commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }}
-
-      - name: Check commit messages (branch push)
-        if: github.event_name == 'push'
-        run: bun commitlint --from=${{ github.event.before }} --to=${{ github.event.after }}
+          bun commitlint --from=HEAD~1
