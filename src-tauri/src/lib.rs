@@ -47,8 +47,8 @@ pub fn run() {
             });
             Ok(())
         })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 // Prevent the window from being closed
                 api.prevent_close();
 
@@ -62,7 +62,6 @@ pub fn run() {
                     .app_handle()
                     .set_activation_policy(tauri::ActivationPolicy::Accessory);
             }
-            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
