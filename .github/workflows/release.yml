@@ -18,8 +18,8 @@ jobs:
         include:
           - args: "aarch64-apple-darwin"
             arch: "silicon"
-          - args: "x86_64-apple-darwin"
-            arch: "intel"
+          # - args: "x86_64-apple-darwin"
+          #   arch: "intel"
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
