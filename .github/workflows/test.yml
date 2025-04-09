@@ -26,14 +26,14 @@ jobs:
 
       - name: Run linters
         run: |
-          prettier --check .
-          eslint .
-          tsc --noEmit
+          bun prettier --check .
+          bun eslint .
+          bun tsc --noEmit
 
       - name: Check commit messages
         if: github.event_name == 'pull_request'
-        run: commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }}
+        run: bun commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }}
 
       - name: Check commit messages (branch push)
         if: github.event_name == 'push'
-        run: commitlint --from=${{ github.event.before }} --to=${{ github.event.after }}
+        run: bun commitlint --from=${{ github.event.before }} --to=${{ github.event.after }}
