@@ -43,6 +43,27 @@ jobs:
         with:
           targets: ${{ matrix.args }}
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install dependencies
         run: bun install
 
@@ -74,14 +95,18 @@ jobs:
           make_latest: true
           files: ./src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
 
-      - name: Clean up all keychains
+      - name: Clean up all user keychains
         if: always()
         run: |
           # List all keychains
           keychains=$(security list-keychains | tr -d '" "')
 
-          # Iterate over the keychains and delete each one
+          # Iterate over the keychains and delete each one that is not a system keychain
           echo "$keychains" | while IFS= read -r keychain; do
-            echo "Deleting keychain: $keychain"
-            security delete-keychain "$keychain"
+            if [[ "$keychain" != "/Library/Keychains/System.keychain" && "$keychain" != "/Library/Keychains/SystemRootCertificates.keychain" ]]; then
+              echo "Deleting keychain: $keychain"
+              security delete-keychain "$keychain"
+            else
+              echo "Skipping system keychain: $keychain"
+            fi
           done

@@ -18,15 +18,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-dev
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Get cache key
-        id: cache-key
-        run: echo "key=$(sha256sum bun.lockb | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -34,9 +36,20 @@ jobs:
           path: |
             ~/.bun
             node_modules
-          key: ${{ runner.os }}-bun-${{ steps.cache-key.outputs.key }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-bun-
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install dependencies
         run: bun install
