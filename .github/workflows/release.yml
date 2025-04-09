@@ -56,7 +56,6 @@ jobs:
         run: |
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
-          git config -l
 
       - name: Push changes to SyftUI repo
         run: |
@@ -73,8 +72,16 @@ jobs:
           name: ${{ inputs.version }}
           generate_release_notes: true
           make_latest: true
-          files: ./src-tauri/target/release/bundle/dmg/*.dmg
+          files: ./src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
 
       - name: Clean up all keychains
         if: always()
-        run: security delete-keychain signing_temp
+        run: |
+          # List all keychains
+          keychains=$(security list-keychains | tr -d '" "')
+
+          # Iterate over the keychains and delete each one
+          echo "$keychains" | while IFS= read -r keychain; do
+            echo "Deleting keychain: $keychain"
+            security delete-keychain "$keychain"
+          done

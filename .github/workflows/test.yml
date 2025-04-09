@@ -21,6 +21,9 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Get cache key
         id: cache-key
         run: echo "key=$(sha256sum bun.lockb | cut -d' ' -f1)" >> $GITHUB_OUTPUT
@@ -44,3 +47,5 @@ jobs:
           bun run lint
           # bun tsc --noEmit
           bun commitlint --last
+          cargo clippy --manifest-path ./src-tauri/Cargo.toml
+          cargo fmt --manifest-path ./src-tauri/Cargo.toml
