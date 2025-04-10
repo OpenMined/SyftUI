@@ -9,10 +9,17 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # Private vars
 
+[private]
 _red := '\033[1;31m'
+[private]
 _cyan := '\033[1;36m'
+[private]
 _green := '\033[1;32m'
+[private]
 _yellow := '\033[1;33m'
+[private]
+_inverse := '\033[7m'
+[private]
 _nc := '\033[0m'
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -21,19 +28,188 @@ _nc := '\033[0m'
 default:
     just --list
 
-# ---------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ CODE QUALITY CHECKS ------------------------------------------------
 
-# Configure the dev environment. Enables building the app with source code from your local SyftBox repo using symlinks.
-[group('utils')]
-setup path_to_syftbox_repo="":
-    #!/usr/bin/env bash
-    set -e
+# Check the code quality of the frontend, bridge and desktop app.
+[group('code-quality:check')]
+check:
+    #!/usr/bin/env bash -u
 
-    if [[ -n "{{ path_to_syftbox_repo }}" ]]; then
-        dir_path="{{ path_to_syftbox_repo }}"
+    just check-frontend
+    just check-bridge
+    just check-desktop
+
+# Check the bridge server code quality.
+[group('code-quality:check')]
+check-bridge:
+    #!/usr/bin/env bash -eu
+
+    echo -e "The {{ _red }}check-bridge{{ _nc }} command is not yet implemented."
+    exit 1
+    echo -e "{{ _green }}SyftGo bridge server code quality check completed successfully.{{ _nc }}"
+
+# Check the desktop app code quality.
+[group('code-quality:check')]
+check-desktop:
+    #!/usr/bin/env bash -eu
+
+    cargo clippy --manifest-path ./src-tauri/Cargo.toml
+    cargo fmt --manifest-path ./src-tauri/Cargo.toml --check
+
+    echo -e "{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}"
+
+# Check the frontend code quality.
+[group('code-quality:check')]
+check-frontend:
+    #!/usr/bin/env bash -eu
+
+    bun run --cwd src-frontend prettier --check .
+    bun run --cwd src-frontend lint
+    bun run --cwd src-frontend tsc --noEmit
+
+    echo -e "{{ _green }}Frontend code quality check completed successfully.{{ _nc }}"
+
+# ------------------------------------------------ CODE QUALITY FIXES -------------------------------------------------
+
+# Tidy up the code of the frontend, bridge and desktop app.
+[group('code-quality:tidy')]
+tidy:
+    #!/usr/bin/env bash -u
+
+    just tidy-frontend
+    just tidy-bridge
+    just tidy-desktop
+    just --fmt --unstable  # Format the justfile
+
+# Tidy up the bridge server code.
+[group('code-quality:tidy')]
+tidy-bridge:
+    #!/usr/bin/env bash -eu
+
+    echo -e "The {{ _red }}tidy-bridge{{ _nc }} command is not yet implemented."
+    exit 1
+    echo -e "{{ _green }}SyftGo bridge server code tidied up successfully.{{ _nc }}"
+
+# Tidy up the desktop app code.
+[group('code-quality:tidy')]
+tidy-desktop:
+    #!/usr/bin/env bash -eu
+
+    cargo clippy --manifest-path ./src-tauri/Cargo.toml --fix --allow-staged
+    cargo fmt --manifest-path ./src-tauri/Cargo.toml
+
+    echo -e "{{ _green }}Desktop app code tidied up successfully.{{ _nc }}"
+
+# Tidy up the frontend code.
+[group('code-quality:tidy')]
+tidy-frontend:
+    #!/usr/bin/env bash -eu
+
+    bun run --cwd src-frontend prettier --write .
+    bun run --cwd src-frontend lint --fix
+
+    echo -e "{{ _green }}Frontend code tidied up successfully.{{ _nc }}"
+
+# ---------------------------------------------------- DEV COMMANDS ---------------------------------------------------
+
+# Run the frontend, bridge and desktop app concurrently.
+[group('dev')]
+dev:
+    #!/usr/bin/env bash -eu
+
+    bunx concurrently \
+        --kill-others \
+        --success first \
+        --prefix name \
+        --names "  BRIDGE  , FRONTEND ,  DESKTOP " \
+        --prefix-colors "red,yellow,green" \
+        "just dev-bridge" "just dev-frontend" "just dev-desktop"
+
+[group('dev')]
+dev-bridge:
+    #!/usr/bin/env bash -eu
+
+    # Need to use realpath due to a bug in air (https://github.com/air-verse/air/pull/742).
+    cd $(realpath src-syftgo) && air -- --ui-port 8000 --ui-swagger
+
+# Run the desktop dev app.
+[group('dev')]
+dev-desktop:
+    #!/usr/bin/env bash -eu
+
+    bunx @tauri-apps/cli dev
+
+# Run the frontend dev server.
+[group('dev')]
+dev-frontend:
+    #!/usr/bin/env bash -eu
+
+    bun run --cwd src-frontend dev
+
+# -------------------------------------------------- PACKAGE COMMANDS -------------------------------------------------
+
+# Build the frontend, bridge and desktop app and package them into a single installable.
+[group('package')]
+package:
+    #!/usr/bin/env bash -eu
+
+    just package-frontend desktop_build="yes"
+    just package-bridge
+    just package-desktop
+
+# Build the bridge and package it into a single installable.
+[group('package')]
+package-bridge:
+    #!/usr/bin/env bash -eu
+
+    echo -e "The {{ _red }}build-bridge{{ _nc }} command is not yet implemented."
+
+# Build the desktop app and package it into a single installable.
+[group('package')]
+package-desktop:
+    #!/usr/bin/env bash -eu
+
+    bunx @tauri-apps/cli build
+    open ./src-tauri/target/release/bundle/dmg/
+
+# Build the frontend and package it as a static site export.
+[group('package')]
+package-frontend desktop_build="no":
+    #!/usr/bin/env bash -eu
+
+    if [[ "{{ desktop_build }}" != "no" ]]; then
+        IS_DESKTOP_BUILD=1 bun run --cwd src-frontend build
     else
-        echo "Please enter the path to your local SyftBox repo:"
-        read -e -p "SyftBox path: " dir_path
+        bun run --cwd src-frontend build
+    fi
+
+# -------------------------------------------------- UTILITY COMMANDS -------------------------------------------------
+
+# Reset the dev environment.
+[group('utils')]
+reset:
+    #!/usr/bin/env bash
+
+    rm -rf src-frontend/.next
+    rm -rf src-frontend/node_modules
+    rm -rf src-frontend/next-env.d.ts
+    rm -rf src-frontend/bun.lockb
+    rm -rf src-tauri/Cargo.lock
+    rm -rf src-tauri/gen
+    rm -rf src-tauri/target
+
+    echo -e "{{ _green }}Reset complete.{{ _nc }}"
+
+# Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
+[group('utils')]
+setup path_to_syftgo_repo="":
+    #!/usr/bin/env bash -eu
+
+    if [[ -n "{{ path_to_syftgo_repo }}" ]]; then
+        dir_path="{{ path_to_syftgo_repo }}"
+    else
+        echo "Please enter the path to your local SyftGo repo:"
+        read -e -p "SyftGo path: " dir_path
     fi
 
     # Resolve the absolute path
@@ -51,17 +227,23 @@ setup path_to_syftbox_repo="":
         exit 1
     fi
 
-    # Check that the directory is the SyftBox repository
+    # Check that the directory is the SyftGo repository
     remote_url=$(git -C "$dir_path" config --get remote.origin.url)
-    if [[ "${remote_url}" != "git@github.com:OpenMined/syft.git" ]] && \
-       [[ "${remote_url}" != "https://github.com/OpenMined/syft.git" ]]; then
-        echo "Error: The specified directory is not the SyftBox repository." >&2
+    if [[ "${remote_url}" != "git@github.com:yashgorana/syftgo.git" ]] && \
+       [[ "${remote_url}" != "https://github.com/yashgorana/syftgo.git" ]]; then
+        echo "Error: The specified directory is not the SyftGo repository." >&2
         exit 1
     fi
 
-    # Create a symlink in the 'src' directory
-    ln -snf "$dir_path/syftbox" src/syftbox
+    # convert the path to a relative path (using perl one-liner, as it is available almost everywhere)
+    dir_path=$(perl -le 'use File::Spec; print File::Spec->abs2rel(@ARGV)' `realpath "$dir_path"` .)
 
-    echo -e "Symlink created successfully at ${_green}src/syftbox${_nc} pointing to ${_green}$dir_path/syftbox${_nc}"
+    # Create a symlink at 'src-syftgo' directory
+    ln -snf "$dir_path" src-syftgo
 
-    echo "Setup complete. You can now run 'just build' to build the project."
+    echo -e "Symlink created successfully at {{ _green }}src-syftgo{{ _nc }} pointing to {{ _green }}$dir_path/{{ _nc }}"
+
+    echo "Installing dependencies..."
+    bun install --cwd src-frontend
+
+    echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."

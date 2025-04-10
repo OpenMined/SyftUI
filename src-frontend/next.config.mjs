@@ -1,7 +1,7 @@
 const isProd = process.env.NODE_ENV === "production";
-const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined;
+const isDesktopBuild = process.env.IS_DESKTOP_BUILD !== undefined;
 const basePath =
-  isProd && !isTauri ? "/datasites/tauquir@openmined.org/syftui" : "";
+  isProd && !isDesktopBuild ? "/datasites/tauquir@openmined.org/syftui" : "";
 
 // Make basePath available to the client as an environment variable
 process.env.NEXT_PUBLIC_BASE_PATH = basePath;
