@@ -1,87 +1,63 @@
 # 🎛️ SyftUI
 
-A slick user interface for the [SyftBox Daemon](https://www.github.com/OpenMined/syft) — your gateway to federated data science magic 🧙‍♂️✨.
+A slick user interface for [SyftBox](https://www.github.com/OpenMined/syft) — your gateway to federated data science magic 🧙‍♂️✨.
 
 SyftUI comes in two flavors:
 
 1. 🖥️ **Desktop App** – All-in-one bundle, just download and run!
-2. 🌐 **Web App** – Lightweight and handy, works with a remote or local SyftBox client.
+2. 🌐 **Web App** – Lightweight and handy, works with any SyftBox client (local or remote).
 
 ## 🚀 Installation
 
 ### 🖥️ Desktop App (Recommended)
 
-The easiest and most powerful way to run SyftUI.
+The easiest, most powerful way to run SyftUI.
 
 - Download the app for your OS.
 - Open it.
 - That’s it. 🎉
 
-The SyftBox client is bundled in — no extra setup needed!
+The SyftBox client is already bundled — no extra setup needed!
 
-### 🌐 Web App
+### 🌐 Web App (For the Adventurous)
 
 Perfect for headless setups or low-resource environments.
 
-- Make sure a SyftBox client is running (locally or on a public machine).
-- Launch the frontend.
-- Enter the **Client URL** and **Token** (you’ll find them in your SyftBox client output).
+- Make sure a SyftBox client is running (either locally or remotely).
+- Launch the frontend by visiting [this link](https://syftboxstage.openmined.org/datasites/tauquir@openmined.org/syftui).
+- Enter the **Client URL** and **Token** (you’ll find them in your SyftBox client logs).
 
 ## 🛠️ Development
 
 ### 💅 Set Up
 
-To get started with development, just run the following steps:
+✨ One command. All the dependencies. Magic. ✨
 
-1. **Install [Bun](https://bun.sh/docs/installation)**
-
-   Our project runs on Bun for lightning-fast installs and dev experience. Other package managers might work, but we haven't tested them.
-
-   ```bash
-   curl -fsSL https://bun.sh/install | bash
+   ```sh
+   just setup
    ```
 
-2. **Install Tauri prerequisites**
+✅ And boom! You’re ready to start building! It’s that simple. 🚀
 
-   Tauri powers our desktop builds. Follow their [official setup guide](https://tauri.app/start/prerequisites/) to install any system dependencies (like Rust, Xcode, etc.).
+### 🖥️ Desktop App (Frontend + Bridge + Desktop)
 
-3. **Install dependencies**
-
-   This will grab all the packages needed to run the project:
-
-   ```bash
-   bun install
-   ```
-
-4. **Set up pre-commit hooks**
-
-   We use Husky to keep our codebase clean and consistent. This step sets up Git hooks to lint and check code automatically before each commit:
-
-   ```bash
-   bun husky
-   ```
-
-✅ That’s it — you’re all set to start building!
-
-### 🖥️ Desktop App
-
-Work on the UI, the SyftBox client, AND the Tauri app — all at once with hot reload.
+Work on the frontend, the SyftBox bridge client, AND the Tauri app — all at once with hot reload.
 
 ```bash
-bun run tauri dev
+just dev
 ```
 
 ### 🌐 Web App (Frontend-Only)
 
-Run the frontend in dev mode. Make sure you have a SyftBox client running somewhere!
+Run the frontend in dev mode.
 
 ```bash
-bun run dev
+just dev-frontend
 ```
 
-💡 Tip: You'll need to copy-paste the **Client URL** and **Token** manually into the frontend.
+💡 Tip: Don’t forget to manually run the SyftGo **bridge server** by executing `just dev-bridge` in a terminal. Then, copy the **Client URL** and **Token** from the logs and paste them into the frontend.
 
-## 🏗️ Build
+## 🏗️ Build and Package
 
 ### 🖥️ Desktop App
 
@@ -90,7 +66,7 @@ bun run dev
 **Output directory:** `./src-tauri/target/release/bundle/dmg`
 
 ```bash
-bun run tauri build --bundles dmg
+just package
 ```
 
 #### 🐧 Linux
@@ -103,14 +79,14 @@ Coming soon... 🛠️
 
 ### 🌐 Web App
 
-This builds the frontend in **SSG** mode (Static Site Generation).
+Build the frontend in **SSG** (Static Site Generation) mode.
 
 **Output:** `./out`
 
 ```bash
-bun run build
+just package-frontend
 ```
 
 ---
 
-That's it! Now go build something private, powerful, and pretty! 🧠🔒💻
+And that's it! Now go create something private, powerful, and pretty! 🧠🔒💻

@@ -14,6 +14,8 @@ _red := '\033[1;31m'
 [private]
 _cyan := '\033[1;36m'
 [private]
+_blue := '\033[1;34m'
+[private]
 _green := '\033[1;32m'
 [private]
 _yellow := '\033[1;33m'
@@ -202,14 +204,69 @@ reset:
 
 # Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
 [group('utils')]
-setup path_to_syftgo_repo="":
+setup path_to_syftgo_repo="" skip_prerequisites="no":
+    #!/usr/bin/env bash -eu
+
+    just _install-os-pre-requisites {{ skip_prerequisites }}
+    just _create-syftgo-symlink {{ path_to_syftgo_repo }}
+
+    if ! command -v bun &> /dev/null; then
+        echo "Installing Bun"
+        curl -fsSL https://bun.sh/install | bash
+    fi
+
+    if ! command -v rustup &> /dev/null; then
+        echo "Installing Rust"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    fi
+
+    echo -e "\nInstalling dependencies..."
+    bun install --cwd src-frontend
+
+    echo -e "\nSetting up pre-commit hooks..."
+    bunx husky
+
+    echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
+
+_install-os-pre-requisites skip_prerequisites="no":
+    #!/usr/bin/env bash -eu
+
+    if [[ "$OSTYPE" == "adarwin"* ]]; then
+        if [[ $(xcode-select -p &> /dev/null; echo $?) -ne 0 ]]; then
+            echo "Installing Xcode Command Line Tools"
+            touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
+            PROD=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
+            softwareupdate -i "$PROD" --verbose;
+        fi
+    elif [[ "{{ skip_prerequisites }}" == "no" ]]; then
+        # KEEP THIS AT THE TOP OF THIS BLOCK. This gets the current line number.
+        line_number=$(grep -n 'UNIQUE_WORD_TO_MATCH_MYSELF_HERE_IN_GREP_COMMAND' justfile | cut -d: -f1 | head -n 1)
+
+        echo "Your OS is not supported by this script at the moment. Please manually install the"
+        echo -e "OS dependencies for Tauri from" \
+             "{{ _blue }}https://tauri.app/start/prerequisites/#system-dependencies{{ _nc }}."
+        echo -e "After that run the {{ _red }}just setup skip_prerequisites=yes{{ _nc }} command."
+
+        echo -e "Also, please add it to the {{ _red }}justfile:$((line_number - 2)){{ _nc }} as well for future use.\n"
+        exit 1
+    fi
+
+_create-syftgo-symlink path_to_syftgo_repo="":
     #!/usr/bin/env bash -eu
 
     if [[ -n "{{ path_to_syftgo_repo }}" ]]; then
         dir_path="{{ path_to_syftgo_repo }}"
     else
-        echo "Please enter the path to your local SyftGo repo:"
-        read -e -p "SyftGo path: " dir_path
+        read -e -p "Do you already have a SyftGo repo cloned locally? (y/n): " already_cloned
+        if [[ "$already_cloned" == "y" ]]; then
+            echo "Please enter the path to your local SyftGo repo:"
+            read -e -p "SyftGo path: " dir_path
+        else
+            # Clone the SyftGo repo
+            dir_path="../syftgo"
+            git clone git@github.com:yashgorana/syftgo.git $dir_path
+            echo -e "Cloned SyftGo repo at {{ _green }}$(realpath ${dir_path}){{ _nc }}"
+        fi
     fi
 
     # Resolve the absolute path
@@ -242,8 +299,3 @@ setup path_to_syftgo_repo="":
     ln -snf "$dir_path" src-syftgo
 
     echo -e "Symlink created successfully at {{ _green }}src-syftgo{{ _nc }} pointing to {{ _green }}$dir_path/{{ _nc }}"
-
-    echo "Installing dependencies..."
-    bun install --cwd src-frontend
-
-    echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
