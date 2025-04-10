@@ -1,1 +1,1 @@
-bunx --no -- commitlint --edit $1
+bunx --no -- commitlint --config src-frontend/commitlint.config.js --edit $1
