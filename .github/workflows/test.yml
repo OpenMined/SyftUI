@@ -58,10 +58,10 @@ jobs:
         with:
           packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Install dependencies
+      - name: Install Project dependencies
         run: bun install --cwd src-frontend
 
       - name: Run linters
         run: |
-          bunx -- commitlint --config src-frontend/commitlint.config.js --last
+          bun run --cwd src-frontend commitlint --last
           just check
