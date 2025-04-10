@@ -35,7 +35,8 @@ default:
 # Check the code quality of the frontend, bridge and desktop app.
 [group('code-quality:check')]
 check:
-    #!/usr/bin/env bash -u
+    #!/usr/bin/env bash
+    set -u
 
     just check-frontend
     just check-bridge
@@ -44,7 +45,8 @@ check:
 # Check the bridge server code quality.
 [group('code-quality:check')]
 check-bridge:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     echo -e "The {{ _red }}check-bridge{{ _nc }} command is not yet implemented."
     exit 1
@@ -53,7 +55,8 @@ check-bridge:
 # Check the desktop app code quality.
 [group('code-quality:check')]
 check-desktop:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     cargo clippy --manifest-path ./src-tauri/Cargo.toml
     cargo fmt --manifest-path ./src-tauri/Cargo.toml --check
@@ -63,7 +66,8 @@ check-desktop:
 # Check the frontend code quality.
 [group('code-quality:check')]
 check-frontend:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bun run --cwd src-frontend prettier --check .
     bun run --cwd src-frontend lint
@@ -78,17 +82,22 @@ check-frontend:
 # Tidy up the code of the frontend, bridge and desktop app.
 [group('code-quality:tidy')]
 tidy:
-    #!/usr/bin/env bash -u
+    #!/usr/bin/env bash
+    set -u
 
     just tidy-frontend
     just tidy-bridge
     just tidy-desktop
+
     just --fmt --unstable  # Format the justfile
+    echo -e "{{ _green }}Justfile formatted successfully.{{ _nc }}"
+    echo -e "{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}"
 
 # Tidy up the bridge server code.
 [group('code-quality:tidy')]
 tidy-bridge:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     echo -e "The {{ _red }}tidy-bridge{{ _nc }} command is not yet implemented."
     exit 1
@@ -97,7 +106,8 @@ tidy-bridge:
 # Tidy up the desktop app code.
 [group('code-quality:tidy')]
 tidy-desktop:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     cargo clippy --manifest-path ./src-tauri/Cargo.toml --fix --allow-staged
     cargo fmt --manifest-path ./src-tauri/Cargo.toml
@@ -107,7 +117,8 @@ tidy-desktop:
 # Tidy up the frontend code.
 [group('code-quality:tidy')]
 tidy-frontend:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bun run --cwd src-frontend prettier --write .
     bun run --cwd src-frontend lint --fix
@@ -119,7 +130,8 @@ tidy-frontend:
 # Run the frontend, bridge and desktop app concurrently.
 [group('dev')]
 dev:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bunx concurrently \
         --kill-others \
@@ -131,7 +143,8 @@ dev:
 
 [group('dev')]
 dev-bridge:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     # Need to use realpath due to a bug in air (https://github.com/air-verse/air/pull/742).
     cd $(realpath src-syftgo) && air -- --ui-port 8000 --ui-swagger
@@ -139,14 +152,16 @@ dev-bridge:
 # Run the desktop dev app.
 [group('dev')]
 dev-desktop:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bunx @tauri-apps/cli dev
 
 # Run the frontend dev server.
 [group('dev')]
 dev-frontend:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bun run --cwd src-frontend dev
 
@@ -155,7 +170,8 @@ dev-frontend:
 # Build the frontend, bridge and desktop app and package them into a single installable.
 [group('package')]
 package:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     just package-frontend desktop_build="yes"
     just package-bridge
@@ -164,14 +180,16 @@ package:
 # Build the bridge and package it into a single installable.
 [group('package')]
 package-bridge:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     echo -e "The {{ _red }}build-bridge{{ _nc }} command is not yet implemented."
 
 # Build the desktop app and package it into a single installable.
 [group('package')]
 package-desktop:
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     bunx @tauri-apps/cli build
     open ./src-tauri/target/release/bundle/dmg/
@@ -179,7 +197,8 @@ package-desktop:
 # Build the frontend and package it as a static site export.
 [group('package')]
 package-frontend desktop_build="no":
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     if [[ "{{ desktop_build }}" != "no" ]]; then
         IS_DESKTOP_BUILD=1 bun run --cwd src-frontend build
@@ -193,6 +212,7 @@ package-frontend desktop_build="no":
 [group('utils')]
 reset:
     #!/usr/bin/env bash
+    set -eu
 
     rm -rf src-frontend/.next
     rm -rf src-frontend/node_modules
@@ -207,7 +227,8 @@ reset:
 # Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
 [group('utils')]
 setup path_to_syftgo_repo="" skip_prerequisites="no":
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     just _install-os-pre-requisites {{ skip_prerequisites }}
     just _create-syftgo-symlink {{ path_to_syftgo_repo }}
@@ -231,9 +252,10 @@ setup path_to_syftgo_repo="" skip_prerequisites="no":
     echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
 
 _install-os-pre-requisites skip_prerequisites="no":
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
-    if [[ "$OSTYPE" == "adarwin"* ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
         if [[ $(xcode-select -p &> /dev/null; echo $?) -ne 0 ]]; then
             echo "Installing Xcode Command Line Tools"
             touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
@@ -254,21 +276,27 @@ _install-os-pre-requisites skip_prerequisites="no":
     fi
 
 _create-syftgo-symlink path_to_syftgo_repo="":
-    #!/usr/bin/env bash -eu
+    #!/usr/bin/env bash
+    set -eu
 
     if [[ -n "{{ path_to_syftgo_repo }}" ]]; then
         dir_path="{{ path_to_syftgo_repo }}"
     else
-        read -e -p "Do you already have a SyftGo repo cloned locally? (y/n): " already_cloned
-        if [[ "$already_cloned" == "y" ]]; then
-            echo "Please enter the path to your local SyftGo repo:"
+        while true; do
+            read -e -p "Do you already have a SyftGo repo cloned locally? (y/n): " already_cloned
+            if [[ "$already_cloned" == "y" ]]; then
+                echo "Please enter the path to your local SyftGo repo:"
             read -e -p "SyftGo path: " dir_path
-        else
+        elif [[ "$already_cloned" == "n" ]]; then
             # Clone the SyftGo repo
             dir_path="../syftgo"
             git clone git@github.com:yashgorana/syftgo.git $dir_path
             echo -e "Cloned SyftGo repo at {{ _green }}$(realpath ${dir_path}){{ _nc }}"
-        fi
+        else
+                echo "Invalid input. Please enter 'y' or 'n'."
+                continue
+            fi
+        done
     fi
 
     # Resolve the absolute path
