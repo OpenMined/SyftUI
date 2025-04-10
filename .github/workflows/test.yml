@@ -63,5 +63,5 @@ jobs:
 
       - name: Run linters
         run: |
-          bun commitlint --last
+          bunx -- commitlint --config src-frontend/commitlint.config.js --last
           just check
