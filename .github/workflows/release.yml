@@ -35,6 +35,9 @@ jobs:
           p12-file-base64: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
           p12-password: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
 
+      - name: Setup just cli
+        uses: extractions/setup-just@v2
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
@@ -73,7 +76,7 @@ jobs:
 
       - name: Build app
         run: |
-          bun run tauri build --ci --target ${{ matrix.args }} --bundles dmg
+          just package-frontend desktop_build="yes" package-desktop
 
       - name: Setup git config
         env:
