@@ -1,4 +1,5 @@
 use tauri::{
+    image::Image,
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     Manager,
@@ -19,11 +20,19 @@ pub fn run() {
                 MenuItem::with_id(app, "show_dashboard", "Open SyftBox", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_dashboard_i, &quit_i])?;
-            let tray = TrayIconBuilder::new()
-                .menu(&menu)
-                .icon(app.default_window_icon().unwrap().clone())
-                .build(app)
-                .unwrap();
+
+            let mut tray_builder = TrayIconBuilder::new().menu(&menu);
+
+            // Platform-specific icon configuration
+            if cfg!(target_os = "macos") {
+                tray_builder = tray_builder
+                    .icon(Image::from_path("icons/MacSystemTray.png").unwrap())
+                    .icon_as_template(true);
+            } else {
+                tray_builder = tray_builder.icon(app.default_window_icon().unwrap().clone());
+            }
+
+            let tray = tray_builder.build(app).unwrap();
 
             tray.on_menu_event(move |app, event| match event.id.as_ref() {
                 "show_dashboard" => {
