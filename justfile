@@ -36,11 +36,13 @@ default:
 [group('code-quality:check')]
 check:
     #!/usr/bin/env bash
-    set -u
+    set -eu
 
     just check-frontend
     just check-bridge
     just check-desktop
+
+    echo -e "\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n"
 
 # Check the bridge server code quality.
 [group('code-quality:check')]
@@ -48,9 +50,8 @@ check-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    echo -e "The {{ _red }}check-bridge{{ _nc }} command is not yet implemented."
-    exit 1
-    echo -e "{{ _green }}SyftGo bridge server code quality check completed successfully.{{ _nc }}"
+    just --justfile=src-syftgo/justfile run-checks
+    echo -e "\n{{ _green }}SyftGo bridge server code quality check completed successfully.{{ _nc }}\n"
 
 # Check the desktop app code quality.
 [group('code-quality:check')]
@@ -61,7 +62,7 @@ check-desktop:
     cargo clippy --manifest-path ./src-tauri/Cargo.toml
     cargo fmt --manifest-path ./src-tauri/Cargo.toml --check
 
-    echo -e "{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}"
+    echo -e "\n{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}\n"
 
 # Check the frontend code quality.
 [group('code-quality:check')]
@@ -75,7 +76,7 @@ check-frontend:
     # TODO: Uncomment this once the type errors are fixed.
     # bun run --cwd src-frontend tsc --noEmit
 
-    echo -e "{{ _green }}Frontend code quality check completed successfully.{{ _nc }}"
+    echo -e "\n{{ _green }}Frontend code quality check completed successfully.{{ _nc }}\n"
 
 # ------------------------------------------------ CODE QUALITY FIXES -------------------------------------------------
 
@@ -83,15 +84,15 @@ check-frontend:
 [group('code-quality:tidy')]
 tidy:
     #!/usr/bin/env bash
-    set -u
+    set -eu
 
     just tidy-frontend
     just tidy-bridge
     just tidy-desktop
 
-    just --fmt --unstable  # Format the justfile
-    echo -e "{{ _green }}Justfile formatted successfully.{{ _nc }}"
-    echo -e "{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}"
+    just --fmt --unstable  # Format the justfile as well
+    echo -e "\n{{ _green }}Justfile formatted successfully.{{ _nc }}\n"
+    echo -e "\n{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}\n"
 
 # Tidy up the bridge server code.
 [group('code-quality:tidy')]
@@ -99,9 +100,8 @@ tidy-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    echo -e "The {{ _red }}tidy-bridge{{ _nc }} command is not yet implemented."
-    exit 1
-    echo -e "{{ _green }}SyftGo bridge server code tidied up successfully.{{ _nc }}"
+    just --justfile=src-syftgo/justfile run-checks-and-fix
+    echo -e "\n{{ _green }}SyftGo bridge server code tidied up successfully.{{ _nc }}\n"
 
 # Tidy up the desktop app code.
 [group('code-quality:tidy')]
@@ -112,7 +112,7 @@ tidy-desktop:
     cargo clippy --manifest-path ./src-tauri/Cargo.toml --fix --allow-staged
     cargo fmt --manifest-path ./src-tauri/Cargo.toml
 
-    echo -e "{{ _green }}Desktop app code tidied up successfully.{{ _nc }}"
+    echo -e "\n{{ _green }}Desktop app code tidied up successfully.{{ _nc }}\n"
 
 # Tidy up the frontend code.
 [group('code-quality:tidy')]
@@ -123,7 +123,7 @@ tidy-frontend:
     bun run --cwd src-frontend prettier --write .
     bun run --cwd src-frontend lint --fix
 
-    echo -e "{{ _green }}Frontend code tidied up successfully.{{ _nc }}"
+    echo -e "\n{{ _green }}Frontend code tidied up successfully.{{ _nc }}\n"
 
 # ---------------------------------------------------- DEV COMMANDS ---------------------------------------------------
 
@@ -222,7 +222,7 @@ reset:
     rm -rf src-tauri/gen
     rm -rf src-tauri/target
 
-    echo -e "{{ _green }}Reset complete.{{ _nc }}"
+    echo -e "\n{{ _green }}Reset complete.{{ _nc }}\n"
 
 # Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
 [group('utils')]
@@ -244,10 +244,10 @@ setup path_to_syftgo_repo="" skip_prerequisites="no":
     fi
 
     echo -e "\nInstalling dependencies..."
-    bun install --cwd src-frontend
+    $HOME/.bun/bin/bun install --cwd src-frontend
 
     echo -e "\nSetting up pre-commit hooks..."
-    bunx husky
+    $HOME/.bun/bin/bunx husky
 
     echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
 
