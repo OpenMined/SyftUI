@@ -21,9 +21,19 @@ pub fn run() {
             // Spawn the syftbox_client sidecar, but not in dev/debug mode.
             // In dev mode, we run the sidecar externally with hot-reloading from the `just dev` command.
             if cfg!(not(debug_assertions)) {
-                app.shell()
+                let (_rx, syftbox_client_sidecar) = app
+                    .shell()
                     .sidecar("syftbox_client")
                     .unwrap()
+                    .spawn()
+                    .expect("Failed to spawn sidecar");
+
+                // Spawn the process-wick sidecar to kill all sidecars when the main app exits.
+                // This prevents orphaned sidecars after the main app is closed.
+                app.shell()
+                    .sidecar("process-wick")
+                    .unwrap()
+                    .args(["--targets", &syftbox_client_sidecar.pid().to_string()])
                     .spawn()
                     .expect("Failed to spawn sidecar");
             }
