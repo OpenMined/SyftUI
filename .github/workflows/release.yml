@@ -28,6 +28,9 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.SYFTGO_PAT_TOKEN }}
+          submodules: true
 
       - name: Import signing certificate into keychain
         uses: apple-actions/import-codesign-certs@v3
@@ -76,7 +79,7 @@ jobs:
 
       - name: Build app
         run: |
-          just package-frontend desktop_build="yes" package-desktop
+          just package
 
       - name: Setup git config
         env:

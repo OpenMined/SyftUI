@@ -183,7 +183,7 @@ package-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    echo -e "The {{ _red }}build-bridge{{ _nc }} command is not yet implemented."
+    just --justfile=src-syftgo/justfile build-client-target
 
 # Build the desktop app and package it into a single installable.
 [group('package')]
@@ -191,7 +191,7 @@ package-desktop:
     #!/usr/bin/env bash
     set -eu
 
-    bunx @tauri-apps/cli build
+    CI=false TAURI_BUNDLER_DMG_IGNORE_CI=true bunx @tauri-apps/cli build
     open ./src-tauri/target/release/bundle/dmg/
 
 # Build the frontend and package it as a static site export.
@@ -214,24 +214,42 @@ reset:
     #!/usr/bin/env bash
     set -eu
 
+    # Deinit the submodules.
+    echo "Deinitializing submodules..."
+
+    # Check if all submodules are clean (no unstaged or staged changes)
+    while IFS= read -r path; do
+        if [[ -n "$(git -C "$path" status --porcelain)" ]]; then
+        echo -e "Submodule {{ _red }}$path{{ _nc }} has unstaged or staged changes. Unable to deinitialize."
+        echo -e "Manually clean the submodule and run {{ _red }}just reset{{ _nc }} again to continue.\n"
+        exit 1
+        fi
+    done < <(git submodule --quiet foreach --recursive 'echo $sm_path')
+
+    # All submodules are clean, deinitialize them
+    git submodule deinit --all --force > /dev/null 2>&1
+
+    echo "Removing generated files..."
     rm -rf src-frontend/.next
     rm -rf src-frontend/node_modules
+    rm -rf src-frontend/out
     rm -rf src-frontend/next-env.d.ts
-    rm -rf src-frontend/bun.lockb
-    rm -rf src-tauri/Cargo.lock
+    rm -rf src-frontend/tsconfig.tsbuildinfo
     rm -rf src-tauri/gen
     rm -rf src-tauri/target
 
-    echo -e "\n{{ _green }}Reset complete.{{ _nc }}\n"
+    echo -e "{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment."
 
 # Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
 [group('utils')]
-setup path_to_syftgo_repo="" skip_prerequisites="no":
+setup skip_prerequisites="no":
     #!/usr/bin/env bash
     set -eu
 
     just _install-os-pre-requisites {{ skip_prerequisites }}
-    just _create-syftgo-symlink {{ path_to_syftgo_repo }}
+
+    echo -e "\nInitializing submodules..."
+    git submodule update --init --recursive --remote
 
     if ! command -v bun &> /dev/null; then
         echo "Installing Bun"
@@ -243,10 +261,10 @@ setup path_to_syftgo_repo="" skip_prerequisites="no":
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     fi
 
-    echo -e "\nInstalling dependencies..."
+    echo -e "Installing dependencies..."
     $HOME/.bun/bin/bun install --cwd src-frontend
 
-    echo -e "\nSetting up pre-commit hooks..."
+    echo -e "Setting up pre-commit hooks..."
     $HOME/.bun/bin/bunx husky
 
     echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
