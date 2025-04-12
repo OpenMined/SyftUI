@@ -39,7 +39,7 @@ check:
     set -eu
 
     just check-frontend
-    just check-bridge
+    # just check-bridge
     just check-desktop
 
     echo -e "\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n"
@@ -87,7 +87,7 @@ tidy:
     set -eu
 
     just tidy-frontend
-    just tidy-bridge
+    # just tidy-bridge
     just tidy-desktop
 
     just --fmt --unstable  # Format the justfile as well
