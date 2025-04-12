@@ -32,6 +32,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "externalBin": ["./target/binaries/syftbox_client"],
     "macOS": {
       "dmg": {
         "background": "./images/dmg-background.png",

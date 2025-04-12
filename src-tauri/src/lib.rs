@@ -4,9 +4,11 @@ use tauri::{
     tray::TrayIconBuilder,
     Manager,
 };
+use tauri_plugin_shell::ShellExt;
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -16,6 +18,17 @@ pub fn run() {
                 )?;
             }
 
+            // Spawn the syftbox_client sidecar, but not in dev/debug mode.
+            // In dev mode, we run the sidecar externally with hot-reloading from the `just dev` command.
+            if cfg!(not(debug_assertions)) {
+                app.shell()
+                    .sidecar("syftbox_client")
+                    .unwrap()
+                    .spawn()
+                    .expect("Failed to spawn sidecar");
+            }
+
+            // Configure the system tray
             let show_dashboard_i =
                 MenuItem::with_id(app, "show_dashboard", "Open SyftBox", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -26,7 +39,7 @@ pub fn run() {
             // Platform-specific icon configuration
             if cfg!(target_os = "macos") {
                 tray_builder = tray_builder
-                    .icon(Image::from_path("icons/MacSystemTray.png").unwrap())
+                    .icon(Image::from_bytes(include_bytes!("../icons/tray.png")).unwrap())
                     .icon_as_template(true);
             } else {
                 tray_builder = tray_builder.icon(app.default_window_icon().unwrap().clone());

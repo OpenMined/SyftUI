@@ -185,6 +185,18 @@ package-bridge:
 
     just --justfile=src-syftgo/justfile build-client-target
 
+    # Copy the client binary to the bundle directory with the correct name.
+    TARGET_TRIPLE=$(rustc -Vv | grep host | cut -f2 -d' ')
+    if [[ -z "${TARGET_TRIPLE}" ]]; then
+        echo -e "Failed to determine the target triple. Please check the Rust installation."
+        exit 1
+    fi
+
+    EXTENSION=$(if [[ "$OSTYPE" == "win32" ]]; then echo ".exe"; else echo ""; fi)
+    dst="src-tauri/target/binaries/syftbox_client-${TARGET_TRIPLE}${EXTENSION}"
+    mkdir -p $(dirname "${dst}")
+    cp src-syftgo/.out/syftbox_client_* "${dst}"
+
 # Build the desktop app and package it into a single installable.
 [group('package')]
 package-desktop:

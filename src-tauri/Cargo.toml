@@ -23,3 +23,4 @@ serde = { version = "1.0.219", features = ["derive"] }
 log = "0.4.27"
 tauri = { version = "2.4.1", features = ["tray-icon", "image-png"] }
 tauri-plugin-log = "2.3.1"
+tauri-plugin-shell = "2.2.1"
