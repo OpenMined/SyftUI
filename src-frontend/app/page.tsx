@@ -220,7 +220,7 @@ export default function HomePage() {
       <Card className="mx-auto max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">
-            {step === "connect" && "Connect to SyftBox v0.1.1"}
+            {step === "connect" && "Connect to SyftBox"}
             {step === "configure" && "Configure SyftBox"}
             {step === "email" && "Connect to your datasite"}
             {step === "verify" && "Verify Your Email"}
