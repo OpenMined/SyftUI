@@ -1,9 +1,11 @@
 use tauri::{
     image::Image,
-    menu::{Menu, MenuItem},
+    menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
     Manager,
 };
+use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_shell::ShellExt;
 
 pub fn run() {
@@ -38,11 +40,25 @@ pub fn run() {
                     .expect("Failed to spawn sidecar");
             }
 
+            let _ = app.handle().plugin(tauri_plugin_autostart::init(
+                MacosLauncher::LaunchAgent,
+                None,
+            ));
+            let autostart_manager = app.autolaunch();
+
             // Configure the system tray
             let show_dashboard_i =
                 MenuItem::with_id(app, "show_dashboard", "Open SyftBox", true, None::<&str>)?;
+            let autostart_i = CheckMenuItem::with_id(
+                app,
+                "autostart",
+                "Autostart",
+                true,
+                autostart_manager.is_enabled().unwrap_or(false),
+                None::<&str>,
+            )?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_dashboard_i, &quit_i])?;
+            let menu = Menu::with_items(app, &[&show_dashboard_i, &autostart_i, &quit_i])?;
 
             let mut tray_builder = TrayIconBuilder::new().menu(&menu);
 
@@ -69,6 +85,14 @@ pub fn run() {
                     // Show the window
                     window.show().unwrap();
                     window.set_focus().unwrap();
+                }
+                "autostart" => {
+                    let manager = app.autolaunch();
+                    if manager.is_enabled().unwrap() {
+                        let _ = manager.disable();
+                    } else {
+                        let _ = manager.enable();
+                    }
                 }
                 "quit" => {
                     app.exit(0);
