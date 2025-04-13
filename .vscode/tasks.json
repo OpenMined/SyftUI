@@ -1,0 +1,36 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev:frontend-and-syftgo",
+      "type": "shell",
+      // `dev` keeps running in the background
+      // ideally you should also configure a `problemMatcher`
+      // see https://code.visualstudio.com/docs/editor/tasks#_can-a-background-task-be-used-as-a-prelaunchtask-in-launchjson
+      "isBackground": true,
+      "command": "bunx",
+      "args": [
+        "concurrently",
+        "--kill-others",
+        "--success",
+        "first",
+        "--prefix",
+        "name",
+        "--names",
+        "BRIDGE,FRONTEND",
+        "--prefix-colors",
+        "red,yellow",
+        "just dev-bridge",
+        "just dev-frontend"
+      ]
+    },
+    {
+      "label": "build:frontend-and-syftgo",
+      "type": "shell",
+      "command": "just",
+      "args": ["package-bridge", "package-frontend", "desktop_build=yes"]
+    }
+  ]
+}
