@@ -20,7 +20,7 @@
     },
     {
       "type": "lldb",
-      "request": "",
+      "request": "launch",
       "name": "Tauri Production Debug",
       "cargo": {
         "args": ["build", "--release", "--manifest-path=./src-tauri/Cargo.toml"]
