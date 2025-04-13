@@ -225,6 +225,37 @@ package-frontend desktop_build="no":
         bun run --cwd src-frontend build
     fi
 
+[group('package')]
+deploy-frontend-to-stage:
+    #!/usr/bin/env bash
+    set -eu
+
+    echo "Deploying frontend to syftboxstage.openmined.org..."
+
+    SOURCE_DIR="./src-frontend/out"
+    DEST_DIR="/home/azureuser/data/snapshot/tauquir@openmined.org/public/syftui"
+    DEST_ZIP_DIR="$(dirname ${DEST_DIR})"
+
+    # zip the source directory's contents
+    cd "${SOURCE_DIR}" && zip -r "out.zip" .
+
+    # Copy the zipped source directory to the destination's parent directory
+    scp -r "out.zip" azureuser@syftbox-stage:"${DEST_ZIP_DIR}"
+
+    # Remove the local zip file
+    rm "out.zip"
+
+    # Remove the destination directory if it exists
+    ssh azureuser@syftbox-stage "rm -rf ${DEST_DIR}"
+
+    # unzip the source directory
+    ssh azureuser@syftbox-stage "cd ${DEST_ZIP_DIR} && unzip out.zip -d ${DEST_DIR}"
+
+    # Remove the zip file from the destination
+    ssh azureuser@syftbox-stage "rm ${DEST_ZIP_DIR}/out.zip"
+
+    echo "Frontend deployment complete."
+
 # -------------------------------------------------- UTILITY COMMANDS -------------------------------------------------
 
 # Reset the dev environment.
