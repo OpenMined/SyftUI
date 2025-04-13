@@ -1,4 +1,4 @@
 [submodule "src-syftgo"]
 	path = src-syftgo
-	url = git@github.com:yashgorana/syftgo
+	url = git@github.com:itstauq/syftgo
 	branch = uibridge

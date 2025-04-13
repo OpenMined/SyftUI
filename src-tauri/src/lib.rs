@@ -7,6 +7,7 @@ use tauri::{
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_shell::ShellExt;
+use tauri_plugin_updater::UpdaterExt;
 
 pub fn run() {
     tauri::Builder::default()
@@ -20,9 +21,28 @@ pub fn run() {
                 )?;
             }
 
-            // Spawn the syftbox_client sidecar, but not in dev/debug mode.
-            // In dev mode, we run the sidecar externally with hot-reloading from the `just dev` command.
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())
+                .expect("Failed to initialize updater plugin");
+
+            app.handle()
+                .plugin(tauri_plugin_autostart::init(
+                    MacosLauncher::LaunchAgent,
+                    None,
+                ))
+                .expect("Failed to initialize autostart plugin");
+
+            let autostart_manager = app.autolaunch();
+
             if cfg!(not(debug_assertions)) {
+                // Only check for updates in release builds.
+                let handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    update(handle).await.unwrap();
+                });
+
+                // Spawn the syftbox_client sidecar, but not in dev/debug mode.
+                // In dev mode, we run the sidecar externally with hot-reloading from the `just dev` command.
                 let (_rx, syftbox_client_sidecar) = app
                     .shell()
                     .sidecar("syftbox_client")
@@ -39,12 +59,6 @@ pub fn run() {
                     .spawn()
                     .expect("Failed to spawn sidecar");
             }
-
-            let _ = app.handle().plugin(tauri_plugin_autostart::init(
-                MacosLauncher::LaunchAgent,
-                None,
-            ));
-            let autostart_manager = app.autolaunch();
 
             // Configure the system tray
             let show_dashboard_i =
@@ -121,4 +135,26 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+async fn update(app: tauri::AppHandle) -> tauri_plugin_updater::Result<()> {
+    if let Some(update) = app.updater()?.check().await? {
+        let mut downloaded = 0;
+
+        update
+            .download_and_install(
+                |chunk_length, content_length| {
+                    downloaded += chunk_length;
+                    println!("downloaded {downloaded} from {content_length:?}");
+                },
+                || {
+                    println!("download finished");
+                },
+            )
+            .await?;
+
+        println!("update installed");
+        app.restart();
+    }
+    Ok(())
 }

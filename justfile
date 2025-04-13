@@ -203,8 +203,15 @@ package-desktop:
     #!/usr/bin/env bash
     set -eu
 
-    CI=false TAURI_BUNDLER_DMG_IGNORE_CI=true bunx @tauri-apps/cli build
-    open ./src-tauri/target/release/bundle/dmg/
+    # If this is github ci
+    if [[ "${GITHUB_CI:-}" == "1" ]]; then
+        CI=false TAURI_BUNDLER_DMG_IGNORE_CI=true bunx @tauri-apps/cli build
+    else
+        export TAURI_SIGNING_PRIVATE_KEY=dummy
+        export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=dummy
+        bunx @tauri-apps/cli build
+        open ./src-tauri/target/release/bundle/dmg/
+    fi
 
 # Build the frontend and package it as a static site export.
 [group('package')]

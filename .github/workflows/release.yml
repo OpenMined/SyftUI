@@ -25,6 +25,8 @@ jobs:
       APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -79,7 +81,7 @@ jobs:
 
       - name: Build app
         run: |
-          just package
+          GITHUB_CI=1 just package
 
       - name: Setup git config
         env:
@@ -103,7 +105,9 @@ jobs:
           name: ${{ inputs.version }}
           generate_release_notes: true
           make_latest: true
-          files: ./src-tauri/target/${{ matrix.args }}/release/bundle/dmg/*.dmg
+          files: |
+            ./src-tauri/target/${{ matrix.args }}/release/bundle/dmg/*
+            ./src-tauri/target/${{ matrix.args }}/release/bundle/macos/*
 
       - name: Clean up all user keychains
         if: always()
