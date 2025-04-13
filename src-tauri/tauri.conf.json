@@ -9,7 +9,8 @@
   },
   "app": {
     "security": {
-      "csp": "default-src 'self'; img-src *; script-src 'self' 'unsafe-inline';"
+      "dangerousDisableAssetCspModification": true,
+      "csp": null
     },
     "windows": [
       {
