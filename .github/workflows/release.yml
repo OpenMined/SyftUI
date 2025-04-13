@@ -103,8 +103,8 @@ jobs:
           generate_release_notes: true
           make_latest: true
           files: |
-            ./src-tauri/target/${{ matrix.args }}/release/bundle/dmg/*
-            ./src-tauri/target/${{ matrix.args }}/release/bundle/macos/*
+            ./src-tauri/target/release/bundle/dmg/*.dmg
+            ./src-tauri/target/release/bundle/macos/*.app*
 
       - name: Clean up all user keychains
         if: always()
