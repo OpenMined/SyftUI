@@ -174,7 +174,7 @@ package:
     set -eu
 
     just package-frontend desktop_build="yes"
-    just package-bridge
+    # just package-bridge
     just package-desktop
 
 # Build the bridge and package it into a single installable.

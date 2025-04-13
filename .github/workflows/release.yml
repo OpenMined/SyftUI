@@ -30,9 +30,6 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.TEMP_SYFTGO_SSH_KEY }}
-          submodules: true
 
       - name: Import signing certificate into keychain
         uses: apple-actions/import-codesign-certs@v3
