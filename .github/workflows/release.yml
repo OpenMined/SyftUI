@@ -74,7 +74,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install Project dependencies
-        run: bun install
+        run: bun install --cwd src-frontend
 
       - name: Build app
         run: |
