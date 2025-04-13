@@ -27,6 +27,7 @@ jobs:
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -104,7 +105,31 @@ jobs:
           make_latest: true
           files: |
             ./src-tauri/target/release/bundle/dmg/*.dmg
-            ./src-tauri/target/release/bundle/macos/*.app*
+            ./src-tauri/target/release/bundle/macos/*.app
+            ./src-tauri/target/release/bundle/macos/*.app.tar.gz
+
+      - name: Generate and upload release.json
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ inputs.version }}"
+          NOTES=$(gh release view ${{ inputs.version }} --json body --jq .body | jq -Rs .)
+          PUB_DATE=$(gh release view ${{ inputs.version }} --json publishedAt --jq .publishedAt)
+          DARWIN_AARCH64_SIGNATURE=$(cat ./src-tauri/target/release/bundle/macos/SyftBox.app.tar.gz.sig)
+          DARWIN_AARCH64_URL="https://github.com/OpenMined/SyftUI/releases/download/${{ inputs.version }}/SyftBox.app.tar.gz"
+
+          export VERSION="\"$VERSION\""
+          export NOTES
+          export PUB_DATE="\"$PUB_DATE\""
+          export DARWIN_AARCH64_SIGNATURE="\"$DARWIN_AARCH64_SIGNATURE\""
+          export DARWIN_AARCH64_URL="\"$DARWIN_AARCH64_URL\""
+
+          envsubst < release.json.template > release.json
+          echo "Generated release.json:"
+          cat release.json
+
+          gh release upload ${{ inputs.version }} release.json --clobber
 
       - name: Clean up all user keychains
         if: always()

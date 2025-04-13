@@ -60,7 +60,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERDNDQwRjM5QTY1NzFDQTgKUldTb0hGZW1PUTlFM1AxcDBodCttQmxZLzM1NzdMMFpJREI3NVlMa3pHNm8wN0hKa0Q5ZTFRZmsK",
       "endpoints": [
-        "https://github.com/OpenMined/SyftUI/releases/download/latest/latest.json"
+        "https://github.com/OpenMined/SyftUI/releases/download/latest/release.json"
       ]
     }
   }
