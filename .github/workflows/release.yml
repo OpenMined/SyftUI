@@ -31,7 +31,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
         with:
-          ssh-key: ${{ secrets.SYFTGO_PAT_TOKEN }}
+          ssh-key: ${{ secrets.TEMP_SYFTGO_SSH_KEY }}
           submodules: true
 
       - name: Import signing certificate into keychain
