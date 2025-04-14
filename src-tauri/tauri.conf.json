@@ -12,15 +12,7 @@
       "dangerousDisableAssetCspModification": true,
       "csp": null
     },
-    "windows": [
-      {
-        "label": "main",
-        "title": "SyftBox",
-        "width": 1200,
-        "height": 720,
-        "resizable": true
-      }
-    ],
+    "windows": [],
     "withGlobalTauri": true
   },
   "bundle": {
