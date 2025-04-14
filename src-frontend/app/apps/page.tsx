@@ -45,7 +45,7 @@ export default function AppsPage() {
         </div>
         <Button
           variant="outline"
-          onClick={() => (window.location.href = "/marketplace")}
+          onClick={() => router.push("/marketplace")}
           className="gap-0"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -62,7 +62,7 @@ export default function AppsPage() {
           </TabsList>
         </div>
 
-        <TabsContent value="all" className="flex-1 p-0">
+        <TabsContent value="all" className="h-full flex-1 p-0">
           {installedApps.length > 0 ? (
             <AppList
               apps={installedApps}
@@ -79,7 +79,7 @@ export default function AppsPage() {
                 You haven&apos;t installed any apps yet. Visit the marketplace
                 to find and install apps.
               </p>
-              <Button onClick={() => (window.location.href = "/marketplace")}>
+              <Button onClick={() => router.push("/marketplace")}>
                 Browse Marketplace
               </Button>
             </div>

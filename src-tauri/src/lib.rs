@@ -1,4 +1,3 @@
-use rand::TryRngCore;
 use tauri::{
     image::Image,
     menu::{CheckMenuItem, Menu, MenuItem},
