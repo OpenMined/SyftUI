@@ -96,7 +96,7 @@ jobs:
           # Push the tag to the remote repo
           git push origin ${{ inputs.version }}
 
-      # - name: Copy frontend build to syftbox-stage via SCP
+      # - name: Deploy frontend to syftbox-stage
       #   run: just deploy-frontend-to-stage
 
       - name: Create release
