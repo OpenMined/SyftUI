@@ -133,6 +133,10 @@ dev:
     #!/usr/bin/env bash
     set -eu
 
+    export BRIDGE_HOST="localhost"
+    export BRIDGE_PORT="7938"  # 7938 is the vanity number for SYFT in T9 keypad config 😎
+    export BRIDGE_TOKEN="SYFTBOX_DEV"
+
     bunx concurrently \
         --kill-others \
         --success first \
@@ -147,7 +151,7 @@ dev-bridge:
     set -eu
 
     # Need to use realpath due to a bug in air (https://github.com/air-verse/air/pull/742).
-    cd $(realpath src-syftgo) && air -- --ui-port 8000 --ui-swagger
+    cd $(realpath src-syftgo) && air -- --ui-host $BRIDGE_HOST --ui-port $BRIDGE_PORT --ui-token $BRIDGE_TOKEN --ui-swagger
 
 # Run the desktop dev app.
 [group('dev')]

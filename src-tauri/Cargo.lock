@@ -6,7 +6,9 @@ version = 3
 name = "SyftBox"
 version = "0.1.0"
 dependencies = [
+ "hex",
  "log",
+ "rand 0.9.0",
  "serde",
  "serde_json",
  "tauri",
