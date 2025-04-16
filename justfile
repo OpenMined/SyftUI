@@ -270,7 +270,7 @@ update-version:
 
     FRONTEND_VERSION=$(jq -r .version src-frontend/package.json)
     DESKTOP_VERSION=$(jq -r .version src-tauri/tauri.conf.json)
-    DAEMON_VERSION=$(cd src-syftgo && go run ./cmd/client/main.go --version | sed -E 's/.*version ([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)*).*/\1/')
+    DAEMON_VERSION=$($(find src-tauri/binaries/ -name "syftbox_client*") --version | sed -E 's/.*version ([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)*).*/\1/')
     COMMIT_HASH=$(git rev-parse --short HEAD)
 
     echo "Frontend version: ${FRONTEND_VERSION}"
