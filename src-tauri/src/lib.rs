@@ -29,19 +29,17 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             None,
         ))
         .invoke_handler(tauri::generate_handler![update_about_window_titlebar_color])
         .setup(|app| {
-            #[cfg(debug_assertions)]
-            app.handle().plugin(
-                tauri_plugin_log::Builder::default()
-                    .level(log::LevelFilter::Info)
-                    .build(),
-            )?;
-
             app.manage(Mutex::new(AppState::default()));
 
             _setup_main_window(app.handle());
