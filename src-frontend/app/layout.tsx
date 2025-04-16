@@ -21,7 +21,8 @@ export default function RootLayout({
 }>) {
   const { sidebarOpen, setSidebarOpen } = useSidebarStore();
   const pathname = usePathname();
-  const isHomePage = pathname === "/" || pathname === "";
+  const sidebarExcludedPaths = ["/", "", "/about/"];
+  const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
 
   useEffect(() => {
     // Run initialization once when the app starts
@@ -44,7 +45,7 @@ export default function RootLayout({
         >
           <NuqsAdapter>
             <div className="flex h-screen">
-              {!isHomePage && (
+              {shouldShowSidebar && (
                 <div
                   className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:relative md:z-0 ${
                     sidebarOpen

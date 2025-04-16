@@ -1,5 +1,6 @@
 use std::time::Duration;
 use std::{sync::Mutex, thread};
+use tauri::Theme;
 use tauri::{
     image::Image,
     menu::{CheckMenuItem, Menu, MenuItem},
@@ -10,6 +11,9 @@ use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 use tauri_plugin_updater::UpdaterExt;
+
+mod version;
+use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
 #[cfg(not(debug_assertions))]
 use tauri_plugin_shell::ShellExt;
@@ -22,12 +26,14 @@ struct AppState {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             None,
         ))
+        .invoke_handler(tauri::generate_handler![update_about_window_titlebar_color])
         .setup(|app| {
             #[cfg(debug_assertions)]
             app.handle().plugin(
@@ -65,20 +71,22 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                // Prevent the window from being closed
-                api.prevent_close();
+            if window.label() == "main" {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    // Prevent the window from being closed
+                    api.prevent_close();
 
-                // Hide the window
-                window.hide().unwrap();
+                    // Hide the window
+                    window.hide().unwrap();
 
-                // Hide from taskbar / dock
-                window.set_skip_taskbar(true).unwrap(); // For windows and Linux
+                    // Hide from taskbar / dock
+                    window.set_skip_taskbar(true).unwrap(); // For windows and Linux
 
-                #[cfg(target_os = "macos")]
-                let _ = window
-                    .app_handle()
-                    .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                    #[cfg(target_os = "macos")]
+                    let _ = window
+                        .app_handle()
+                        .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                }
             }
         })
         .run(tauri::generate_context!())
@@ -111,7 +119,7 @@ async fn _check_for_updates(app: &tauri::AppHandle, has_user_checked_manually: b
             }
 
             let message = format!(
-                "SyftBox {} is available!\n\nRelease notes:\n\n{}",
+                "SyftBox {} is available!\n\n{}",
                 update.version,
                 update
                     .body
@@ -205,6 +213,63 @@ fn _setup_main_window(app: &tauri::AppHandle) {
                 237.0 / 255.0,
                 1.0,
             );
+            ns_window.setBackgroundColor_(bg_color);
+        }
+    }
+}
+
+fn _show_about_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("about") {
+        window.show().unwrap();
+        window.set_focus().unwrap();
+    } else {
+        let url = format!(
+            "about/#desktop_version={}&frontend_version={}&daemon_version={}&commit_hash={}",
+            DESKTOP_VERSION, FRONTEND_VERSION, DAEMON_VERSION, COMMIT_HASH
+        );
+        let _about_window = WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url.into()))
+            .inner_size(280.0, 450.0)
+            .focused(true)
+            .hidden_title(true)
+            .maximizable(false)
+            .minimizable(false)
+            .resizable(false);
+
+        // set transparent title bar only when building for macOS
+        #[cfg(target_os = "macos")]
+        let _about_window = _about_window.title_bar_style(TitleBarStyle::Transparent);
+        let _about_window = _about_window.build().unwrap();
+    }
+}
+
+#[tauri::command]
+fn update_about_window_titlebar_color(
+    app_handle: tauri::AppHandle,
+    is_dark: bool,
+    r: f64,
+    g: f64,
+    b: f64,
+) {
+    let _about_window = app_handle.get_webview_window("about").unwrap();
+
+    if let Err(e) = _about_window.set_theme(if is_dark {
+        Some(Theme::Dark)
+    } else {
+        Some(Theme::Light)
+    }) {
+        println!("Error setting theme: {}", e);
+    }
+
+    // set background color only when building for macOS
+    #[cfg(target_os = "macos")]
+    {
+        use cocoa::appkit::{NSColor, NSWindow};
+        use cocoa::base::{id, nil};
+
+        let ns_window = _about_window.ns_window().unwrap() as id;
+        unsafe {
+            let bg_color =
+                NSColor::colorWithRed_green_blue_alpha_(nil, r / 255.0, g / 255.0, b / 255.0, 1.0);
             ns_window.setBackgroundColor_(bg_color);
         }
     }
@@ -306,6 +371,8 @@ fn _setup_system_tray(app: &tauri::AppHandle) {
         None::<&str>,
     )
     .expect("Failed to create Check for Updates menu item");
+    let about_i = MenuItem::with_id(app, "about", "About SyftBox", true, None::<&str>)
+        .expect("Failed to create About menu item");
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)
         .expect("Failed to create Quit menu item");
 
@@ -316,6 +383,7 @@ fn _setup_system_tray(app: &tauri::AppHandle) {
             &show_dashboard_i,
             &autostart_i,
             &check_for_updates_i,
+            &about_i,
             &quit_i,
         ],
     )
@@ -366,6 +434,9 @@ fn _setup_system_tray(app: &tauri::AppHandle) {
             tauri::async_runtime::spawn(async move {
                 _check_for_updates(&app_handle, true).await;
             });
+        }
+        "about" => {
+            _show_about_window(app);
         }
         "quit" => {
             app.exit(0);

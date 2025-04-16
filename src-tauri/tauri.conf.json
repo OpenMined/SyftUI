@@ -5,7 +5,8 @@
   "identifier": "org.openmined.syftui",
   "build": {
     "frontendDist": "../src-frontend/out",
-    "devUrl": "http://localhost:3000"
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "just update-version"
   },
   "app": {
     "security": {
