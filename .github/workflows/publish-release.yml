@@ -28,8 +28,8 @@ jobs:
             "pub_date": "${{ github.event.release.published_at }}",
             "platforms": {
               "darwin-aarch64": {
-                "signature": $(curl gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox.app.tar.gz.sig") | .url'),
-                "url": $(curl gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox.app.tar.gz") | .url')
+                "signature": $(curl -fsSL gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox.app.tar.gz.sig") | .url'),
+                "url": $(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox.app.tar.gz") | .url')
               }
             }
           }
@@ -43,6 +43,6 @@ jobs:
           gh release upload ${{ github.event.release.tag_name }} release.json --clobber
 
           # remove all the .sig files from the release
-          for asset_id in $(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name | endswith(".sig")) | .id'); do
-            gh release delete-asset ${{ github.event.release.tag_name }} "$asset_id"
+          for asset_id in $(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name | endswith(".sig")) | .name'); do
+            gh release delete-asset -y ${{ github.event.release.tag_name }} "$asset_id"
           done
