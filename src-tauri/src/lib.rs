@@ -1,3 +1,5 @@
+use std::time::Duration;
+use std::{sync::Mutex, thread};
 use tauri::{
     image::Image,
     menu::{CheckMenuItem, Menu, MenuItem},
@@ -11,6 +13,11 @@ use tauri_plugin_updater::UpdaterExt;
 
 #[cfg(not(debug_assertions))]
 use tauri_plugin_shell::ShellExt;
+
+#[derive(Default)]
+struct AppState {
+    prevent_auto_update_check_for_version: String,
+}
 
 pub fn run() {
     tauri::Builder::default()
@@ -29,9 +36,12 @@ pub fn run() {
                     .build(),
             )?;
 
+            app.manage(Mutex::new(AppState::default()));
+
             _setup_main_window(app.handle());
 
-            _check_for_updates(app.handle(), false);
+            // Start periodic update checks
+            _start_periodic_update_checks(app.handle());
 
             let (bridge_host, bridge_port, bridge_token) = _generate_syftbox_client_args();
 
@@ -75,76 +85,98 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-fn _check_for_updates(app: &tauri::AppHandle, has_user_checked_manually: bool) {
-    let handle = app.clone();
+fn _start_periodic_update_checks(app: &tauri::AppHandle) {
+    let app_handle = app.clone();
     tauri::async_runtime::spawn(async move {
-        let update_result = handle.updater().unwrap().check().await;
-        match update_result {
-            Ok(Some(update)) => {
-                let message = format!(
-                    "SyftBox {} is available!\n\nRelease notes:\n\n{}",
-                    update.current_version,
-                    update
-                        .body
-                        .as_ref()
-                        .unwrap_or(&"No release notes available".to_string())
-                );
+        loop {
+            _check_for_updates(&app_handle, false).await;
+            thread::sleep(Duration::from_secs(300)); // Sleep for 5 minutes
+        }
+    });
+}
 
-                let ans = handle
-                    .dialog()
-                    .message(message)
-                    .kind(MessageDialogKind::Info)
-                    .title("SyftBox Update Available")
-                    .buttons(MessageDialogButtons::OkCancelCustom(
-                        "Update".to_string(),
-                        "Later".to_string(),
-                    ))
-                    .blocking_show();
+async fn _check_for_updates(app: &tauri::AppHandle, has_user_checked_manually: bool) {
+    let handle = app.clone();
+    let update_result = handle.updater().unwrap().check().await;
+    match update_result {
+        Ok(Some(update)) => {
+            let state = app.state::<Mutex<AppState>>();
+            let should_check_for_update = {
+                let state = state.lock().unwrap();
+                has_user_checked_manually
+                    || state.prevent_auto_update_check_for_version != update.version
+            };
+            if !should_check_for_update {
+                return;
+            }
 
-                if ans {
-                    if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
-                        handle
-                            .dialog()
-                            .message(format!(
-                                "Failed to download and install update.\nPlease try again later.\n\nError: {}",
-                                e
-                            ))
-                            .kind(MessageDialogKind::Error)
-                            .title("Update Failed")
-                            .buttons(MessageDialogButtons::Ok)
-                            .blocking_show();
-                        return;
-                    }
-                    handle.restart();
-                }
-            }
-            Ok(None) => {
-                if has_user_checked_manually {
-                    handle
-                        .dialog()
-                        .message("You are on the latest version. Stay awesome!")
-                        .kind(MessageDialogKind::Info)
-                        .title("No Update Available")
-                        .buttons(MessageDialogButtons::Ok)
-                        .blocking_show();
-                }
-            }
-            Err(e) => {
-                if has_user_checked_manually {
+            let message = format!(
+                "SyftBox {} is available!\n\nRelease notes:\n\n{}",
+                update.version,
+                update
+                    .body
+                    .as_ref()
+                    .unwrap_or(&"No release notes available".to_string())
+            );
+
+            let ans = handle
+                .dialog()
+                .message(message)
+                .kind(MessageDialogKind::Info)
+                .title("SyftBox Update Available")
+                .buttons(MessageDialogButtons::OkCancelCustom(
+                    "Update".to_string(),
+                    "Later".to_string(),
+                ))
+                .blocking_show();
+
+            if ans {
+                if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
                     handle
                         .dialog()
                         .message(format!(
-                            "Failed to check for updates.\nPlease try again later.\n\nError: {}",
+                            "Failed to download and install update.\nPlease try again later.\n\nError: {}",
                             e
                         ))
                         .kind(MessageDialogKind::Error)
-                        .title("Update Check Failed")
+                        .title("Update Failed")
                         .buttons(MessageDialogButtons::Ok)
                         .blocking_show();
+                } else {
+                    handle.restart();
                 }
+            } else {
+                let state = app.state::<Mutex<AppState>>();
+                let mut state = state.lock().unwrap();
+                state.prevent_auto_update_check_for_version = update.version;
             }
         }
-    });
+        Ok(None) => {
+            if has_user_checked_manually {
+                handle
+                    .dialog()
+                    .message("You are on the latest version. Stay awesome!")
+                    .kind(MessageDialogKind::Info)
+                    .title("No Update Available")
+                    .buttons(MessageDialogButtons::Ok)
+                    .blocking_show();
+            }
+        }
+        Err(e) => {
+            if has_user_checked_manually {
+                handle
+                    .dialog()
+                    .message(format!(
+                        "Failed to check for updates.\nPlease try again later.\n\nError: {}",
+                        e
+                    ))
+                    .kind(MessageDialogKind::Error)
+                    .title("Update Check Failed")
+                    .buttons(MessageDialogButtons::Ok)
+                    .blocking_show();
+            }
+        }
+    }
 }
 
 fn _setup_main_window(app: &tauri::AppHandle) {
@@ -330,7 +362,10 @@ fn _setup_system_tray(app: &tauri::AppHandle) {
             }
         }
         "check_for_updates" => {
-            _check_for_updates(app, true);
+            let app_handle = app.clone();
+            tauri::async_runtime::spawn(async move {
+                _check_for_updates(&app_handle, true).await;
+            });
         }
         "quit" => {
             app.exit(0);
