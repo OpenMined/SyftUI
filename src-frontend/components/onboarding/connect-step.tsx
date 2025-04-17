@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/card";
 import {
   ConnectionFormValues,
-  DEFAULT_CONNECTION_SETTINGS,
   connectionFormSchema,
   useConnectionStore,
 } from "@/stores";
@@ -41,17 +40,22 @@ export function ConnectStep({
   setIsLoading,
 }: ConnectStepProps) {
   const [showToken, setShowToken] = useState(false);
-  const { updateSettings, status, connect } = useConnectionStore();
+  const { updateSettings, status, connect, settings } = useConnectionStore();
 
   const form = useForm<ConnectionFormValues>({
     resolver: zodResolver(connectionFormSchema),
     defaultValues: {
-      url: DEFAULT_CONNECTION_SETTINGS.url,
-      token: DEFAULT_CONNECTION_SETTINGS.token,
+      url: settings.url,
+      token: settings.token,
     },
   });
 
-  const handleConnectClient = (values: ConnectionFormValues) => {
+  useEffect(() => {
+    form.setValue("url", settings.url);
+    form.setValue("token", settings.token);
+  }, [settings.url, settings.token, form]);
+
+  const handleConnectClient = async (values: ConnectionFormValues) => {
     setIsLoading(true);
 
     // Update connection settings from form values
@@ -61,14 +65,12 @@ export function ConnectStep({
     });
 
     // Attempt connection
-    const result = connect();
+    const result = await connect();
     setIsLoading(false);
 
     // Error handling
     if (result.success) {
-      setTimeout(() => {
-        onNext();
-      }, 750);
+      onNext();
     } else {
       Object.entries(result.errors).forEach(([key, value]) => {
         if (value && key in values) {
@@ -103,7 +105,7 @@ export function ConnectStep({
                   <FormControl>
                     <Input
                       id="client-url"
-                      placeholder={DEFAULT_CONNECTION_SETTINGS.url}
+                      placeholder="Enter your client URL"
                       {...field}
                     />
                   </FormControl>

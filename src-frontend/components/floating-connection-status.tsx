@@ -64,7 +64,7 @@ export function FloatingConnectionStatus({
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
                 className="focus:outline-none"
-                aria-label={`${getStatusText()} to ${url}`}
+                aria-label={`${getStatusText()} to ${url || "client"}`}
               >
                 <div
                   className={`flex items-center gap-1.5 px-2 py-1 ${className}`}
@@ -77,7 +77,7 @@ export function FloatingConnectionStatus({
                     )}
                   />
                   <span className="text-xs font-medium">
-                    {isHovering ? url : getStatusText()}
+                    {isHovering ? url || getStatusText() : getStatusText()}
                   </span>
                 </div>
               </button>
@@ -85,7 +85,7 @@ export function FloatingConnectionStatus({
             <TooltipContent>
               <p>
                 {getStatusText()} {status === "disconnected" ? "from" : "to"}{" "}
-                {url}
+                {url || "client"}
               </p>
             </TooltipContent>
           </Tooltip>

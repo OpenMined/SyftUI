@@ -135,7 +135,7 @@ dev:
 
     export BRIDGE_HOST="localhost"
     export BRIDGE_PORT="7938"  # 7938 is the vanity number for SYFT in T9 keypad config 😎
-    export BRIDGE_TOKEN="SYFTBOX_DEV"
+    export BRIDGE_TOKEN="SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
 
     bunx concurrently \
         --kill-others \

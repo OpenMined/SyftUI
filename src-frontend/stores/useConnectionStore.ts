@@ -14,20 +14,17 @@ export type ConnectionStatus = "connected" | "connecting" | "disconnected";
 
 // Default values for connection settings
 export const DEFAULT_CONNECTION_SETTINGS: ConnectionSettings = {
-  url: "http://127.0.0.1:8080/",
-  token: "2b280fc73335d39427183bed28fead26d865a5c1",
+  url: "",
+  token: "",
 };
 
 // Key used for storing connection settings in session storage
 export const CONNECTION_STORAGE_KEY = "connectionSettings";
 
-// Connection simulation
-export const SIMULATED_CONNECTION_DELAY = 750; // ms
-
 // Form schema for connection settings validation
 export const connectionFormSchema = z.object({
   url: z.string().min(1, "URL is required").url("Must be a valid URL"),
-  token: z.string().length(40, "Token must be exactly 40 characters long"),
+  token: z.string().length(32, "Must be a valid token"),
 });
 
 // Type for form values
@@ -40,11 +37,10 @@ export interface ConnectionErrors {
 
 interface ConnectionState {
   settings: ConnectionSettings;
-  displayUrl: string;
   status: ConnectionStatus;
   updateSettings: (newSettings: Partial<ConnectionSettings>) => void;
   setStatus: (status: ConnectionStatus) => void;
-  connect: () => { success: boolean; errors: ConnectionErrors };
+  connect: () => Promise<{ success: boolean; errors: ConnectionErrors }>;
   validateSettings: (settings: ConnectionSettings) => ConnectionErrors;
 }
 
@@ -53,7 +49,6 @@ export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set, get) => ({
       settings: DEFAULT_CONNECTION_SETTINGS,
-      displayUrl: DEFAULT_CONNECTION_SETTINGS.url,
       status: "disconnected",
 
       updateSettings: (newSettings) => {
@@ -87,7 +82,7 @@ export const useConnectionStore = create<ConnectionState>()(
         return errors;
       },
 
-      connect: () => {
+      connect: async () => {
         const { settings, validateSettings } = get();
         const errors = validateSettings(settings);
 
@@ -95,15 +90,85 @@ export const useConnectionStore = create<ConnectionState>()(
         if (Object.keys(errors).length === 0) {
           set({ status: "connecting" });
 
-          // Simulate connection attempt
-          setTimeout(() => {
-            set({
-              displayUrl: settings.url,
-              status: "connected",
-            });
-          }, SIMULATED_CONNECTION_DELAY);
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-          return { success: true, errors: {} };
+            const response = await fetch(`${settings.url}/v1/status`, {
+              headers: {
+                Authorization: `Bearer ${settings.token}`,
+              },
+              signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+              set({ status: "connected" });
+              return { success: true, errors: {} };
+            } else {
+              set({ status: "disconnected" });
+              switch (response.status) {
+                case 401:
+                  return { success: false, errors: { token: "Invalid token" } };
+                case 403:
+                  return {
+                    success: false,
+                    errors: {
+                      token: "Token does not have required permissions",
+                    },
+                  };
+                case 404:
+                  return {
+                    success: false,
+                    errors: { url: "Endpoint not found" },
+                  };
+                case 500:
+                  return { success: false, errors: { url: "Server error" } };
+                default:
+                  return {
+                    success: false,
+                    errors: {
+                      url: `Connection failed with status ${response.status}`,
+                    },
+                  };
+              }
+            }
+          } catch (error) {
+            set({ status: "disconnected" });
+            if (error instanceof Error) {
+              if (error.name === "AbortError") {
+                return {
+                  success: false,
+                  errors: { url: "Connection timed out" },
+                };
+              }
+              if (
+                error.name === "TypeError" &&
+                error.message.includes("Failed to fetch")
+              ) {
+                return {
+                  success: false,
+                  errors: {
+                    url: "Invalid URL - check your connection or client URL",
+                  },
+                };
+              }
+              if (
+                error.name === "TypeError" &&
+                error.message.includes("CORS")
+              ) {
+                return {
+                  success: false,
+                  errors: { url: "CORS error - check server configuration" },
+                };
+              }
+            }
+            return {
+              success: false,
+              errors: { url: "An unexpected error occurred" },
+            };
+          }
         }
 
         return { success: false, errors };
@@ -112,6 +177,10 @@ export const useConnectionStore = create<ConnectionState>()(
     {
       name: CONNECTION_STORAGE_KEY,
       storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => {
+        // Only persist settings when connected
+        return state.status === "connected" ? { settings: state.settings } : {};
+      },
     },
   ),
 );

@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DEFAULT_CONNECTION_SETTINGS,
   connectionFormSchema,
   ConnectionFormValues,
   useConnectionStore,
@@ -27,8 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export function ConnectionStatus() {
-  const { settings, updateSettings, status, displayUrl, connect } =
-    useConnectionStore();
+  const { settings, updateSettings, status, connect } = useConnectionStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -37,8 +35,8 @@ export function ConnectionStatus() {
   const form = useForm<ConnectionFormValues>({
     resolver: zodResolver(connectionFormSchema),
     defaultValues: {
-      url: DEFAULT_CONNECTION_SETTINGS.url,
-      token: DEFAULT_CONNECTION_SETTINGS.token,
+      url: settings.url,
+      token: settings.token,
     },
   });
 
@@ -46,10 +44,10 @@ export function ConnectionStatus() {
   useEffect(() => {
     form.setValue("url", settings.url);
     form.setValue("token", settings.token);
-  }, [form, settings]);
+  }, [form, settings.url, settings.token]);
 
   // Handle form submission
-  function onSubmit(values: ConnectionFormValues) {
+  const onSubmit = async (values: ConnectionFormValues) => {
     // Update connection settings from form values
     updateSettings({
       url: values.url,
@@ -57,7 +55,7 @@ export function ConnectionStatus() {
     });
 
     // Attempt connection
-    const result = connect();
+    const result = await connect();
 
     if (result.success) {
       setIsDialogOpen(false);
@@ -72,7 +70,7 @@ export function ConnectionStatus() {
         }
       });
     }
-  }
+  };
 
   // Focus first input when dialog opens
   useEffect(() => {
@@ -141,14 +139,14 @@ export function ConnectionStatus() {
             >
               {getStatusIcon()}
               <span className="overflow-hidden text-xs text-ellipsis">
-                {isHovering ? displayUrl : getStatusText()}
+                {isHovering ? settings.url || getStatusText() : getStatusText()}
               </span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>
               {getStatusText()} {status === "disconnected" ? "from" : "to"}{" "}
-              {displayUrl}
+              {settings.url || "client"}
             </p>
           </TooltipContent>
         </Tooltip>

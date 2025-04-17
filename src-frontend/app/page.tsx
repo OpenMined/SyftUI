@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -11,8 +10,7 @@ import { useConnectionStore } from "@/stores";
 
 export default function HomePage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const { status, displayUrl } = useConnectionStore();
+  const { status, settings } = useConnectionStore();
 
   // Navigate to app with next parameter support
   const navigateToApp = () => {
@@ -28,16 +26,6 @@ export default function HomePage() {
     });
   };
 
-  // Page initialization stuff
-  useEffect(() => {
-    // For avoiding hydration mismatch
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <>
       <div className="mb-8 flex items-center justify-between p-6">
@@ -51,7 +39,7 @@ export default function HomePage() {
 
       <FloatingConnectionStatus
         status={status}
-        url={displayUrl}
+        url={settings.url}
         position="bottom-right"
       />
     </>

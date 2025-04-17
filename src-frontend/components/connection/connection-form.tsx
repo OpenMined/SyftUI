@@ -13,11 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  ConnectionFormValues,
-  ConnectionStatus,
-  DEFAULT_CONNECTION_SETTINGS,
-} from "@/stores";
+import { ConnectionFormValues, ConnectionStatus } from "@/stores";
 
 interface ConnectionFormProps {
   form: UseFormReturn<ConnectionFormValues>;
@@ -63,7 +59,7 @@ export function ConnectionForm({
               <FormLabel>Client URL</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={DEFAULT_CONNECTION_SETTINGS.url}
+                  placeholder="Enter your client URL"
                   {...field}
                   onChange={(e) => handleFieldChange(field, e, "url")}
                 />
