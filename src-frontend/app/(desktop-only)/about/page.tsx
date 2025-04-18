@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@/components/icon";
+import { Icon } from "@/components/logo/icon";
 import useHashParams from "@/hooks/use-hash-params";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";

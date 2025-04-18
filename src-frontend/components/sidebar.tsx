@@ -35,7 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConnectionStatus } from "@/components/connection/connection-status";
 import { useRouter, usePathname } from "next/navigation";
-import { LogoComponent } from "./logo";
+import { LogoComponent } from "./logo/logo";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 interface SidebarProps {

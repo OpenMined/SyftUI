@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LogoComponent } from "@/components/logo";
+import { LogoComponent } from "@/components/logo/logo";
 import { FloatingConnectionStatus } from "@/components/floating-connection-status";
 import { OnboardingCard } from "@/components/onboarding";
 import { useConnectionStore } from "@/stores";

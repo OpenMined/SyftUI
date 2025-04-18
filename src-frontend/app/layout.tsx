@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   const { sidebarOpen, setSidebarOpen } = useSidebarStore();
   const pathname = usePathname();
-  const sidebarExcludedPaths = ["/", "", "/about/"];
+  const sidebarExcludedPaths = ["/", "", "/about/", "/updates/"];
   const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
 
   useEffect(() => {

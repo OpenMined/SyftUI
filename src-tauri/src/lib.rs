@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::time::Duration;
 use std::{sync::Mutex, thread};
 use tauri::Theme;
@@ -7,10 +8,10 @@ use tauri::{
     tray::TrayIconBuilder,
     Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder,
 };
+use tauri::{AppHandle, Emitter};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_autostart::ManagerExt;
-use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
-use tauri_plugin_updater::UpdaterExt;
+use tauri_plugin_updater::{Update, UpdaterExt};
 
 mod version;
 use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
@@ -21,6 +22,10 @@ use tauri_plugin_shell::ShellExt;
 #[derive(Default)]
 struct AppState {
     prevent_auto_update_check_for_version: String,
+}
+
+struct PendingUpdate {
+    pending_update: Mutex<Option<Update>>,
 }
 
 pub fn run() {
@@ -38,9 +43,15 @@ pub fn run() {
             MacosLauncher::LaunchAgent,
             None,
         ))
-        .invoke_handler(tauri::generate_handler![update_about_window_titlebar_color])
+        .invoke_handler(tauri::generate_handler![
+            update_about_window_titlebar_color,
+            update_window_response
+        ])
         .setup(|app| {
             app.manage(Mutex::new(AppState::default()));
+            app.manage(PendingUpdate {
+                pending_update: Mutex::new(None),
+            });
 
             _setup_main_window(app.handle());
 
@@ -91,7 +102,7 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-fn _start_periodic_update_checks(app: &tauri::AppHandle) {
+fn _start_periodic_update_checks(app: &AppHandle) {
     let app_handle = app.clone();
     tauri::async_runtime::spawn(async move {
         loop {
@@ -101,8 +112,19 @@ fn _start_periodic_update_checks(app: &tauri::AppHandle) {
     });
 }
 
-async fn _check_for_updates(app: &tauri::AppHandle, has_user_checked_manually: bool) {
+async fn _check_for_updates(app: &AppHandle, has_user_checked_manually: bool) {
     let handle = app.clone();
+    if has_user_checked_manually {
+        _show_update_window(
+            app,
+            UpdateWindowType::Checking,
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            0,
+        );
+    }
     let update_result = handle.updater().unwrap().check().await;
     match update_result {
         Ok(Some(update)) => {
@@ -116,76 +138,57 @@ async fn _check_for_updates(app: &tauri::AppHandle, has_user_checked_manually: b
                 return;
             }
 
-            let message = format!(
-                "SyftBox {} is available!\n\n{}",
-                update.version,
+            _show_update_window(
+                app,
+                UpdateWindowType::Available,
+                update.version.clone(),
+                update.current_version.clone(),
                 update
                     .body
                     .as_ref()
                     .unwrap_or(&"No release notes available".to_string())
+                    .to_string(),
+                "".to_string(),
+                0,
             );
 
-            let ans = handle
-                .dialog()
-                .message(message)
-                .kind(MessageDialogKind::Info)
-                .title("SyftBox Update Available")
-                .buttons(MessageDialogButtons::OkCancelCustom(
-                    "Update".to_string(),
-                    "Later".to_string(),
-                ))
-                .blocking_show();
-
-            if ans {
-                if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
-                    handle
-                        .dialog()
-                        .message(format!(
-                            "Failed to download and install update.\nPlease try again later.\n\nError: {}",
-                            e
-                        ))
-                        .kind(MessageDialogKind::Error)
-                        .title("Update Failed")
-                        .buttons(MessageDialogButtons::Ok)
-                        .blocking_show();
-                } else {
-                    handle.restart();
-                }
-            } else {
-                let state = app.state::<Mutex<AppState>>();
-                let mut state = state.lock().unwrap();
-                state.prevent_auto_update_check_for_version = update.version;
-            }
+            let pending_update = app.state::<PendingUpdate>();
+            *pending_update.pending_update.lock().unwrap() = Some(update);
         }
         Ok(None) => {
             if has_user_checked_manually {
-                handle
-                    .dialog()
-                    .message("You are on the latest version. Stay awesome!")
-                    .kind(MessageDialogKind::Info)
-                    .title("No Update Available")
-                    .buttons(MessageDialogButtons::Ok)
-                    .blocking_show();
+                _show_update_window(
+                    app,
+                    UpdateWindowType::None,
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    0,
+                );
             }
         }
         Err(e) => {
             if has_user_checked_manually {
-                handle
-                    .dialog()
-                    .message(format!(
-                        "Failed to check for updates.\nPlease try again later.\n\nError: {}",
-                        e
-                    ))
-                    .kind(MessageDialogKind::Error)
-                    .title("Update Check Failed")
-                    .buttons(MessageDialogButtons::Ok)
-                    .blocking_show();
+                let error_message = format!(
+                    "Failed to check for updates.\nPlease try again later.\n\nError: {}",
+                    e
+                );
+                _show_update_window(
+                    app,
+                    UpdateWindowType::Error,
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    error_message,
+                    0,
+                );
             }
         }
     }
 }
 
-fn _setup_main_window(app: &tauri::AppHandle) {
+fn _setup_main_window(app: &AppHandle) {
     let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
         .title("")
         .inner_size(1200.0, 720.0);
@@ -216,7 +219,7 @@ fn _setup_main_window(app: &tauri::AppHandle) {
     }
 }
 
-fn _show_about_window(app: &tauri::AppHandle) {
+fn _show_about_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("about") {
         window.show().unwrap();
         window.set_focus().unwrap();
@@ -240,15 +243,102 @@ fn _show_about_window(app: &tauri::AppHandle) {
     }
 }
 
-#[tauri::command]
-fn update_about_window_titlebar_color(
-    app_handle: tauri::AppHandle,
-    is_dark: bool,
-    r: f64,
-    g: f64,
-    b: f64,
+// declare a type enum for the update window
+enum UpdateWindowType {
+    Checking,
+    Available,
+    None,
+    Error,
+    Failed,
+}
+
+impl UpdateWindowType {
+    fn as_str(&self) -> &'static str {
+        match self {
+            UpdateWindowType::Checking => "checking",
+            UpdateWindowType::Available => "available",
+            UpdateWindowType::None => "none",
+            UpdateWindowType::Error => "error",
+            UpdateWindowType::Failed => "failed",
+        }
+    }
+}
+
+fn _show_update_window(
+    app: &AppHandle,
+    update_window_type: UpdateWindowType,
+    version: String,
+    current_version: String,
+    release_notes: String,
+    error: String,
+    progress: i8,
 ) {
-    let _about_window = app_handle.get_webview_window("about").unwrap();
+    let error = urlencoding::encode(&error).into_owned();
+    let release_notes = urlencoding::encode(&release_notes).into_owned();
+
+    if let Some(window) = app.get_webview_window("updates") {
+        let mut url = window.url().unwrap();
+        url.set_query(Some(&format!(
+            "type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
+            update_window_type.as_str(),
+            version,
+            current_version,
+            release_notes,
+            error,
+            progress
+        )));
+        window.navigate(url).unwrap();
+        window.show().unwrap();
+        window.set_focus().unwrap();
+    } else {
+        let _update_window = WebviewWindowBuilder::new(
+            app,
+            "updates",
+            WebviewUrl::App(format!(
+                "updates?type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
+                update_window_type.as_str(),
+                version,
+                current_version,
+                release_notes,
+                error,
+                progress
+            )
+            .into()
+            )
+        )
+        .inner_size(800.0, 600.0)
+        .focused(true)
+        .decorations(false)
+        .build()
+        .unwrap();
+
+        // Add rounded corners for macOS
+        #[cfg(target_os = "macos")]
+        {
+            use cocoa::appkit::{NSColor, NSView, NSWindow};
+            use cocoa::base::{id, nil};
+            use objc::{msg_send, sel, sel_impl};
+
+            let ns_window = _update_window.ns_window().unwrap() as id;
+            unsafe {
+                // Set window to be non-opaque and clear background
+                ns_window.setOpaque_(false);
+                ns_window.setBackgroundColor_(NSColor::clearColor(nil));
+
+                // Get the content view and set its layer properties
+                let content_view: id = ns_window.contentView();
+                content_view.setWantsLayer(true);
+                let layer: id = content_view.layer();
+                let _: () = msg_send![layer, setCornerRadius: 10.0];
+                let _: () = msg_send![layer, setMasksToBounds: true];
+            }
+        }
+    }
+}
+
+#[tauri::command]
+fn update_about_window_titlebar_color(app: AppHandle, is_dark: bool, r: f64, g: f64, b: f64) {
+    let _about_window = app.get_webview_window("about").unwrap();
 
     if let Err(e) = _about_window.set_theme(if is_dark {
         Some(Theme::Dark)
@@ -271,6 +361,69 @@ fn update_about_window_titlebar_color(
             ns_window.setBackgroundColor_(bg_color);
         }
     }
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DownloadProgress {
+    percent: usize,
+}
+
+#[tauri::command]
+async fn update_window_response(app: AppHandle, install_update: bool) -> Result<(), String> {
+    println!("update_window_response: install_update: {}", install_update);
+    let pending_update = app.state::<PendingUpdate>();
+    let update = {
+        let pending_update = pending_update.pending_update.lock().unwrap();
+        pending_update.clone()
+    };
+
+    if let Some(update) = update {
+        if install_update {
+            let mut downloaded_chunks: u64 = 0;
+            if let Err(e) = update
+                .download_and_install(
+                    |chunk_length, content_length| {
+                        downloaded_chunks += chunk_length as u64;
+                        let percent = (downloaded_chunks as f64
+                            / content_length.unwrap_or(downloaded_chunks) as f64)
+                            * 100.0;
+                        app.emit_to(
+                            "updates",
+                            "update-progress",
+                            DownloadProgress {
+                                percent: percent as usize,
+                            },
+                        )
+                        .unwrap();
+                    },
+                    || {
+                        app.restart();
+                    },
+                )
+                .await
+            {
+                let error_message = format!(
+                    "Failed to download and install update.\nPlease try again later.\n\nError: {}",
+                    e
+                );
+                _show_update_window(
+                    &app,
+                    UpdateWindowType::Failed,
+                    update.version.clone(),
+                    update.current_version.clone(),
+                    "".to_string(),
+                    error_message,
+                    0,
+                );
+            }
+        } else {
+            let state = app.state::<Mutex<AppState>>();
+            let mut state = state.lock().unwrap();
+            state.prevent_auto_update_check_for_version = update.version.clone();
+        }
+    }
+    Ok(())
 }
 
 fn _generate_syftbox_client_args() -> (String, String, String) {
@@ -297,12 +450,7 @@ fn _generate_syftbox_client_args() -> (String, String, String) {
     }
 }
 
-fn _send_syftbox_client_args_to_frontend(
-    handle: &tauri::AppHandle,
-    host: &str,
-    port: &str,
-    token: &str,
-) {
+fn _send_syftbox_client_args_to_frontend(handle: &AppHandle, host: &str, port: &str, token: &str) {
     let window = handle.get_webview_window("main").unwrap();
     let mut url = window.url().unwrap();
     let fragment = format!("host={}&port={}&token={}", host, port, token);
@@ -312,7 +460,7 @@ fn _send_syftbox_client_args_to_frontend(
 
 #[cfg(not(debug_assertions))]
 fn _setup_sidecars_for_release_builds(
-    app: &tauri::AppHandle,
+    app: &AppHandle,
     bridge_host: &str,
     bridge_port: &str,
     bridge_token: &str,
@@ -345,7 +493,7 @@ fn _setup_sidecars_for_release_builds(
         .expect("Failed to spawn sidecar");
 }
 
-fn _setup_system_tray(app: &tauri::AppHandle) {
+fn _setup_system_tray(app: &AppHandle) {
     let autostart_manager = app.autolaunch();
 
     // Create the menu items
