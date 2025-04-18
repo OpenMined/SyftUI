@@ -21,7 +21,10 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
 
   useEffect(() => {
     const attemptConnection = async () => {
-      if (!(host && port && token)) return;
+      if (!(host && port && token)) {
+        setStep("connect");
+        return;
+      }
       updateSettings({ url: `http://${host}:${port}`, token });
       // Attempt connection
       const result = await connect();

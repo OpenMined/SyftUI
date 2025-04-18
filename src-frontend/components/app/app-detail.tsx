@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { getAssetPath } from "@/lib/utils";
 import Image from "next/image";
+import remarkGfm from "remark-gfm";
 
 interface AppDetailProps {
   appId: string;
@@ -228,6 +229,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                     <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
                       {app.longDescription ? (
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
                             code({ inline, className, children, ...props }) {
                               const match = /language-(\w+)/.exec(
