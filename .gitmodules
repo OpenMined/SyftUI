@@ -1,4 +1,3 @@
-[submodule "src-syftgo"]
-	path = src-syftgo
-	url = git@github.com:yashgorana/syftgo
-	branch = uibridge
+[submodule "src-syftbox"]
+	path = src-syftbox
+	url = git@github.com:OpenMined/syftbox

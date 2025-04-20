@@ -55,7 +55,7 @@ Run the frontend in dev mode.
 just dev-frontend
 ```
 
-💡 Tip: Don’t forget to manually run the SyftGo **bridge server** by executing `just dev-bridge` in a terminal. Then, copy the **Client URL** and **Token** from the logs and paste them into the frontend.
+💡 Tip: Don’t forget to manually run the SyftBox client by executing `just dev-bridge` in a terminal. Then, copy the **Client URL** and **Token** from the logs and paste them into the frontend.
 
 ## 🏗️ Build and Package
 

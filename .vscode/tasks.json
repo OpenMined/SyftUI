@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "dev:frontend-and-syftgo",
+      "label": "dev:frontend-and-syftbox",
       "type": "shell",
       // `dev` keeps running in the background
       // ideally you should also configure a `problemMatcher`
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "label": "build:frontend-and-syftgo",
+      "label": "build:frontend-and-syftbox",
       "type": "shell",
       "command": "just",
       "args": ["package-bridge", "package-frontend", "desktop_build=yes"]

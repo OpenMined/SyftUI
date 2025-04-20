@@ -50,8 +50,8 @@ check-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    just --justfile=src-syftgo/justfile run-checks
-    echo -e "\n{{ _green }}SyftGo bridge server code quality check completed successfully.{{ _nc }}\n"
+    just --justfile=src-syftbox/justfile run-checks
+    echo -e "\n{{ _green }}SyftBox client code quality check completed successfully.{{ _nc }}\n"
 
 # Check the desktop app code quality.
 [group('code-quality:check')]
@@ -100,8 +100,8 @@ tidy-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    just --justfile=src-syftgo/justfile run-checks-and-fix
-    echo -e "\n{{ _green }}SyftGo bridge server code tidied up successfully.{{ _nc }}\n"
+    just --justfile=src-syftbox/justfile run-checks-and-fix
+    echo -e "\n{{ _green }}SyftBox client code tidied up successfully.{{ _nc }}\n"
 
 # Tidy up the desktop app code.
 [group('code-quality:tidy')]
@@ -151,7 +151,7 @@ dev-bridge:
     set -eu
 
     # Need to use realpath due to a bug in air (https://github.com/air-verse/air/pull/742).
-    cd $(realpath src-syftgo) && air -- --ui-host $BRIDGE_HOST --ui-port $BRIDGE_PORT --ui-token $BRIDGE_TOKEN --ui-swagger
+    cd $(realpath src-syftbox) && air -- --ui-host $BRIDGE_HOST --ui-port $BRIDGE_PORT --ui-token $BRIDGE_TOKEN --ui-swagger
 
 # Run the desktop dev app.
 [group('dev')]
@@ -187,7 +187,7 @@ package-bridge:
     #!/usr/bin/env bash
     set -eu
 
-    just --justfile=src-syftgo/justfile build-client-target
+    just --justfile=src-syftbox/justfile build-client-target
 
     # Copy the client binary to the bundle directory with the correct name.
     TARGET_TRIPLE=$(rustc -Vv | grep host | cut -f2 -d' ')
@@ -199,7 +199,7 @@ package-bridge:
     EXTENSION=$(if [[ "$OSTYPE" == "win32" ]]; then echo ".exe"; else echo ""; fi)
     dst="src-tauri/target/binaries/syftbox_client-${TARGET_TRIPLE}${EXTENSION}"
     mkdir -p $(dirname "${dst}")
-    cp src-syftgo/.out/syftbox_client_* "${dst}"
+    cp src-syftbox/.out/syftbox_client_* "${dst}"
 
 # Build the desktop app and package it into a single installable.
 [group('package')]
@@ -315,7 +315,7 @@ reset:
 
     echo -e "{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment."
 
-# Configure the dev environment. Adds a symlink to your local SyftGo repo for ease in development.
+# Configure the dev environment
 [group('utils')]
 setup skip_prerequisites="no":
     #!/usr/bin/env bash
@@ -367,58 +367,3 @@ _install-os-pre-requisites skip_prerequisites="no":
         echo -e "Also, please add it to the {{ _red }}justfile:$((line_number - 2)){{ _nc }} as well for future use.\n"
         exit 1
     fi
-
-_create-syftgo-symlink path_to_syftgo_repo="":
-    #!/usr/bin/env bash
-    set -eu
-
-    if [[ -n "{{ path_to_syftgo_repo }}" ]]; then
-        dir_path="{{ path_to_syftgo_repo }}"
-    else
-        while true; do
-            read -e -p "Do you already have a SyftGo repo cloned locally? (y/n): " already_cloned
-            if [[ "$already_cloned" == "y" ]]; then
-                echo "Please enter the path to your local SyftGo repo:"
-            read -e -p "SyftGo path: " dir_path
-        elif [[ "$already_cloned" == "n" ]]; then
-            # Clone the SyftGo repo
-            dir_path="../syftgo"
-            git clone git@github.com:yashgorana/syftgo.git $dir_path
-            echo -e "Cloned SyftGo repo at {{ _green }}$(realpath ${dir_path}){{ _nc }}"
-        else
-                echo "Invalid input. Please enter 'y' or 'n'."
-                continue
-            fi
-        done
-    fi
-
-    # Resolve the absolute path
-    dir_path=$(realpath "${dir_path/#\~/$HOME}")
-
-    # Validate that the directory exists
-    if [ ! -d "$dir_path" ]; then
-        echo "Error: The specified directory does not exist." >&2
-        exit 1
-    fi
-
-    # Check that the directory is a git repository
-    if [ ! -d "$dir_path/.git" ]; then
-        echo "Error: The specified directory is not a git repository." >&2
-        exit 1
-    fi
-
-    # Check that the directory is the SyftGo repository
-    remote_url=$(git -C "$dir_path" config --get remote.origin.url)
-    if [[ "${remote_url}" != "git@github.com:yashgorana/syftgo.git" ]] && \
-       [[ "${remote_url}" != "https://github.com/yashgorana/syftgo.git" ]]; then
-        echo "Error: The specified directory is not the SyftGo repository." >&2
-        exit 1
-    fi
-
-    # convert the path to a relative path (using perl one-liner, as it is available almost everywhere)
-    dir_path=$(perl -le 'use File::Spec; print File::Spec->abs2rel(@ARGV)' `realpath "$dir_path"` .)
-
-    # Create a symlink at 'src-syftgo' directory
-    ln -snf "$dir_path" src-syftgo
-
-    echo -e "Symlink created successfully at {{ _green }}src-syftgo{{ _nc }} pointing to {{ _green }}$dir_path/{{ _nc }}"
