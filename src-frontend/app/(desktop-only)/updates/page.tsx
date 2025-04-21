@@ -25,15 +25,20 @@ import {
 
 enum Type {
   checking = "checking",
-  available = "available",
   none = "none",
-  error = "error",
+  available = "available",
   downloading = "downloading",
+  error = "error",
   failed = "failed",
 }
 
-type DownloadProgress = {
-  percent: number;
+type UpdateWindowState = {
+  updateWindowType: Type;
+  version: string;
+  currentVersion: string;
+  releaseNotes: string;
+  error: string;
+  progress: number;
 };
 
 export default function UpdatePage() {
@@ -41,22 +46,33 @@ export default function UpdatePage() {
     "type",
     parseAsStringEnum<Type>(Object.values(Type)),
   );
-  const [version] = useQueryState("version", parseAsString);
-  const [currentVersion] = useQueryState("current_version", parseAsString);
-  const [releaseNotes] = useQueryState("release_notes", parseAsString);
-  const [error] = useQueryState("error", parseAsString);
-  const [progress] = useQueryState("progress", parseAsInteger);
+  const [version, setVersion] = useQueryState("version", parseAsString);
+  const [currentVersion, setCurrentVersion] = useQueryState(
+    "current_version",
+    parseAsString,
+  );
+  const [releaseNotes, setReleaseNotes] = useQueryState(
+    "release_notes",
+    parseAsString,
+  );
+  const [error, setError] = useQueryState("error", parseAsString);
+  const [progress, setProgress] = useQueryState("progress", parseAsInteger);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   useEffect(() => {
-    const updateProgressListener = async () => {
+    const updateWindowStateListener = async () => {
       if (typeof window !== "undefined") {
         const appWebview =
           window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
-        const unlisten = await appWebview.listen<DownloadProgress>(
-          "update-progress",
+        const unlisten = await appWebview.listen<UpdateWindowState>(
+          "update-window-state",
           (event) => {
-            setAnimatedProgress(event.payload.percent);
+            setType(event.payload.updateWindowType);
+            setVersion(event.payload.version);
+            setCurrentVersion(event.payload.currentVersion);
+            setReleaseNotes(event.payload.releaseNotes);
+            setError(event.payload.error);
+            setProgress(event.payload.progress);
           },
         );
 
@@ -66,8 +82,15 @@ export default function UpdatePage() {
       }
     };
 
-    updateProgressListener();
-  }, []);
+    updateWindowStateListener();
+  }, [
+    setType,
+    setVersion,
+    setCurrentVersion,
+    setReleaseNotes,
+    setError,
+    setProgress,
+  ]);
 
   useEffect(() => {
     if (type === "downloading") {

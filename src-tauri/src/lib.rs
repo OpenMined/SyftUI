@@ -56,12 +56,8 @@ pub fn run() {
             });
 
             let (bridge_host, bridge_port, bridge_token) = _generate_syftbox_client_args();
-
             let url = _generate_main_url(&bridge_host, &bridge_port, &bridge_token);
-
             _setup_main_window(app.handle(), url);
-
-            // Start periodic update checks
             _start_periodic_update_checks(app.handle());
 
             #[cfg(not(debug_assertions))]
@@ -243,10 +239,13 @@ fn _show_about_window(app: &AppHandle) {
 }
 
 // declare a type enum for the update window
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 enum UpdateWindowType {
     Checking,
-    Available,
     None,
+    Available,
+    Downloading,
     Error,
     Failed,
 }
@@ -255,12 +254,24 @@ impl UpdateWindowType {
     fn as_str(&self) -> &'static str {
         match self {
             UpdateWindowType::Checking => "checking",
-            UpdateWindowType::Available => "available",
             UpdateWindowType::None => "none",
+            UpdateWindowType::Available => "available",
+            UpdateWindowType::Downloading => "downloading",
             UpdateWindowType::Error => "error",
             UpdateWindowType::Failed => "failed",
         }
     }
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UpdateWindowState {
+    update_window_type: UpdateWindowType,
+    version: String,
+    current_version: String,
+    release_notes: String,
+    error: String,
+    progress: usize,
 }
 
 fn _show_update_window(
@@ -270,23 +281,26 @@ fn _show_update_window(
     current_version: String,
     release_notes: String,
     error: String,
-    progress: i8,
+    progress: usize,
 ) {
     let error = urlencoding::encode(&error).into_owned();
     let release_notes = urlencoding::encode(&release_notes).into_owned();
 
     if let Some(window) = app.get_webview_window("updates") {
-        let mut url = window.url().unwrap();
-        url.set_query(Some(&format!(
-            "type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
-            update_window_type.as_str(),
-            version,
-            current_version,
-            release_notes,
-            error,
-            progress
-        )));
-        window.navigate(url).unwrap();
+        // Window already exists, so we update the state by emitting events
+        app.emit_to(
+            "updates",
+            "update-window-state",
+            UpdateWindowState {
+                update_window_type,
+                version,
+                current_version,
+                release_notes,
+                error,
+                progress,
+            },
+        )
+        .unwrap();
         window.show().unwrap();
         window.set_focus().unwrap();
     } else {
@@ -294,7 +308,7 @@ fn _show_update_window(
             app,
             "updates",
             WebviewUrl::App(format!(
-                "updates?type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
+                "updates/?type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
                 update_window_type.as_str(),
                 version,
                 current_version,
@@ -369,15 +383,8 @@ fn update_about_window_titlebar_color(app: AppHandle, is_dark: bool, r: f64, g: 
     }
 }
 
-#[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct DownloadProgress {
-    percent: usize,
-}
-
 #[tauri::command]
 async fn update_window_response(app: AppHandle, install_update: bool) -> Result<(), String> {
-    println!("update_window_response: install_update: {}", install_update);
     let pending_update = app.state::<PendingUpdate>();
     let update = {
         let pending_update = pending_update.pending_update.lock().unwrap();
@@ -394,14 +401,15 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
                         let percent = (downloaded_chunks as f64
                             / content_length.unwrap_or(downloaded_chunks) as f64)
                             * 100.0;
-                        app.emit_to(
-                            "updates",
-                            "update-progress",
-                            DownloadProgress {
-                                percent: percent as usize,
-                            },
-                        )
-                        .unwrap();
+                        _show_update_window(
+                            &app,
+                            UpdateWindowType::Downloading,
+                            update.version.clone(),
+                            update.current_version.clone(),
+                            "".to_string(),
+                            "".to_string(),
+                            percent as usize,
+                        );
                     },
                     || {
                         app.restart();

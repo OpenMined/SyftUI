@@ -21,8 +21,10 @@ export default function RootLayout({
 }>) {
   const { sidebarOpen, setSidebarOpen } = useSidebarStore();
   const pathname = usePathname();
-  const sidebarExcludedPaths = ["/", "", "/about/", "/updates/"];
-  const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
+  const sidebarExcludedPaths = ["/", "/about", "/updates"];
+  const shouldShowSidebar = !sidebarExcludedPaths.some((path) =>
+    pathname.startsWith(path),
+  );
 
   useEffect(() => {
     // Run initialization once when the app starts
