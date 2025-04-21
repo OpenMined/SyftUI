@@ -3,10 +3,9 @@ use std::time::Duration;
 use std::{sync::Mutex, thread};
 use tauri::Theme;
 use tauri::{
-    image::Image,
     menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
-    Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder,
+    Manager, WebviewUrl, WebviewWindowBuilder,
 };
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_autostart::MacosLauncher;
@@ -18,6 +17,9 @@ use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
 #[cfg(not(debug_assertions))]
 use tauri_plugin_shell::ShellExt;
+
+#[cfg(target_os = "macos")]
+use tauri::{image::Image, TitleBarStyle};
 
 #[derive(Default)]
 struct AppState {
@@ -53,22 +55,17 @@ pub fn run() {
                 pending_update: Mutex::new(None),
             });
 
-            _setup_main_window(app.handle());
+            let (bridge_host, bridge_port, bridge_token) = _generate_syftbox_client_args();
+
+            let url = _generate_main_url(&bridge_host, &bridge_port, &bridge_token);
+
+            _setup_main_window(app.handle(), url);
 
             // Start periodic update checks
             _start_periodic_update_checks(app.handle());
 
-            let (bridge_host, bridge_port, bridge_token) = _generate_syftbox_client_args();
-
             #[cfg(not(debug_assertions))]
             _setup_sidecars_for_release_builds(
-                app.handle(),
-                &bridge_host,
-                &bridge_port,
-                &bridge_token,
-            );
-
-            _send_syftbox_client_args_to_frontend(
                 app.handle(),
                 &bridge_host,
                 &bridge_port,
@@ -188,16 +185,17 @@ async fn _check_for_updates(app: &AppHandle, has_user_checked_manually: bool) {
     }
 }
 
-fn _setup_main_window(app: &AppHandle) {
-    let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
+fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
+    let win_builder = WebviewWindowBuilder::new(app, "main", url)
         .title("")
+        .focused(true)
         .inner_size(1200.0, 720.0);
 
     // set transparent title bar only when building for macOS
     #[cfg(target_os = "macos")]
     let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
 
-    let window = win_builder.build().unwrap();
+    let _window = win_builder.build().unwrap();
 
     // set background color only when building for macOS
     #[cfg(target_os = "macos")]
@@ -205,7 +203,7 @@ fn _setup_main_window(app: &AppHandle) {
         use cocoa::appkit::{NSColor, NSWindow};
         use cocoa::base::{id, nil};
 
-        let ns_window = window.ns_window().unwrap() as id;
+        let ns_window = _window.ns_window().unwrap() as id;
         unsafe {
             let bg_color = NSColor::colorWithRed_green_blue_alpha_(
                 nil,
@@ -231,14 +229,15 @@ fn _show_about_window(app: &AppHandle) {
         let _about_window = WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url.into()))
             .inner_size(280.0, 450.0)
             .focused(true)
-            .hidden_title(true)
             .maximizable(false)
             .minimizable(false)
             .resizable(false);
 
         // set transparent title bar only when building for macOS
         #[cfg(target_os = "macos")]
-        let _about_window = _about_window.title_bar_style(TitleBarStyle::Transparent);
+        let _about_window = _about_window
+            .hidden_title(true)
+            .title_bar_style(TitleBarStyle::Transparent);
         let _about_window = _about_window.build().unwrap();
     }
 }
@@ -339,6 +338,13 @@ fn _show_update_window(
 #[tauri::command]
 fn update_about_window_titlebar_color(app: AppHandle, is_dark: bool, r: f64, g: f64, b: f64) {
     let _about_window = app.get_webview_window("about").unwrap();
+    log::debug!(
+        "Updating about window titlebar color: is_dark: {}, r: {}, g: {}, b: {}",
+        is_dark,
+        r,
+        g,
+        b
+    );
 
     if let Err(e) = _about_window.set_theme(if is_dark {
         Some(Theme::Dark)
@@ -450,12 +456,9 @@ fn _generate_syftbox_client_args() -> (String, String, String) {
     }
 }
 
-fn _send_syftbox_client_args_to_frontend(handle: &AppHandle, host: &str, port: &str, token: &str) {
-    let window = handle.get_webview_window("main").unwrap();
-    let mut url = window.url().unwrap();
-    let fragment = format!("host={}&port={}&token={}", host, port, token);
-    url.set_fragment(Some(&fragment));
-    window.navigate(url).unwrap();
+fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
+    let url = format!("#host={}&port={}&token={}", host, port, token);
+    WebviewUrl::App(url.into())
 }
 
 #[cfg(not(debug_assertions))]
