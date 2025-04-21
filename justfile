@@ -5,6 +5,10 @@
 # - Mark things private that are util functions with [private] or _var
 # - Don't over-engineer, keep it simple.
 # - Don't break existing commands
+# - Maintain cross-platform compatibility by using Python instead of shell scripts for complex operations
+# - Use Path from pathlib for file paths to handle different path separators automatically
+# - Handle platform-specific differences (Windows vs Unix) explicitly where needed
+# - Provide proper error handling for all operations to fail gracefully on all platforms
 # - Run just --fmt --unstable after adding new commands
 # ---------------------------------------------------------------------------------------------------------------------
 # Private vars
@@ -35,335 +39,684 @@ default:
 # Check the code quality of the frontend, bridge and desktop app.
 [group('code-quality:check')]
 check:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import sys
+    import subprocess
 
-    just check-frontend
-    # just check-bridge
-    just check-desktop
+    try:
+        subprocess.run(['just', 'check-frontend'], check=True)
+        # subprocess.run(['just', 'check-bridge'], check=True)
+        subprocess.run(['just', 'check-desktop'], check=True)
 
-    echo -e "\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n"
+        print(f"\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        print(f"\n{{ _red }}Check failed with error code {e.returncode}{{ _nc }}")
+        sys.exit(e.returncode)
 
 # Check the bridge server code quality.
 [group('code-quality:check')]
 check-bridge:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    just --justfile=src-syftbox/justfile run-checks
-    echo -e "\n{{ _green }}SyftBox client code quality check completed successfully.{{ _nc }}\n"
+    try:
+        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks'], check=True)
+        print(f"\n{{ _green }}SyftBox client code quality check completed successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Check the desktop app code quality.
 [group('code-quality:check')]
 check-desktop:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    cargo clippy --manifest-path ./src-tauri/Cargo.toml
-    cargo fmt --manifest-path ./src-tauri/Cargo.toml --check
-
-    echo -e "\n{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}\n"
+    try:
+        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml'], check=True)
+        subprocess.run(['cargo', 'fmt', '--manifest-path', './src-tauri/Cargo.toml', '--check'], check=True)
+        print(f"\n{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Check the frontend code quality.
 [group('code-quality:check')]
 check-frontend:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    bun run --cwd src-frontend prettier --check .
-    bun run --cwd src-frontend lint
+    try:
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--check', '.'], check=True)
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint'], check=True)
 
-    # TODO: Uncomment this once the type errors are fixed.
-    # bun run --cwd src-frontend tsc --noEmit
+        # TODO: Uncomment this once the type errors are fixed.
+        # subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'tsc', '--noEmit'], check=True)
 
-    echo -e "\n{{ _green }}Frontend code quality check completed successfully.{{ _nc }}\n"
+        print(f"\n{{ _green }}Frontend code quality check completed successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # ------------------------------------------------ CODE QUALITY FIXES -------------------------------------------------
 
 # Tidy up the code of the frontend, bridge and desktop app.
 [group('code-quality:tidy')]
 tidy:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    just tidy-frontend
-    # just tidy-bridge
-    just tidy-desktop
+    try:
+        subprocess.run(['just', 'tidy-frontend'], check=True)
+        # subprocess.run(['just', 'tidy-bridge'], check=True)
+        subprocess.run(['just', 'tidy-desktop'], check=True)
+        subprocess.run(['just', '--fmt', '--unstable'], check=True)  # Format the justfile as well
 
-    just --fmt --unstable  # Format the justfile as well
-    echo -e "\n{{ _green }}Justfile formatted successfully.{{ _nc }}\n"
-    echo -e "\n{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}\n"
+        print(f"\n{{ _green }}Justfile formatted successfully.{{ _nc }}")
+        print(f"\n{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Tidy up the bridge server code.
 [group('code-quality:tidy')]
 tidy-bridge:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    just --justfile=src-syftbox/justfile run-checks-and-fix
-    echo -e "\n{{ _green }}SyftBox client code tidied up successfully.{{ _nc }}\n"
+    try:
+        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks-and-fix'], check=True)
+        print(f"\n{{ _green }}SyftBox client code tidied up successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Tidy up the desktop app code.
 [group('code-quality:tidy')]
 tidy-desktop:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    cargo clippy --manifest-path ./src-tauri/Cargo.toml --fix --allow-staged
-    cargo fmt --manifest-path ./src-tauri/Cargo.toml
-
-    echo -e "\n{{ _green }}Desktop app code tidied up successfully.{{ _nc }}\n"
+    try:
+        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml', 
+                       '--fix', '--allow-staged'], check=True)
+        subprocess.run(['cargo', 'fmt', '--manifest-path', './src-tauri/Cargo.toml'], check=True)
+        print(f"\n{{ _green }}Desktop app code tidied up successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Tidy up the frontend code.
 [group('code-quality:tidy')]
 tidy-frontend:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    bun run --cwd src-frontend prettier --write .
-    bun run --cwd src-frontend lint --fix
-
-    echo -e "\n{{ _green }}Frontend code tidied up successfully.{{ _nc }}\n"
+    try:
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--write', '.'], check=True)
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint', '--fix'], check=True)
+        print(f"\n{{ _green }}Frontend code tidied up successfully.{{ _nc }}\n")
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # ---------------------------------------------------- DEV COMMANDS ---------------------------------------------------
 
 # Run the frontend, bridge and desktop app concurrently.
 [group('dev')]
 dev:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import platform
+    import subprocess
+    import sys
 
-    export BRIDGE_HOST="localhost"
-    export BRIDGE_PORT="7938"  # 7938 is the vanity number for SYFT in T9 keypad config 😎
-    export BRIDGE_TOKEN="SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
+    env = os.environ.copy()
+    env.update({
+        "BRIDGE_HOST": "localhost",
+        "BRIDGE_PORT": "7938",  # 7938 is the vanity number for SYFT in T9 keypad config 😎
+        "BRIDGE_TOKEN": "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
+    })
 
-    bunx concurrently \
-        --kill-others \
-        --success first \
-        --prefix name \
-        --names "  BRIDGE  , FRONTEND ,  DESKTOP " \
-        --prefix-colors "red,yellow,green" \
-        "just dev-bridge" "just dev-frontend" "just dev-desktop"
+    try:
+        subprocess.run([
+            "bunx", "concurrently",
+            "--kill-others",
+            "--success", "first",
+            "--prefix", "name",
+            "--names", "  BRIDGE  , FRONTEND ,  DESKTOP ",
+            "--prefix-colors", "red,yellow,green",
+            "just dev-bridge", "just dev-frontend", "just dev-desktop"
+        ], env=env, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 [group('dev')]
 dev-bridge:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import subprocess
+    import sys
 
-    # Need to use realpath due to a bug in air (https://github.com/air-verse/air/pull/742).
-    cd $(realpath src-syftbox) && air -- --ui-host $BRIDGE_HOST --ui-port $BRIDGE_PORT --ui-token $BRIDGE_TOKEN --ui-swagger
+    try:
+        os.chdir('src-syftbox')
+        cmd = [
+            "air", "--", 
+            "--ui-host", os.environ.get("BRIDGE_HOST", "localhost"), 
+            "--ui-port", os.environ.get("BRIDGE_PORT", "7938"), 
+            "--ui-token", os.environ.get("BRIDGE_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"), 
+            "--ui-swagger"
+        ]
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Run the desktop dev app.
 [group('dev')]
 dev-desktop:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    bunx @tauri-apps/cli dev
+    try:
+        subprocess.run(["bunx", "@tauri-apps/cli", "dev"], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Run the frontend dev server.
 [group('dev')]
 dev-frontend:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    bun run --cwd src-frontend dev
+    try:
+        subprocess.run(["bun", "run", "--cwd", "src-frontend", "dev"], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # -------------------------------------------------- PACKAGE COMMANDS -------------------------------------------------
 
 # Build the frontend, bridge and desktop app and package them into a single installable.
 [group('package')]
 package:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import subprocess
+    import sys
 
-    just package-frontend desktop_build="yes"
-    # just package-bridge
-    just package-desktop
+    try:
+        subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
+        subprocess.run(["just", "package-bridge"], check=True)
+        subprocess.run(["just", "package-desktop"], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Build the bridge and package it into a single installable.
 [group('package')]
 package-bridge:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import platform
+    import subprocess
+    import shutil
+    import sys
+    from pathlib import Path
 
-    just --justfile=src-syftbox/justfile build-client-target
+    try:
+        # Run the build command
+        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target'], check=True)
 
-    # Copy the client binary to the bundle directory with the correct name.
-    TARGET_TRIPLE=$(rustc -Vv | grep host | cut -f2 -d' ')
-    if [[ -z "${TARGET_TRIPLE}" ]]; then
-        echo -e "Failed to determine the target triple. Please check the Rust installation."
-        exit 1
-    fi
+        # Get target triple
+        rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
+        target_triple = None
+        for line in rustc_output.splitlines():
+            if 'host:' in line:
+                target_triple = line.split('host:')[1].strip()
+                break
 
-    EXTENSION=$(if [[ "$OSTYPE" == "win32" ]]; then echo ".exe"; else echo ""; fi)
-    dst="src-tauri/target/binaries/syftbox_client-${TARGET_TRIPLE}${EXTENSION}"
-    mkdir -p $(dirname "${dst}")
-    cp src-syftbox/.out/syftbox_client_* "${dst}"
+        if not target_triple:
+            print(f"{{ _red }}Failed to determine the target triple. Please check the Rust installation.{{ _nc }}")
+            sys.exit(1)
+
+        # Determine extension
+        extension = '.exe' if platform.system() == 'Windows' else ''
+
+        # Copy the binary
+        dst_dir = Path("src-tauri/binaries")
+        dst = dst_dir / f"syftbox_client-{target_triple}{extension}"
+        dst_dir.mkdir(parents=True, exist_ok=True)
+
+        # Find and copy the client binary
+        client_files = list(Path('src-syftbox/.out').glob('syftbox_client_*'))
+        if not client_files:
+            print(f"{{ _red }}No client binary found in src-syftbox/.out{{ _nc }}")
+            sys.exit(1)
+
+        for client_file in client_files:
+            shutil.copy2(client_file, dst)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Build the desktop app and package it into a single installable.
 [group('package')]
 package-desktop:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import subprocess
+    import sys
 
-    # If this is github ci
-    if [[ "${GITHUB_CI:-}" == "1" ]]; then
-        CI=false TAURI_BUNDLER_DMG_IGNORE_CI=true bunx @tauri-apps/cli build
-    else
-        export TAURI_SIGNING_PRIVATE_KEY=dummy
-        export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=dummy
-        bunx @tauri-apps/cli build
-        open ./src-tauri/target/release/bundle/dmg/
-    fi
+    env = os.environ.copy()
+
+    try:
+        if env.get('GITHUB_CI') == '1':
+            env['CI'] = 'false'
+            env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
+            subprocess.run(['bunx', '@tauri-apps/cli', 'build'], env=env, check=True)
+        else:
+            env['TAURI_SIGNING_PRIVATE_KEY'] = 'dummy'
+            env['TAURI_SIGNING_PRIVATE_KEY_PASSWORD'] = 'dummy'
+            subprocess.run(['bunx', '@tauri-apps/cli', 'build'], env=env, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 # Build the frontend and package it as a static site export.
 [group('package')]
 package-frontend desktop_build="no":
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import subprocess
+    import sys
 
-    if [[ "{{ desktop_build }}" != "no" ]]; then
-        IS_DESKTOP_BUILD=1 bun run --cwd src-frontend build
-    else
-        bun run --cwd src-frontend build
-    fi
+    env = os.environ.copy()
 
+    try:
+        if "{{ desktop_build }}" != "no":
+            env['IS_DESKTOP_BUILD'] = '1'
+            subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'build'], env=env, check=True)
+        else:
+            subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'build'], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
+# Temporary helper to deploy the frontend to the staging server
 [group('package')]
 deploy-frontend-to-stage:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import platform
+    import subprocess
+    import zipfile
+    import tempfile
+    import sys
+    import shutil
+    from pathlib import Path
 
-    echo "Deploying frontend to syftboxstage.openmined.org..."
+    print("Deploying frontend to syftboxstage.openmined.org...")
 
-    SOURCE_DIR="./src-frontend/out"
-    DEST_DIR="/home/azureuser/data/snapshot/tauquir@openmined.org/public/syftui"
-    DEST_ZIP_DIR="$(dirname ${DEST_DIR})"
+    source_dir = Path("./src-frontend/out")
+    dest_dir = "/home/azureuser/data/snapshot/tauquir@openmined.org/public/syftui"
+    dest_zip_dir = str(Path(dest_dir).parent)
 
-    # zip the source directory's contents
-    cd "${SOURCE_DIR}" && zip -r "out.zip" .
+    try:
+        # Create zip file using Python's zipfile module for cross-platform compatibility
+        temp_dir = tempfile.gettempdir()
+        zip_path = os.path.join(temp_dir, "out.zip")
 
-    # Copy the zipped source directory to the destination's parent directory
-    scp -r "out.zip" azureuser@syftbox-stage:"${DEST_ZIP_DIR}"
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for root, _, files in os.walk(source_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, source_dir)
+                    zipf.write(file_path, arcname)
 
-    # Remove the local zip file
-    rm "out.zip"
+        # Check if we're on Windows
+        if platform.system() == 'Windows':
+            # Windows might not have scp/ssh installed by default
+            # Check if they're available
+            ssh_available = shutil.which('ssh') is not None
+            scp_available = shutil.which('scp') is not None
 
-    # Remove the destination directory if it exists
-    ssh azureuser@syftbox-stage "rm -rf ${DEST_DIR}"
+            if not ssh_available or not scp_available:
+                print(f"{{ _red }}Warning: SSH/SCP commands not found on Windows.{{ _nc }}")
+                print("Please install OpenSSH client or ensure it's in your PATH.")
+                print("You can install it via Windows Optional Features or use a tool like Git Bash.")
+                sys.exit(1)
 
-    # unzip the source directory
-    ssh azureuser@syftbox-stage "cd ${DEST_ZIP_DIR} && unzip out.zip -d ${DEST_DIR}"
+        # Continue with the deployment
+        subprocess.run(['scp', zip_path, f'azureuser@syftbox-stage:{dest_zip_dir}/out.zip'], check=True)
 
-    # Remove the zip file from the destination
-    ssh azureuser@syftbox-stage "rm ${DEST_ZIP_DIR}/out.zip"
+        # Clean up local zip
+        os.remove(zip_path)
 
-    echo "Frontend deployment complete."
+        # SSH commands
+        ssh_commands = [
+            f'rm -rf {dest_dir}',
+            f'mkdir -p {dest_dir}',
+            f'cd {dest_zip_dir} && unzip -o out.zip -d {dest_dir}',
+            f'rm {dest_zip_dir}/out.zip'
+        ]
+
+        for cmd in ssh_commands:
+            subprocess.run(['ssh', 'azureuser@syftbox-stage', cmd], check=True)
+
+        print(f"{{ _green }}Frontend deployment complete.{{ _nc }}")
+    except subprocess.CalledProcessError as e:
+        print(f"{{ _red }}Deployment failed with error code {e.returncode}{{ _nc }}")
+        sys.exit(e.returncode)
 
 # -------------------------------------------------- UTILITY COMMANDS -------------------------------------------------
 
 # Update version numbers
 [group('utils')]
 update-version:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import json
+    import re
+    import subprocess
+    from pathlib import Path
 
-    FRONTEND_VERSION=$(jq -r .version src-frontend/package.json)
-    DESKTOP_VERSION=$(jq -r .version src-tauri/tauri.conf.json)
-    DAEMON_VERSION=$($(find src-tauri/binaries/ -name "syftbox_client*") --version | sed -E 's/.*version ([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)*).*/\1/')
-    COMMIT_HASH=$(git rev-parse --short HEAD)
+    # Get versions
+    with open('src-frontend/package.json') as f:
+        frontend_version = json.load(f)['version']
 
-    echo "Frontend version: ${FRONTEND_VERSION}"
-    echo "Desktop version: ${DESKTOP_VERSION}"
-    echo "Daemon version: ${DAEMON_VERSION}"
-    echo "Commit hash: ${COMMIT_HASH}"
+    with open('src-tauri/tauri.conf.json') as f:
+        desktop_version = json.load(f)['version']
 
-    sed -i '' "s/\(pub const DESKTOP_VERSION: &str = \).*/\1\"$DESKTOP_VERSION\";/g" src-tauri/src/version.rs
-    sed -i '' "s/\(pub const FRONTEND_VERSION: &str = \).*/\1\"$FRONTEND_VERSION\";/g" src-tauri/src/version.rs
-    sed -i '' "s/\(pub const DAEMON_VERSION: &str = \).*/\1\"$DAEMON_VERSION\";/g" src-tauri/src/version.rs
-    sed -i '' "s/\(pub const COMMIT_HASH: &str = \).*/\1\"$COMMIT_HASH\";/g" src-tauri/src/version.rs
+    # Find and get daemon version
+    daemon_path = next(Path('src-tauri/target/binaries').glob('syftbox_client*'))
+    daemon_output = subprocess.run([str(daemon_path), '--version'], capture_output=True, text=True).stdout
+    daemon_version = re.search(r'version ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
+
+    # Get commit hash
+    commit_hash = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()
+
+    print(f"{{ _green }}Frontend version:{{ _nc }} {frontend_version}")
+    print(f"{{ _green }}Desktop version:{{ _nc }} {desktop_version}")
+    print(f"{{ _green }}Daemon version:{{ _nc }} {daemon_version}")
+    print(f"{{ _green }}Commit hash:{{ _nc }} {commit_hash}")
+
+    # Update version.rs
+    version_file = Path('src-tauri/src/version.rs')
+    content = version_file.read_text()
+
+    content = re.sub(r'(pub const DESKTOP_VERSION: &str = ).*', f'\\1"{desktop_version}";', content)
+    content = re.sub(r'(pub const FRONTEND_VERSION: &str = ).*', f'\\1"{frontend_version}";', content)
+    content = re.sub(r'(pub const DAEMON_VERSION: &str = ).*', f'\\1"{daemon_version}";', content)
+    content = re.sub(r'(pub const COMMIT_HASH: &str = ).*', f'\\1"{commit_hash}";', content)
+
+    version_file.write_text(content)
 
 # Reset the dev environment.
 [group('utils')]
 reset:
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import subprocess
+    import shutil
+    import sys
+    from pathlib import Path
 
-    # Deinit the submodules.
-    echo "Deinitializing submodules..."
+    print("Deinitializing submodules...")
 
-    # Check if all submodules are clean (no unstaged or staged changes)
-    while IFS= read -r path; do
-        if [[ -n "$(git -C "$path" status --porcelain)" ]]; then
-        echo -e "Submodule {{ _red }}$path{{ _nc }} has unstaged or staged changes. Unable to deinitialize."
-        echo -e "Manually clean the submodule and run {{ _red }}just reset{{ _nc }} again to continue.\n"
-        exit 1
-        fi
-    done < <(git submodule --quiet foreach --recursive 'echo $sm_path')
+    # Check if all submodules are clean
+    result = subprocess.run(['git', 'submodule', 'foreach', '--quiet', '--recursive', 'git', 'status', '--porcelain'],
+                           capture_output=True, text=True)
 
-    # All submodules are clean, deinitialize them
-    git submodule deinit --all --force > /dev/null 2>&1
+    if result.stdout.strip():
+        print(f"{{ _red }}Some submodules have unstaged or staged changes. Unable to deinitialize.{{ _nc }}")
+        print("Manually clean the submodules and run 'just reset' again to continue.")
+        sys.exit(1)
 
-    echo "Removing generated files..."
-    rm -rf src-frontend/.next
-    rm -rf src-frontend/node_modules
-    rm -rf src-frontend/out
-    rm -rf src-frontend/next-env.d.ts
-    rm -rf src-frontend/tsconfig.tsbuildinfo
-    rm -rf src-tauri/gen
-    rm -rf src-tauri/target
+    # Deinitialize submodules
+    subprocess.run(['git', 'submodule', 'deinit', '--all', '--force'], 
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    echo -e "{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment."
+    print("Removing generated files...")
+    dirs_to_remove = [
+        'src-frontend/.next',
+        'src-frontend/node_modules',
+        'src-frontend/out',
+        'src-frontend/next-env.d.ts',
+        'src-frontend/tsconfig.tsbuildinfo',
+        'src-tauri/gen',
+        'src-tauri/target'
+    ]
+
+    for dir_path in dirs_to_remove:
+        path = Path(dir_path)
+        if path.exists():
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink()
+
+    print(f"{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment.")
 
 # Configure the dev environment
 [group('utils')]
 setup skip_prerequisites="no":
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import platform
+    import subprocess
+    import sys
+    import shutil
+    from pathlib import Path
 
-    just _install-os-pre-requisites {{ skip_prerequisites }}
+    # Run prerequisites setup based on platform
+    subprocess.run(['just', '_install-os-pre-requisites', '{{ skip_prerequisites }}'], check=True)
 
-    echo -e "\nInitializing submodules..."
-    git submodule update --init --recursive --remote
+    print("\nInitializing submodules...")
+    subprocess.run(['git', 'submodule', 'update', '--init', '--recursive', '--remote'], check=True)
 
-    if ! command -v bun &> /dev/null; then
-        echo "Installing Bun"
-        curl -fsSL https://bun.sh/install | bash
-    fi
+    # Check and install Bun if needed
+    if shutil.which('bun') is None:
+        system = platform.system()
+        print("Installing Bun...")
 
-    if ! command -v rustup &> /dev/null; then
-        echo "Installing Rust"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    fi
+        if system == "Windows":
+            # Bun install for Windows using PowerShell
+            try:
+                subprocess.run([
+                    "powershell", "-Command",
+                    "irm bun.sh/install.ps1 | iex"
+                ], check=True)
+            except subprocess.CalledProcessError:
+                print(f"{{ _red }}Failed to install Bun using PowerShell. Please install manually:{{ _nc }}")
+                print("https://bun.sh/docs/installation")
+                sys.exit(1)
+        else:
+            # Unix-like systems (macOS, Linux)
+            try:
+                subprocess.run([
+                    "curl", "-fsSL", "https://bun.sh/install", "|", "bash"
+                ], shell=True, check=True)
+            except subprocess.CalledProcessError:
+                print(f"{{ _red }}Failed to install Bun. Please install manually:{{ _nc }}")
+                print("https://bun.sh/docs/installation")
+                sys.exit(1)
 
-    echo -e "Installing dependencies..."
-    $HOME/.bun/bin/bun install --cwd src-frontend
+    # Check and install Rust if needed
+    if shutil.which('rustup') is None:
+        system = platform.system()
+        print("Installing Rust...")
 
-    echo -e "Setting up pre-commit hooks..."
-    $HOME/.bun/bin/bunx husky
+        if system == "Windows":
+            # Rust install for Windows
+            try:
+                subprocess.run([
+                    "powershell", "-Command",
+                    "(New-Object Net.WebClient).DownloadFile('https://win.rustup.rs/x86_64', 'rustup-init.exe'); ./rustup-init.exe -y"
+                ], check=True)
+            except subprocess.CalledProcessError:
+                print(f"{{ _red }}Failed to install Rust. Please install manually:{{ _nc }}")
+                print("https://www.rust-lang.org/tools/install")
+                sys.exit(1)
+        else:
+            # Unix-like systems (macOS, Linux)
+            try:
+                subprocess.run([
+                    "curl", "--proto", "=https", "--tlsv1.2", "-sSf", "https://sh.rustup.rs", "|", "sh", "-s", "--", "-y"
+                ], shell=True, check=True)
+            except subprocess.CalledProcessError:
+                print(f"{{ _red }}Failed to install Rust. Please install manually:{{ _nc }}")
+                print("https://www.rust-lang.org/tools/install")
+                sys.exit(1)
 
-    echo -e "\n{{ _green }}Setup complete!{{ _nc }}\nYou can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading."
+    print("Installing dependencies...")
+
+    # Find bun executable
+    bun_exec = shutil.which('bun')
+    if not bun_exec:
+        # Try common locations
+        home = str(Path.home())
+        possible_paths = [
+            os.path.join(home, '.bun', 'bin', 'bun'),
+            os.path.join(home, 'AppData', 'Local', 'bun', 'bun.exe')  # Windows
+        ]
+
+        for path in possible_paths:
+            if os.path.exists(path):
+                bun_exec = path
+                break
+
+        if not bun_exec:
+            print(f"{{ _red }}Bun executable not found. Please ensure it's in your PATH.{{ _nc }}")
+            sys.exit(1)
+
+    # Install frontend dependencies
+    subprocess.run([bun_exec, 'install', '--cwd', 'src-frontend'], check=True)
+
+    # Setup pre-commit hooks
+    bunx_exec = None
+    if platform.system() == "Windows":
+        bunx_exec = os.path.join(os.path.dirname(bun_exec), 'bunx.exe')
+    else:
+        bunx_exec = os.path.join(os.path.dirname(bun_exec), 'bunx')
+
+    if not os.path.exists(bunx_exec):
+        bunx_exec = bun_exec  # Use 'bun' directly with 'x' argument
+        subprocess.run([bunx_exec, 'x', 'husky'], check=True)
+    else:
+        subprocess.run([bunx_exec, 'husky'], check=True)
+
+    print(f"\n{{ _green }}Setup complete!{{ _nc }}")
+    print(f"You can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading.")
 
 _install-os-pre-requisites skip_prerequisites="no":
-    #!/usr/bin/env bash
-    set -eu
+    #!/usr/bin/env python
+    import os
+    import platform
+    import subprocess
+    import sys
 
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if [[ $(xcode-select -p &> /dev/null; echo $?) -ne 0 ]]; then
-            echo "Installing Xcode Command Line Tools"
-            touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;
-            PROD=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
-            softwareupdate -i "$PROD" --verbose;
-        fi
-    elif [[ "{{ skip_prerequisites }}" == "no" ]]; then
-        # KEEP THIS AT THE TOP OF THIS BLOCK. This gets the current line number.
-        line_number=$(grep -n 'UNIQUE_WORD_TO_MATCH_MYSELF_HERE_IN_GREP_COMMAND' justfile | cut -d: -f1 | head -n 1)
+    system = platform.system()
 
-        echo "Your OS is not supported by this script at the moment. Please manually install the"
-        echo -e "OS dependencies for Tauri from" \
-             "{{ _blue }}https://tauri.app/start/prerequisites/#system-dependencies{{ _nc }}."
-        echo -e "After that run the {{ _red }}just setup skip_prerequisites=yes{{ _nc }} command."
+    if "{{ skip_prerequisites }}" == "no":
+        if system == "Darwin":  # macOS
+            # Check for Xcode Command Line Tools
+            if not os.path.exists('/Library/Developer/CommandLineTools'):
+                print(f"{{ _yellow }}Installing Xcode Command Line Tools{{ _nc }}")
+                try:
+                    # Create the file that triggers the CLT installation prompt
+                    with open('/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress', 'w'):
+                        pass
 
-        echo -e "Also, please add it to the {{ _red }}justfile:$((line_number - 2)){{ _nc }} as well for future use.\n"
-        exit 1
-    fi
+                    # Find the latest Command Line Tools
+                    result = subprocess.run(['softwareupdate', '-l'], capture_output=True, text=True)
+                    clt_line = None
+                    for line in result.stdout.splitlines():
+                        if "Command Line" in line:
+                            clt_line = line
+                            break
+
+                    if clt_line:
+                        # Extract product name
+                        product = clt_line.strip().split('* ')[1].strip()
+                        # Install
+                        subprocess.run(['softwareupdate', '-i', product, '--verbose'], check=True)
+                    else:
+                        print(f"{{ _red }}Command Line Tools not found in software update list{{ _nc }}")
+                        print("Please install manually using 'xcode-select --install'")
+                except Exception as e:
+                    print(f"{{ _red }}Error installing Command Line Tools: {e}{{ _nc }}")
+                    print("Please install manually using 'xcode-select --install'")
+
+        elif system == "Windows":
+            print(f"{{ _yellow }}Checking Windows dependencies...{{ _nc }}")
+
+            # Check for required dependencies
+            try:
+                # WebView2 is needed for Tauri on Windows
+                print(f"{{ _green }}Make sure you have Microsoft Edge WebView2 installed{{ _nc }}")
+                print("You can download it from: https://developer.microsoft.com/en-us/microsoft-edge/webview2/")
+
+                # Microsoft Visual C++ Build Tools
+                print(f"{{ _green }}Make sure you have Microsoft Visual C++ Build Tools installed{{ _nc }}")
+                print("You can download it from: https://visualstudio.microsoft.com/visual-cpp-build-tools/")
+
+            except Exception as e:
+                print(f"{{ _red }}Error: {e}{{ _nc }}")
+                print("Please install dependencies manually")
+
+        elif system == "Linux":
+            # Try to detect the distribution
+            try:
+                with open('/etc/os-release') as f:
+                    os_info = {}
+                    for line in f:
+                        if '=' in line:
+                            key, value = line.strip().split('=', 1)
+                            os_info[key] = value.strip('"')
+
+                distro = os_info.get('ID', '').lower()
+
+                # Install dependencies based on distribution
+                if distro in ['ubuntu', 'debian', 'pop', 'mint']:
+                    print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
+                    print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
+                    deps = [
+                        "libwebkit2gtk-4.0-dev", "build-essential", "curl", "wget", "file", 
+                        "libssl-dev", "libgtk-3-dev", "libayatana-appindicator3-dev", "librsvg2-dev"
+                    ]
+                    cmd = ["sudo", "apt", "update", "&&", "sudo", "apt", "install", "-y"] + deps
+                    print(" ".join(cmd))
+
+                elif distro in ['fedora', 'rhel', 'centos']:
+                    print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
+                    print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
+                    deps = [
+                        "webkit2gtk3-devel", "openssl-devel", "curl", "wget", 
+                        "file", "gtk3-devel", "libappindicator-gtk3-devel", 
+                        "librsvg2-devel"
+                    ]
+                    cmd = ["sudo", "dnf", "install", "-y"] + deps
+                    print(" ".join(cmd))
+
+                elif distro in ['arch', 'manjaro']:
+                    print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
+                    print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
+                    deps = [
+                        "webkit2gtk", "base-devel", "curl", "wget", "openssl", 
+                        "appmenu-gtk-module", "gtk3", "libappindicator-gtk3", 
+                        "librsvg"
+                    ]
+                    cmd = ["sudo", "pacman", "-Syu", "--needed"] + deps
+                    print(" ".join(cmd))
+
+                else:
+                    print(f"{{ _red }}Unsupported Linux distribution: {distro}{{ _nc }}")
+                    print("Please install Tauri dependencies manually according to:")
+                    print("https://tauri.app/start/prerequisites/#linux")
+
+            except Exception as e:
+                print(f"{{ _red }}Error detecting Linux distribution: {e}{{ _nc }}")
+                print("Please install Tauri dependencies manually according to:")
+                print("https://tauri.app/start/prerequisites/#linux")
+
+        else:
+            print(f"{{ _red }}Unsupported operating system: {system}{{ _nc }}")
+            print("Please install Tauri dependencies manually according to:")
+            print("https://tauri.app/start/prerequisites/#system-dependencies")
+            sys.exit(1)
