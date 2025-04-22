@@ -38,7 +38,7 @@ jobs:
           submodules: recursive
 
       - name: Import signing certificate into keychain
-        if: ${{ runner.os }} == 'macOS'
+        if: runner.os == 'macOS'
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
@@ -157,7 +157,7 @@ jobs:
             ./artifacts/*.exe.sig
 
       - name: Clean up all user keychains
-        if: always() && ${{ runner.os }} == 'macOS'
+        if: always() && runner.os == 'macOS'
         run: |
           # List all keychains
           keychains=$(security list-keychains | tr -d '" "')
