@@ -1,5 +1,5 @@
 // lib/initialization.ts
-const INITIALIZATION_KEY = "syftui_initialized";
+const FIRST_RUN_DONE_KEY = "syftui_first_run_done";
 
 /**
  * Initialization service for SyftUI application
@@ -7,47 +7,51 @@ const INITIALIZATION_KEY = "syftui_initialized";
  */
 export const initializationService = {
   /**
-   * Check if app has been initialized
+   * Check if first run has been completed
    */
-  isInitialized(): boolean {
-    if (typeof window === "undefined") return false; // Server-side check
-    return localStorage.getItem(INITIALIZATION_KEY) === "true";
+  isFirstRunDone(): boolean {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(FIRST_RUN_DONE_KEY) === "true";
   },
 
   /**
-   * Mark app as initialized
+   * Mark first run as completed
    */
-  markAsInitialized(): void {
-    if (typeof window === "undefined") return; // Server-side check
-    localStorage.setItem(INITIALIZATION_KEY, "true");
+  markAsFirstRunDone(): void {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(FIRST_RUN_DONE_KEY, "true");
   },
 
   /**
-   * Reset initialization status (for testing or clearing app data)
+   * Reset first run status (for testing or clearing app data)
    */
-  reset(): void {
-    if (typeof window === "undefined") return; // Server-side check
-    localStorage.removeItem(INITIALIZATION_KEY);
+  reset_first_run(): void {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(FIRST_RUN_DONE_KEY);
   },
 
   /**
    * Run initialization tasks and mark as initialized
    */
   async initialize(): Promise<void> {
-    if (this.isInitialized()) return;
+    const isFirstRun = !this.isFirstRunDone();
 
     try {
-      // Run initialization tasks
-      await this.setupSidebarFavorites();
-      // Add more initialization tasks as needed
+      // First-time initialization tasks
+      if (isFirstRun) {
+        // Run initialization tasks
+        await this.setupSidebarFavorites();
 
-      // Mark as initialized only after all tasks complete successfully
-      this.markAsInitialized();
-      console.log("Application initialized successfully");
+        // Add more initialization tasks as needed
+        // ...
+
+        // Mark as initialized only after all tasks complete successfully
+        this.markAsFirstRunDone();
+        console.log("First run completed successfully");
+      }
     } catch (error) {
-      console.error("Initialization failed:", error);
-      // Optionally: you can choose not to mark as initialized if it fails
-      // so it will try again on next load
+      console.error("First run initialization failed:", error);
+      // Do nothing and let it try again on next load
     }
   },
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Folder, Save, Eye, EyeOff } from "lucide-react";
+import { Folder, Save, Eye, EyeOff, BarChart2 } from "lucide-react";
+import { AnalyticsToggle } from "@/components/analytics-toggle";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -223,6 +224,34 @@ export function Settings() {
             <p className="text-muted-foreground text-xs">
               This token is used to authenticate with the SyftBox server.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Privacy settings</CardTitle>
+          <CardDescription>
+            Control how your usage data is collected
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center">
+              <BarChart2 className="text-muted-foreground mr-2 h-5 w-5" />
+              <h3 className="text-lg font-medium">Analytics</h3>
+              <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                Beta Required
+              </span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Analytics helps us understand how SyftBox is used, allowing us to
+              improve the experience. During this beta phase, analytics
+              collection is mandatory to help us identify and fix issues
+              quickly. No personal data or contents of your files are ever
+              collected.
+            </p>
+            <AnalyticsToggle className="mt-2" />
           </div>
         </CardContent>
       </Card>

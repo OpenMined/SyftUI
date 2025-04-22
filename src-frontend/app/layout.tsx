@@ -10,6 +10,7 @@ import { Sidebar } from "@/components/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { initializationService } from "@/lib/initialization";
+import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 
 const title = "SyftBox";
 const description = "The internet of private data!";
@@ -21,10 +22,8 @@ export default function RootLayout({
 }>) {
   const { sidebarOpen, setSidebarOpen } = useSidebarStore();
   const pathname = usePathname();
-  const sidebarExcludedPaths = ["/", "/about", "/updates"];
-  const shouldShowSidebar = !sidebarExcludedPaths.some((path) =>
-    pathname.startsWith(path),
-  );
+  const sidebarExcludedPaths = ["/", "/about/", "/updates/"];
+  const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
 
   useEffect(() => {
     // Run initialization once when the app starts
@@ -40,29 +39,32 @@ export default function RootLayout({
         <meta name="description" content={description} />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          disableTransitionOnChange
-        >
-          <NuqsAdapter>
-            <div className="flex h-screen">
-              {shouldShowSidebar && (
-                <div
-                  className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:relative md:z-0 ${
-                    sidebarOpen
-                      ? "translate-x-0"
-                      : "-translate-x-full md:translate-x-0"
-                  } shrink-0 md:w-64`}
-                >
-                  <Sidebar closeSidebar={() => setSidebarOpen(false)} />
-                </div>
-              )}
-              <div className="flex-1 overflow-hidden">{children}</div>
-            </div>
-            <Toaster />
-          </NuqsAdapter>
-        </ThemeProvider>
+        <AnalyticsProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY}>
+          <PageViewTracker path={pathname} />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            disableTransitionOnChange
+          >
+            <NuqsAdapter>
+              <div className="flex h-screen">
+                {shouldShowSidebar && (
+                  <div
+                    className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:relative md:z-0 ${
+                      sidebarOpen
+                        ? "translate-x-0"
+                        : "-translate-x-full md:translate-x-0"
+                    } shrink-0 md:w-64`}
+                  >
+                    <Sidebar closeSidebar={() => setSidebarOpen(false)} />
+                  </div>
+                )}
+                <div className="flex-1 overflow-hidden">{children}</div>
+              </div>
+              <Toaster />
+            </NuqsAdapter>
+          </ThemeProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );

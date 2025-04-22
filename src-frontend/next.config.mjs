@@ -5,6 +5,7 @@ const basePath =
 
 // Make basePath available to the client as an environment variable
 process.env.NEXT_PUBLIC_BASE_PATH = basePath;
+process.env.NEXT_PUBLIC_APTABASE_KEY = "A-US-0801581295";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
