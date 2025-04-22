@@ -9,15 +9,19 @@ on:
         type: string
 
 jobs:
-  build_macos:
-    name: Build MacOS app bundle
-    runs-on: macos-latest
+  build:
+    name: Build app bundle
     strategy:
       fail-fast: false
       matrix:
         include:
-          - args: "aarch64-apple-darwin"
-          - args: "x86_64-apple-darwin"
+          - runs-on: macos-latest
+            args: "aarch64-apple-darwin"
+          - runs-on: macos-latest
+            args: "x86_64-apple-darwin"
+          - runs-on: windows-latest
+            args: "x86_64-pc-windows-msvc"
+    runs-on: ${{ matrix.runs-on }}
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
@@ -96,16 +100,24 @@ jobs:
         run: bun install --cwd src-frontend
 
       - name: Build app
-        if: ${{ runner.os }} == 'macOS'
         run: |
           GITHUB_CI=1 just package ${{ matrix.args }}
 
-          # Move the artifacts to the artifacts directory
+          # Create artifacts directory
           mkdir -p artifacts
-          mv src-tauri/target/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
-          mv src-tauri/target/release/bundle/macos/*.app artifacts/SyftBox-${{ matrix.args }}.app
-          mv src-tauri/target/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
-          mv src-tauri/target/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
+
+          # Move artifacts based on platform
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            mv src-tauri/target/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
+            mv src-tauri/target/release/bundle/macos/*.app artifacts/SyftBox-${{ matrix.args }}.app
+            mv src-tauri/target/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
+            mv src-tauri/target/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
+          elif [ "${{ runner.os }}" == "Windows" ]; then
+            mv src-tauri/target/release/bundle/msi/*.msi artifacts/SyftBox-${{ matrix.args }}.msi
+            mv src-tauri/target/release/bundle/msi/*.msi.sig artifacts/SyftBox-${{ matrix.args }}.msi.sig
+            mv src-tauri/target/release/bundle/nsis/*.exe artifacts/SyftBox-${{ matrix.args }}.exe
+            mv src-tauri/target/release/bundle/nsis/*.exe.sig artifacts/SyftBox-${{ matrix.args }}.exe.sig
+          fi
 
       - name: Setup git config
         env:
@@ -134,7 +146,15 @@ jobs:
           allowUpdates: true
           generateReleaseNotes: true
           makeLatest: true
-          artifacts: ./artifacts/*.dmg,./artifacts/*.app,./artifacts/*.app.tar.gz,./artifacts/*.app.tar.gz.sig
+          artifacts: |
+            ./artifacts/*.dmg
+            ./artifacts/*.app
+            ./artifacts/*.app.tar.gz
+            ./artifacts/*.app.tar.gz.sig
+            ./artifacts/*.msi
+            ./artifacts/*.msi.sig
+            ./artifacts/*.exe
+            ./artifacts/*.exe.sig
 
       - name: Clean up all user keychains
         if: always() && ${{ runner.os }} == 'macOS'
