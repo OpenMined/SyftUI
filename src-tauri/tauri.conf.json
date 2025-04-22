@@ -53,7 +53,7 @@
         "type": "downloadBootstrapper"
       }
     },
-    "targets": ["app", "dmg"]
+    "targets": ["app", "dmg", "msi"]
   },
   "plugins": {
     "updater": {

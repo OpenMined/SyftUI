@@ -1,4 +1,3 @@
-use cocoa::base::{NO, YES};
 use serde::Serialize;
 use std::time::Duration;
 use std::{sync::Mutex, thread};
@@ -330,7 +329,7 @@ fn _show_update_window(
         #[cfg(target_os = "macos")]
         {
             use cocoa::appkit::{NSColor, NSView, NSWindow};
-            use cocoa::base::{id, nil};
+            use cocoa::base::{id, nil, NO, YES};
             use objc::{msg_send, sel, sel_impl};
 
             let ns_window = _update_window.ns_window().unwrap() as id;

@@ -108,7 +108,6 @@ jobs:
           mkdir -p artifacts
 
           mv src-tauri/target/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
-          mv src-tauri/target/release/bundle/macos/*.app artifacts/SyftBox-${{ matrix.args }}.app
           mv src-tauri/target/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
           mv src-tauri/target/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
 
@@ -123,8 +122,6 @@ jobs:
 
           Move-Item -Path src-tauri\target\release\bundle\msi\*.msi -Destination artifacts\SyftBox-${{ matrix.args }}.msi
           Move-Item -Path src-tauri\target\release\bundle\msi\*.msi.sig -Destination artifacts\SyftBox-${{ matrix.args }}.msi.sig
-          Move-Item -Path src-tauri\target\release\bundle\nsis\*.exe -Destination artifacts\SyftBox-${{ matrix.args }}.exe
-          Move-Item -Path src-tauri\target\release\bundle\nsis\*.exe.sig -Destination artifacts\SyftBox-${{ matrix.args }}.exe.sig
 
       - name: Setup git config
         env:
@@ -158,13 +155,10 @@ jobs:
           makeLatest: true
           artifacts: |
             ./artifacts/*.dmg
-            ./artifacts/*.app
             ./artifacts/*.app.tar.gz
             ./artifacts/*.app.tar.gz.sig
             ./artifacts/*.msi
             ./artifacts/*.msi.sig
-            ./artifacts/*.exe
-            ./artifacts/*.exe.sig
 
       - name: Clean up all user keychains
         if: always() && runner.os == 'macOS'
