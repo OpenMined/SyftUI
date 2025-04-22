@@ -240,21 +240,21 @@ dev-frontend:
 
 # Build the frontend, bridge and desktop app and package them into a single installable.
 [group('package')]
-package:
+package TARGET_TRIPLE="":
     #!/usr/bin/env python
     import subprocess
     import sys
 
     try:
         subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
-        subprocess.run(["just", "package-bridge"], check=True)
-        subprocess.run(["just", "package-desktop"], check=True)
+        subprocess.run(["just", "package-bridge", "{{ TARGET_TRIPLE }}"], check=True)
+        subprocess.run(["just", "package-desktop", "{{ TARGET_TRIPLE }}"], check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
 # Build the bridge and package it into a single installable.
 [group('package')]
-package-bridge:
+package-bridge TARGET_TRIPLE="":
     #!/usr/bin/env python
     import os
     import platform
@@ -264,20 +264,28 @@ package-bridge:
     from pathlib import Path
 
     try:
-        # Run the build command
-        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target'], check=True)
-
-        # Get target triple
-        rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
-        target_triple = None
-        for line in rustc_output.splitlines():
-            if 'host:' in line:
-                target_triple = line.split('host:')[1].strip()
-                break
+        target_triple = "{{ TARGET_TRIPLE }}"
+        if not target_triple:
+            # Get target triple
+            rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
+            target_triple = None
+            for line in rustc_output.splitlines():
+                if 'host:' in line:
+                    target_triple = line.split('host:')[1].strip()
+                    break
 
         if not target_triple:
             print(f"{{ _red }}Failed to determine the target triple. Please check the Rust installation.{{ _nc }}")
             sys.exit(1)
+
+        # Run the build command
+        if target_triple == "aarch64-apple-darwin":
+            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target', 'darwin', 'arm64'], check=True)
+        elif target_triple == "x86_64-apple-darwin":
+            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target', 'darwin', 'amd64'], check=True)
+        else:
+            # The command will automatically determine the target triple
+            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target'], check=True)
 
         # Determine extension
         extension = '.exe' if platform.system() == 'Windows' else ''
@@ -293,26 +301,37 @@ package-bridge:
             print(f"{{ _red }}No client binary found in src-syftbox/.out{{ _nc }}")
             sys.exit(1)
 
-        for client_file in client_files:
-            shutil.copy2(client_file, dst)
+        shutil.copy2(client_files[0], dst)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
 # Build the desktop app and package it into a single installable.
 [group('package')]
-package-desktop:
+package-desktop TARGET_TRIPLE="":
     #!/usr/bin/env python
     import os
     import subprocess
     import sys
 
     env = os.environ.copy()
+    target_triple = "{{ TARGET_TRIPLE }}"
+    if not target_triple:
+        # Get target triple
+        rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
+        for line in rustc_output.splitlines():
+            if 'host:' in line:
+                target_triple = line.split('host:')[1].strip()
+                break
+
+    if not target_triple:
+        print(f"{{ _red }}Failed to determine the target triple. Please check the Rust installation.{{ _nc }}")
+        sys.exit(1)
 
     try:
         if env.get('GITHUB_CI') == '1':
             env['CI'] = 'false'
             env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
-            subprocess.run(['bunx', '@tauri-apps/cli', 'build'], env=env, check=True)
+            subprocess.run(['bunx', '@tauri-apps/cli', 'build', "--ci", "--target", target_triple], env=env, check=True)
         else:
             env['TAURI_SIGNING_PRIVATE_KEY'] = 'dummy'
             env['TAURI_SIGNING_PRIVATE_KEY_PASSWORD'] = 'dummy'
@@ -409,12 +428,25 @@ deploy-frontend-to-stage:
 
 # Update version numbers
 [group('utils')]
-update-version:
+update-version TARGET_TRIPLE="":
     #!/usr/bin/env python
     import json
     import re
     import subprocess
     from pathlib import Path
+
+    target_triple = "{{ TARGET_TRIPLE }}"
+    if not target_triple:
+        # Get target triple
+        rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
+        for line in rustc_output.splitlines():
+            if 'host:' in line:
+                target_triple = line.split('host:')[1].strip()
+                break
+
+    if not target_triple:
+        print(f"{{ _red }}Failed to determine the target triple. Please check the Rust installation.{{ _nc }}")
+        sys.exit(1)
 
     # Get versions
     with open('src-frontend/package.json') as f:
@@ -424,7 +456,7 @@ update-version:
         desktop_version = json.load(f)['version']
 
     # Find and get daemon version
-    daemon_path = next(Path('src-tauri/target/binaries').glob('syftbox_client*'))
+    daemon_path = next(Path('src-tauri/binaries').glob(f'syftbox_client-{target_triple}*'))
     daemon_output = subprocess.run([str(daemon_path), '--version'], capture_output=True, text=True).stdout
     daemon_version = re.search(r'version ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
 
@@ -572,7 +604,8 @@ setup skip_prerequisites="no":
         # Try common locations
         home = str(Path.home())
         possible_paths = [
-            os.path.join(home, '.bun', 'bin', 'bun'),
+            os.path.join(home, '.bun', 'bin', 'bun'),                 # Unix
+            os.path.join(home, '.bun', 'bin', 'bun.exe'),             # Windows
             os.path.join(home, 'AppData', 'Local', 'bun', 'bun.exe')  # Windows
         ]
 

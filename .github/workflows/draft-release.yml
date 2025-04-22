@@ -17,9 +17,7 @@ jobs:
       matrix:
         include:
           - args: "aarch64-apple-darwin"
-            arch: "silicon"
-          # - args: "x86_64-apple-darwin"
-          #   arch: "intel"
+          - args: "x86_64-apple-darwin"
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
@@ -31,8 +29,12 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.TEMP_SSH_KEY }}
+          submodules: recursive
 
       - name: Import signing certificate into keychain
+        if: ${{ runner.os }} == 'macOS'
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
@@ -49,6 +51,22 @@ jobs:
         with:
           targets: ${{ matrix.args }}
           components: rust-src, rustfmt, clippy
+
+      - name: Install target
+        run: |
+          rustup target add ${{ matrix.args }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "^3.13"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          cache: true
+          go-version-file: src-syftbox/go.mod
+          cache-dependency-path: src-syftbox/go.sum
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -78,8 +96,16 @@ jobs:
         run: bun install --cwd src-frontend
 
       - name: Build app
+        if: ${{ runner.os }} == 'macOS'
         run: |
-          GITHUB_CI=1 just package
+          GITHUB_CI=1 just package ${{ matrix.args }}
+
+          # Move the artifacts to the artifacts directory
+          mkdir -p artifacts
+          mv src-tauri/target/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
+          mv src-tauri/target/release/bundle/macos/*.app artifacts/SyftBox-${{ matrix.args }}.app
+          mv src-tauri/target/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
+          mv src-tauri/target/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
 
       - name: Setup git config
         env:
@@ -100,21 +126,18 @@ jobs:
       #   run: just deploy-frontend-to-stage
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ inputs.version }}
+          tag: ${{ inputs.version }}
           name: ${{ inputs.version }}
           draft: true
-          generate_release_notes: true
-          make_latest: true
-          files: |
-            ./src-tauri/target/release/bundle/dmg/*.dmg
-            ./src-tauri/target/release/bundle/macos/*.app
-            ./src-tauri/target/release/bundle/macos/*.app.tar.gz
-            ./src-tauri/target/release/bundle/macos/*.app.tar.gz.sig
+          allowUpdates: true
+          generateReleaseNotes: true
+          makeLatest: true
+          artifacts: ./artifacts/*.dmg,./artifacts/*.app,./artifacts/*.app.tar.gz,./artifacts/*.app.tar.gz.sig
 
       - name: Clean up all user keychains
-        if: always()
+        if: always() && ${{ runner.os }} == 'macOS'
         run: |
           # List all keychains
           keychains=$(security list-keychains | tr -d '" "')

@@ -1,3 +1,4 @@
+use cocoa::base::{NO, YES};
 use serde::Serialize;
 use std::time::Duration;
 use std::{sync::Mutex, thread};
@@ -335,12 +336,12 @@ fn _show_update_window(
             let ns_window = _update_window.ns_window().unwrap() as id;
             unsafe {
                 // Set window to be non-opaque and clear background
-                ns_window.setOpaque_(false);
+                ns_window.setOpaque_(NO);
                 ns_window.setBackgroundColor_(NSColor::clearColor(nil));
 
                 // Get the content view and set its layer properties
                 let content_view: id = ns_window.contentView();
-                content_view.setWantsLayer(true);
+                content_view.setWantsLayer(YES);
                 let layer: id = content_view.layer();
                 let _: () = msg_send![layer, setCornerRadius: 10.0];
                 let _: () = msg_send![layer, setMasksToBounds: true];
