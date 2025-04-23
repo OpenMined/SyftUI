@@ -68,6 +68,19 @@ jobs:
           go-version-file: src-syftbox/go.mod
           cache-dependency-path: src-syftbox/go.sum
 
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin
+            target
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Project dependencies
         run: bun install --cwd src-frontend
 
@@ -79,9 +92,9 @@ jobs:
           # Create artifacts directory
           mkdir -p artifacts
 
-          mv src-tauri/target/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
-          mv src-tauri/target/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
-          mv src-tauri/target/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/dmg/*.dmg artifacts/SyftBox-${{ matrix.args }}.dmg
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/macos/*.app.tar.gz artifacts/SyftBox-${{ matrix.args }}.app.tar.gz
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/macos/*.app.tar.gz.sig artifacts/SyftBox-${{ matrix.args }}.app.tar.gz.sig
 
       - name: Build app (Windows)
         if: runner.os == 'Windows'
