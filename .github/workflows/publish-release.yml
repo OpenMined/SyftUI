@@ -36,8 +36,8 @@ jobs:
                 "url": "$(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox-x86_64-apple-darwin.app.tar.gz") | .url')"
               },
               "windows-x86_64": {
-                "signature": "$(curl -fsSL $(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox-x86_64-pc-windows-msvc.exe.sig") | .url'))",
-                "url": "$(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox-x86_64-pc-windows-msvc.exe") | .url')"
+                "signature": "$(curl -fsSL $(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox-x86_64-pc-windows-msvc.msi.sig") | .url'))",
+                "url": "$(gh release view ${{ github.event.release.tag_name }} --json assets --jq '.assets[] | select(.name=="SyftBox-x86_64-pc-windows-msvc.msi") | .url')"
               }
             }
           }
