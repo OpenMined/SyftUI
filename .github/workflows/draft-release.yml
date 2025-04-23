@@ -120,8 +120,8 @@ jobs:
           # Create artifacts directory
           New-Item -Path artifacts -ItemType Directory -Force
 
-          Move-Item -Path src-tauri\target\release\bundle\msi\*.msi -Destination artifacts\SyftBox-${{ matrix.args }}.msi
-          Move-Item -Path src-tauri\target\release\bundle\msi\*.msi.sig -Destination artifacts\SyftBox-${{ matrix.args }}.msi.sig
+          Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi -Destination artifacts\SyftBox-${{ matrix.args }}.msi
+          Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi.sig -Destination artifacts\SyftBox-${{ matrix.args }}.msi.sig
 
       - name: Setup git config
         env:
