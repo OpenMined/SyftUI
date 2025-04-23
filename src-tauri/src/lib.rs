@@ -457,7 +457,7 @@ fn _generate_syftbox_client_args() -> (String, String, String) {
     #[cfg(not(debug_assertions))]
     {
         // Generate the syftbox_client connection args.
-        let bridge_host = std::env::var("BRIDGE_HOST").unwrap_or_else(|_| "localhost".to_string());
+        let bridge_host = std::env::var("BRIDGE_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
         let bridge_port = _get_random_available_port();
         let bridge_token = _generate_secure_token();
         (bridge_host, bridge_port, bridge_token)
@@ -484,11 +484,10 @@ fn _setup_sidecars_for_release_builds(
         .sidecar("syftbox_client")
         .unwrap()
         .args(&[
-            "--ui-host",
-            &bridge_host,
-            "--ui-port",
-            &bridge_port,
-            "--ui-token",
+            "daemon",
+            "--http-addr",
+            &format!("{}:{}", bridge_host, bridge_port),
+            "--http-token",
             &bridge_token,
         ])
         .spawn()
