@@ -56,10 +56,6 @@ jobs:
           targets: ${{ matrix.args }}
           components: rust-src, rustfmt, clippy
 
-      - name: Install target
-        run: |
-          rustup target add ${{ matrix.args }}
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -71,30 +67,6 @@ jobs:
           cache: true
           go-version-file: src-syftbox/go.mod
           cache-dependency-path: src-syftbox/go.sum
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun
-            node_modules
-            ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb', 'package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cargo/bin
-            target
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
 
       - name: Install Project dependencies
         run: bun install --cwd src-frontend
