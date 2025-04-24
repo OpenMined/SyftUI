@@ -13,20 +13,15 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # Private vars
 
-[private]
 _red := '\033[1;31m'
-[private]
 _cyan := '\033[1;36m'
-[private]
 _blue := '\033[1;34m'
-[private]
 _green := '\033[1;32m'
-[private]
 _yellow := '\033[1;33m'
-[private]
 _inverse := '\033[7m'
-[private]
 _nc := '\033[0m'
+_token := "3c8ae64be3af883044cdc0653849c522"
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -38,203 +33,95 @@ default:
 
 # Check the code quality of the frontend, bridge and desktop app.
 [group('code-quality:check')]
-check:
-    #!/usr/bin/env python
-    import os
-    import sys
-    import subprocess
-
-    try:
-        subprocess.run(['just', 'check-frontend'], check=True)
-        # subprocess.run(['just', 'check-bridge'], check=True)
-        subprocess.run(['just', 'check-desktop'], check=True)
-
-        print(f"\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        print(f"\n{{ _red }}Check failed with error code {e.returncode}{{ _nc }}")
-        sys.exit(e.returncode)
+check: check-frontend check-desktop check-syftbox
+    echo "{{ _green }} All code quality checks completed successfully. {{ _nc }}"
 
 # Check the bridge server code quality.
 [group('code-quality:check')]
-check-bridge:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks'], check=True)
-        print(f"\n{{ _green }}SyftBox client code quality check completed successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+check-syftbox:
+    echo "TODO"
 
 # Check the desktop app code quality.
 [group('code-quality:check')]
 check-desktop:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml'], check=True)
-        subprocess.run(['cargo', 'fmt', '--manifest-path', './src-tauri/Cargo.toml', '--check'], check=True)
-        print(f"\n{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    cargo clippy --manifest-path ./src-tauri/Cargo.toml
+    cargo fmt --manifest-path ./src-tauri/Cargo.toml --check
+    echo "{{ _green }}Desktop app code quality check completed successfully.{{ _nc }}"
 
 # Check the frontend code quality.
 [group('code-quality:check')]
 check-frontend:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--check', '.'], check=True)
-        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint'], check=True)
-
-        # TODO: Uncomment this once the type errors are fixed.
-        # subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'tsc', '--noEmit'], check=True)
-
-        print(f"\n{{ _green }}Frontend code quality check completed successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    bun run --cwd src-frontend prettier --check .
+    bun run --cwd src-frontend lint
+    echo "{{ _green }}Frontend code quality check completed successfully.{{ _nc }}"
 
 # ------------------------------------------------ CODE QUALITY FIXES -------------------------------------------------
 
 # Tidy up the code of the frontend, bridge and desktop app.
 [group('code-quality:tidy')]
-tidy:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['just', 'tidy-frontend'], check=True)
-        # subprocess.run(['just', 'tidy-bridge'], check=True)
-        subprocess.run(['just', 'tidy-desktop'], check=True)
-        subprocess.run(['just', '--fmt', '--unstable'], check=True)  # Format the justfile as well
-
-        print(f"\n{{ _green }}Justfile formatted successfully.{{ _nc }}")
-        print(f"\n{{ _inverse }}{{ _green }}Code tidied up successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+tidy: tidy-frontend tidy-desktop tidy-syftbox
+    just --fmt --unstable
+    echo "{{ _green }}Justfile formatted successfully.{{ _nc }}"
 
 # Tidy up the bridge server code.
 [group('code-quality:tidy')]
-tidy-bridge:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks-and-fix'], check=True)
-        print(f"\n{{ _green }}SyftBox client code tidied up successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+tidy-syftbox:
+    echo "TODO"
 
 # Tidy up the desktop app code.
 [group('code-quality:tidy')]
 tidy-desktop:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml', 
-                       '--fix', '--allow-staged'], check=True)
-        subprocess.run(['cargo', 'fmt', '--manifest-path', './src-tauri/Cargo.toml'], check=True)
-        print(f"\n{{ _green }}Desktop app code tidied up successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    cargo clippy --manifest-path ./src-tauri/Cargo.toml --fix --allow-staged
+    cargo fmt --manifest-path ./src-tauri/Cargo.toml
+    echo "{{ _green }}Desktop app code tidied up successfully.{{ _nc }}"
 
 # Tidy up the frontend code.
 [group('code-quality:tidy')]
 tidy-frontend:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--write', '.'], check=True)
-        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint', '--fix'], check=True)
-        print(f"\n{{ _green }}Frontend code tidied up successfully.{{ _nc }}\n")
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    bun run --cwd src-frontend prettier --write .
+    bun run --cwd src-frontend lint --fix
+    echo "{{ _green }}Frontend code tidied up successfully.{{ _nc }}"
 
 # ---------------------------------------------------- DEV COMMANDS ---------------------------------------------------
 
-# Run the frontend, bridge and desktop app concurrently.
 [group('dev')]
 dev:
-    #!/usr/bin/env python
-    import os
-    import platform
-    import subprocess
-    import sys
+    #!/bin/sh
+    set -eou pipefail
 
-    env = os.environ.copy()
-    env.update({
-        "BRIDGE_HOST": "localhost",
-        "BRIDGE_PORT": "7938",  # 7938 is the vanity number for SYFT in T9 keypad config 😎
-        "BRIDGE_TOKEN": "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
-    })
+    export BRIDGE_HOST="localhost"
+    export BRIDGE_PORT="7938"
+    export BRIDGE_TOKEN="{{ _token }}"
 
-    try:
-        subprocess.run([
-            "bunx", "concurrently",
-            "--kill-others",
-            "--success", "first",
-            "--prefix", "name",
-            "--names", "  BRIDGE  , FRONTEND ,  DESKTOP ",
-            "--prefix-colors", "red,yellow,green",
-            "just dev-bridge", "just dev-frontend", "just dev-desktop"
-        ], env=env, check=True)
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    bunx concurrently --kill-others --success first \
+        --prefix name --names "BRIDGE,FRONTEND,DESKTOP" \
+        --prefix-colors red,yellow,green \
+        "just dev-syftbox" "just dev-frontend" "just dev-desktop"
 
 [group('dev')]
-dev-bridge:
-    #!/usr/bin/env python
-    import os
-    import subprocess
-    import sys
+dev-syftbox:
+    #!/bin/sh
+    set -eou pipefail
 
-    try:
-        os.chdir('src-syftbox')
-        cmd = [
-            "air", "--", 
-            "--ui-host", os.environ.get("BRIDGE_HOST", "localhost"), 
-            "--ui-port", os.environ.get("BRIDGE_PORT", "7938"), 
-            "--ui-token", os.environ.get("BRIDGE_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"), 
-            "--ui-swagger"
-        ]
-        subprocess.run(cmd, check=True)
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    # if empty dir
+    if [ -z "$(ls -A src-syftbox)" ]; then
+        echo "'src-syftbox' is empty."
+        echo "Run {{ _cyan }}'just setup'{{ _nc }} to initialize the project."
+        exit 1
+    fi
+
+    cd src-syftbox
+    go run ./cmd/client daemon --http-addr localhost:7938 --http-token {{ _token }} --http-swagger
 
 # Run the desktop dev app.
 [group('dev')]
 dev-desktop:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(["bunx", "@tauri-apps/cli", "dev"], check=True)
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    bunx @tauri-apps/cli dev
 
 # Run the frontend dev server.
 [group('dev')]
 dev-frontend:
-    #!/usr/bin/env python
-    import subprocess
-    import sys
-
-    try:
-        subprocess.run(["bun", "run", "--cwd", "src-frontend", "dev"], check=True)
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    bun run --cwd src-frontend dev
 
 # -------------------------------------------------- PACKAGE COMMANDS -------------------------------------------------
 
@@ -482,48 +369,10 @@ update-version TARGET_TRIPLE="":
 # Reset the dev environment.
 [group('utils')]
 reset:
-    #!/usr/bin/env python
-    import os
-    import subprocess
-    import shutil
-    import sys
-    from pathlib import Path
-
-    print("Deinitializing submodules...")
-
-    # Check if all submodules are clean
-    result = subprocess.run(['git', 'submodule', 'foreach', '--quiet', '--recursive', 'git', 'status', '--porcelain'],
-                           capture_output=True, text=True)
-
-    if result.stdout.strip():
-        print(f"{{ _red }}Some submodules have unstaged or staged changes. Unable to deinitialize.{{ _nc }}")
-        print("Manually clean the submodules and run 'just reset' again to continue.")
-        sys.exit(1)
-
-    # Deinitialize submodules
-    subprocess.run(['git', 'submodule', 'deinit', '--all', '--force'], 
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    print("Removing generated files...")
-    dirs_to_remove = [
-        'src-frontend/.next',
-        'src-frontend/node_modules',
-        'src-frontend/out',
-        'src-frontend/next-env.d.ts',
-        'src-frontend/tsconfig.tsbuildinfo',
-        'src-tauri/gen',
-        'src-tauri/target'
-    ]
-
-    for dir_path in dirs_to_remove:
-        path = Path(dir_path)
-        if path.exists():
-            if path.is_dir():
-                shutil.rmtree(path, ignore_errors=True)
-            else:
-                path.unlink()
-
-    print(f"{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment.")
+    git submodule foreach --quiet --recursive git reset --hard
+    git submodule deinit --all --force
+    git clean -xfd
+    echo "{{ _green }}Reset complete.{{ _nc }} Run {{ _red }}just setup{{ _nc }} to re-setup the dev environment."
 
 # Configure the dev environment
 [group('utils')]
@@ -753,3 +602,36 @@ _install-os-pre-requisites skip_prerequisites="no":
             print("Please install Tauri dependencies manually according to:")
             print("https://tauri.app/start/prerequisites/#system-dependencies")
             sys.exit(1)
+
+# Install the toolchain for SyftUI
+[group('utils')]
+setup-toolchain:
+    #!/bin/sh
+    set -eou pipefail
+
+    check_cmd() {
+        command -v "$1" > /dev/null 2>&1
+        return $?
+    }
+
+    if ! check_cmd "bun"; then
+        echo "{{ _cyan }}Installing Bun...{{ _nc }}"
+        curl -fsSL https://bun.sh/install | bash
+    else
+        echo "{{ _cyan }}✅ Bun{{ _nc }}"
+    fi
+
+    if ! check_cmd "rustup"; then
+        echo "{{ _yellow }}Installing Rust...{{ _nc }}"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    else
+        echo "{{ _cyan }}✅ Rust{{ _nc }}"
+    fi
+
+    if ! check_cmd "go"; then
+        echo "Install go from: https://go.dev/doc/install"
+    else
+        echo "{{ _cyan }}✅ Go{{ _nc }}"
+    fi
+
+    echo "{{ _green }}Toolchain is ready!{{ _nc }}"
