@@ -1,0 +1,8 @@
+{
+  "build": {
+    "beforeBuildCommand": "just update-version"
+  },
+  "bundle": {
+    "externalBin": ["./binaries/process-wick", "./target/binaries/syftboxd"]
+  }
+}

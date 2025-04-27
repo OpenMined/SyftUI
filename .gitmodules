@@ -1,3 +1,3 @@
-[submodule "src-syftbox"]
-	path = src-syftbox
-	url = git@github.com:OpenMined/syftbox
+[submodule "src-daemon"]
+	path = src-daemon
+	url = ../syftbox

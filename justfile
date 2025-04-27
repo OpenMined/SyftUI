@@ -36,7 +36,7 @@ default:
 
 # ------------------------------------------------ CODE QUALITY CHECKS ------------------------------------------------
 
-# Check the code quality of the frontend, bridge and desktop app.
+# Check the code quality of the frontend, daemon and desktop app.
 [group('code-quality:check')]
 check:
     #!/usr/bin/env python
@@ -46,7 +46,7 @@ check:
 
     try:
         subprocess.run(['just', 'check-frontend'], check=True)
-        # subprocess.run(['just', 'check-bridge'], check=True)
+        # subprocess.run(['just', 'check-daemon'], check=True)
         subprocess.run(['just', 'check-desktop'], check=True)
 
         print(f"\n{{ _inverse }}{{ _green }}All code quality checks completed successfully.{{ _nc }}\n")
@@ -54,16 +54,16 @@ check:
         print(f"\n{{ _red }}Check failed with error code {e.returncode}{{ _nc }}")
         sys.exit(e.returncode)
 
-# Check the bridge server code quality.
+# Check the daemon code quality.
 [group('code-quality:check')]
-check-bridge:
+check-daemon:
     #!/usr/bin/env python
     import subprocess
     import sys
 
     try:
-        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks'], check=True)
-        print(f"\n{{ _green }}SyftBox client code quality check completed successfully.{{ _nc }}\n")
+        subprocess.run(['just', '--justfile=src-daemon/justfile', 'run-checks'], check=True)
+        print(f"\n{{ _green }}Daemon code quality check completed successfully.{{ _nc }}\n")
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -101,7 +101,7 @@ check-frontend:
 
 # ------------------------------------------------ CODE QUALITY FIXES -------------------------------------------------
 
-# Tidy up the code of the frontend, bridge and desktop app.
+# Tidy up the code of the frontend, daemon and desktop app.
 [group('code-quality:tidy')]
 tidy:
     #!/usr/bin/env python
@@ -110,7 +110,7 @@ tidy:
 
     try:
         subprocess.run(['just', 'tidy-frontend'], check=True)
-        # subprocess.run(['just', 'tidy-bridge'], check=True)
+        # subprocess.run(['just', 'tidy-daemon'], check=True)
         subprocess.run(['just', 'tidy-desktop'], check=True)
         subprocess.run(['just', '--fmt', '--unstable'], check=True)  # Format the justfile as well
 
@@ -119,16 +119,16 @@ tidy:
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
-# Tidy up the bridge server code.
+# Tidy up the daemon code.
 [group('code-quality:tidy')]
-tidy-bridge:
+tidy-daemon:
     #!/usr/bin/env python
     import subprocess
     import sys
 
     try:
-        subprocess.run(['just', '--justfile=src-syftbox/justfile', 'run-checks-and-fix'], check=True)
-        print(f"\n{{ _green }}SyftBox client code tidied up successfully.{{ _nc }}\n")
+        subprocess.run(['just', '--justfile=src-daemon/justfile', 'run-checks-and-fix'], check=True)
+        print(f"\n{{ _green }}Daemon code tidied up successfully.{{ _nc }}\n")
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -163,7 +163,7 @@ tidy-frontend:
 
 # ---------------------------------------------------- DEV COMMANDS ---------------------------------------------------
 
-# Run the frontend, bridge and desktop app concurrently.
+# Run the frontend, daemon and desktop app concurrently.
 [group('dev')]
 dev:
     #!/usr/bin/env python
@@ -174,9 +174,9 @@ dev:
 
     env = os.environ.copy()
     env.update({
-        "BRIDGE_HOST": "localhost",
-        "BRIDGE_PORT": "7938",  # 7938 is the vanity number for SYFT in T9 keypad config 😎
-        "BRIDGE_TOKEN": "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
+        "DAEMON_HOST": "localhost",
+        "DAEMON_PORT": "7938",  # 7938 is the vanity number for SYFT in T9 keypad config 😎
+        "DAEMON_TOKEN": "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"
     })
 
     try:
@@ -185,28 +185,30 @@ dev:
             "--kill-others",
             "--success", "first",
             "--prefix", "name",
-            "--names", "  BRIDGE  , FRONTEND ,  DESKTOP ",
+            "--names", "  DAEMON , FRONTEND ,  DESKTOP ",
             "--prefix-colors", "red,yellow,green",
-            "just dev-bridge", "just dev-frontend", "just dev-desktop"
+            "just dev-daemon", "just dev-frontend", "just dev-desktop"
         ], env=env, check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
 [group('dev')]
-dev-bridge:
+dev-daemon:
     #!/usr/bin/env python
     import os
     import subprocess
     import sys
 
+    http_addr = f"{os.environ.get('DAEMON_HOST', 'localhost')}:{os.environ.get('DAEMON_PORT', '7938')}"
+
     try:
-        os.chdir('src-syftbox')
+        os.chdir('src-daemon')
         cmd = [
-            "air", "--", 
-            "--ui-host", os.environ.get("BRIDGE_HOST", "localhost"), 
-            "--ui-port", os.environ.get("BRIDGE_PORT", "7938"), 
-            "--ui-token", os.environ.get("BRIDGE_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"), 
-            "--ui-swagger"
+            "air", "--",
+            "daemon",
+            "--http-addr", http_addr,
+            "--http-token", os.environ.get("DAEMON_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"),
+            "--http-swagger"
         ]
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
@@ -238,7 +240,7 @@ dev-frontend:
 
 # -------------------------------------------------- PACKAGE COMMANDS -------------------------------------------------
 
-# Build the frontend, bridge and desktop app and package them into a single installable.
+# Build the frontend, daemon and desktop app and package them into a single installable.
 [group('package')]
 package TARGET_TRIPLE="":
     #!/usr/bin/env python
@@ -247,14 +249,14 @@ package TARGET_TRIPLE="":
 
     try:
         subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
-        subprocess.run(["just", "package-bridge", "{{ TARGET_TRIPLE }}"], check=True)
+        subprocess.run(["just", "package-daemon", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "package-desktop", "{{ TARGET_TRIPLE }}"], check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
-# Build the bridge and package it into a single installable.
+# Build the daemon and package it into a single installable.
 [group('package')]
-package-bridge TARGET_TRIPLE="":
+package-daemon TARGET_TRIPLE="":
     #!/usr/bin/env python
     import os
     import platform
@@ -280,25 +282,24 @@ package-bridge TARGET_TRIPLE="":
 
         # Run the build command
         if target_triple == "aarch64-apple-darwin":
-            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target', 'darwin', 'arm64'], check=True)
+            subprocess.run(['just', '--justfile=src-daemon/justfile', 'build-client-target', 'darwin', 'arm64'], check=True)
         elif target_triple == "x86_64-apple-darwin":
-            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target', 'darwin', 'amd64'], check=True)
+            subprocess.run(['just', '--justfile=src-daemon/justfile', 'build-client-target', 'darwin', 'amd64'], check=True)
         else:
             # The command will automatically determine the target triple
-            subprocess.run(['just', '--justfile=src-syftbox/justfile', 'build-client-target'], check=True)
+            subprocess.run(['just', '--justfile=src-daemon/justfile', 'build-client-target'], check=True)
 
         # Determine extension
         extension = '.exe' if platform.system() == 'Windows' else ''
 
         # Copy the binary
-        dst_dir = Path("src-tauri/binaries")
-        dst = dst_dir / f"syftbox_client-{target_triple}{extension}"
-        dst_dir.mkdir(parents=True, exist_ok=True)
+        dst = Path("src-tauri/target/binaries") / f"syftboxd-{target_triple}{extension}"
+        dst.parent.mkdir(parents=True, exist_ok=True)
 
         # Find and copy the client binary
-        client_files = list(Path('src-syftbox/.out').glob('syftbox_client_*'))
+        client_files = list(Path('src-daemon/.out').glob('syftbox_client_*'))
         if not client_files:
-            print(f"{{ _red }}No client binary found in src-syftbox/.out{{ _nc }}")
+            print(f"{{ _red }}No client binary found in src-daemon/.out{{ _nc }}")
             sys.exit(1)
 
         shutil.copy2(client_files[0], dst)
@@ -328,14 +329,15 @@ package-desktop TARGET_TRIPLE="":
         sys.exit(1)
 
     try:
+        cmd = ['bunx', '@tauri-apps/cli', 'build', "--config", "src-tauri/tauri.conf.release-extras.json"]
         if env.get('GITHUB_CI') == '1':
             env['CI'] = 'false'
             env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
-            subprocess.run(['bunx', '@tauri-apps/cli', 'build', "--ci", "--target", target_triple], env=env, check=True)
+            cmd += ["--ci", "--target", target_triple]
         else:
             env['TAURI_SIGNING_PRIVATE_KEY'] = 'dummy'
             env['TAURI_SIGNING_PRIVATE_KEY_PASSWORD'] = 'dummy'
-            subprocess.run(['bunx', '@tauri-apps/cli', 'build'], env=env, check=True)
+        subprocess.run(cmd, env=env, check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -456,7 +458,7 @@ update-version TARGET_TRIPLE="":
         desktop_version = json.load(f)['version']
 
     # Find and get daemon version
-    daemon_path = next(Path('src-tauri/binaries').glob(f'syftbox_client-{target_triple}*'))
+    daemon_path = next(Path('src-tauri/target/binaries').glob(f'syftboxd-{target_triple}*'))
     daemon_output = subprocess.run([str(daemon_path), '--version'], capture_output=True, text=True).stdout
     daemon_version = re.search(r'version ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
 

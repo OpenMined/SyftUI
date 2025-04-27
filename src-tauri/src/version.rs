@@ -1,4 +1,4 @@
-pub const DESKTOP_VERSION: &str = "0.0.0";
-pub const FRONTEND_VERSION: &str = "0.0.0";
-pub const DAEMON_VERSION: &str = "0.0.0";
-pub const COMMIT_HASH: &str = "0000000";
+pub const DESKTOP_VERSION: &str = "0.1.6";
+pub const FRONTEND_VERSION: &str = "0.1.0";
+pub const DAEMON_VERSION: &str = "0.5.0";
+pub const COMMIT_HASH: &str = "4082575";

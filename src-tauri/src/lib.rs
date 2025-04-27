@@ -55,17 +55,17 @@ pub fn run() {
                 pending_update: Mutex::new(None),
             });
 
-            let (bridge_host, bridge_port, bridge_token) = _generate_syftbox_client_args();
-            let url = _generate_main_url(&bridge_host, &bridge_port, &bridge_token);
+            let (daemon_host, daemon_port, daemon_token) = _generate_daemon_client_args();
+            let url = _generate_main_url(&daemon_host, &daemon_port, &daemon_token);
             _setup_main_window(app.handle(), url);
             _start_periodic_update_checks(app.handle());
 
             #[cfg(not(debug_assertions))]
             _setup_sidecars_for_release_builds(
                 app.handle(),
-                &bridge_host,
-                &bridge_port,
-                &bridge_token,
+                &daemon_host,
+                &daemon_port,
+                &daemon_token,
             );
 
             _setup_system_tray(app.handle());
@@ -440,27 +440,27 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
     Ok(())
 }
 
-fn _generate_syftbox_client_args() -> (String, String, String) {
+fn _generate_daemon_client_args() -> (String, String, String) {
     #[cfg(debug_assertions)]
     {
-        // For dev mode, read the BRIDGE_HOST, BRIDGE_PORT, and BRIDGE_TOKEN environment variables.
+        // For dev mode, read the DAEMON_HOST, DAEMON_PORT, and DAEMON_TOKEN environment variables.
         // We always set these in the `just dev` command and later use them both here and
-        //  in the `just dev-bridge` command.
-        let bridge_host =
-            std::env::var("BRIDGE_HOST").expect("BRIDGE_HOST environment variable is not set");
-        let bridge_port =
-            std::env::var("BRIDGE_PORT").expect("BRIDGE_PORT environment variable is not set");
-        let bridge_token =
-            std::env::var("BRIDGE_TOKEN").expect("BRIDGE_TOKEN environment variable is not set");
-        (bridge_host, bridge_port, bridge_token)
+        // in the `just dev-daemon` command.
+        let daemon_host =
+            std::env::var("DAEMON_HOST").expect("DAEMON_HOST environment variable is not set");
+        let daemon_port =
+            std::env::var("DAEMON_PORT").expect("DAEMON_PORT environment variable is not set");
+        let daemon_token =
+            std::env::var("DAEMON_TOKEN").expect("DAEMON_TOKEN environment variable is not set");
+        (daemon_host, daemon_port, daemon_token)
     }
     #[cfg(not(debug_assertions))]
     {
-        // Generate the syftbox_client connection args.
-        let bridge_host = std::env::var("BRIDGE_HOST").unwrap_or_else(|_| "localhost".to_string());
-        let bridge_port = _get_random_available_port();
-        let bridge_token = _generate_secure_token();
-        (bridge_host, bridge_port, bridge_token)
+        // Generate the daemon connection args.
+        let daemon_host = std::env::var("DAEMON_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+        let daemon_port = _get_random_available_port();
+        let daemon_token = _generate_secure_token();
+        (daemon_host, daemon_port, daemon_token)
     }
 }
 
@@ -472,24 +472,23 @@ fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
 #[cfg(not(debug_assertions))]
 fn _setup_sidecars_for_release_builds(
     app: &AppHandle,
-    bridge_host: &str,
-    bridge_port: &str,
-    bridge_token: &str,
+    daemon_host: &str,
+    daemon_port: &str,
+    daemon_token: &str,
 ) {
-    // Spawn the syftbox_client sidecar with the generated connection args.
+    // Spawn the daemon sidecar with the generated connection args.
     // We do this only in release builds, because in dev mode we run the sidecar
     // externally with hot-reloading from the `just dev` command.
-    let (_rx, syftbox_client_sidecar) = app
+    let (_rx, daemon_sidecar) = app
         .shell()
-        .sidecar("syftbox_client")
+        .sidecar("syftboxd")
         .unwrap()
         .args(&[
-            "--ui-host",
-            &bridge_host,
-            "--ui-port",
-            &bridge_port,
-            "--ui-token",
-            &bridge_token,
+            "daemon",
+            "--http-addr",
+            &format!("{}:{}", daemon_host, daemon_port),
+            "--http-token",
+            &daemon_token,
         ])
         .spawn()
         .expect("Failed to spawn sidecar");
@@ -499,7 +498,7 @@ fn _setup_sidecars_for_release_builds(
     app.shell()
         .sidecar("process-wick")
         .unwrap()
-        .args(["--targets", &syftbox_client_sidecar.pid().to_string()])
+        .args(["--targets", &daemon_sidecar.pid().to_string()])
         .spawn()
         .expect("Failed to spawn sidecar");
 }
