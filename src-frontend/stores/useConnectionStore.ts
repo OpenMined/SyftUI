@@ -40,7 +40,11 @@ interface ConnectionState {
   status: ConnectionStatus;
   updateSettings: (newSettings: Partial<ConnectionSettings>) => void;
   setStatus: (status: ConnectionStatus) => void;
-  connect: () => Promise<{ success: boolean; errors: ConnectionErrors }>;
+  connect: () => Promise<{
+    success: boolean;
+    errors: ConnectionErrors;
+    hasConfig: boolean;
+  }>;
   validateSettings: (settings: ConnectionSettings) => ConnectionErrors;
 }
 
@@ -84,7 +88,10 @@ export const useConnectionStore = create<ConnectionState>()(
 
       connect: async () => {
         const { settings, validateSettings } = get();
-        const errors = validateSettings(settings);
+
+        let errors = validateSettings(settings);
+        let success = false;
+        let hasConfig = false;
 
         // Check if there are any errors
         if (Object.keys(errors).length === 0) {
@@ -105,73 +112,59 @@ export const useConnectionStore = create<ConnectionState>()(
 
             if (response.ok) {
               set({ status: "connected" });
-              return { success: true, errors: {} };
+              const responseData = await response.json();
+              success = true;
+              hasConfig = responseData.hasConfig || false;
             } else {
               set({ status: "disconnected" });
               switch (response.status) {
                 case 401:
-                  return { success: false, errors: { token: "Invalid token" } };
+                  errors = { token: "Invalid token" };
+                  break;
                 case 403:
-                  return {
-                    success: false,
-                    errors: {
-                      token: "Token does not have required permissions",
-                    },
+                  errors = {
+                    token: "Token does not have required permissions",
                   };
+                  break;
                 case 404:
-                  return {
-                    success: false,
-                    errors: { url: "Endpoint not found" },
-                  };
+                  errors = { url: "Endpoint not found" };
+                  break;
                 case 500:
-                  return { success: false, errors: { url: "Server error" } };
+                  errors = { url: "Server error" };
+                  break;
                 default:
-                  return {
-                    success: false,
-                    errors: {
-                      url: `Connection failed with status ${response.status}`,
-                    },
+                  errors = {
+                    url: `Connection failed with status ${response.status}`,
                   };
               }
             }
-          } catch (error) {
+          } catch (err) {
             set({ status: "disconnected" });
-            if (error instanceof Error) {
-              if (error.name === "AbortError") {
-                return {
-                  success: false,
-                  errors: { url: "Connection timed out" },
-                };
-              }
-              if (
-                error.name === "TypeError" &&
-                error.message.includes("Failed to fetch")
+            if (err instanceof Error) {
+              if (err.name === "AbortError") {
+                errors = { url: "Connection timed out" };
+              } else if (
+                err.name === "TypeError" &&
+                err.message.includes("Failed to fetch")
               ) {
-                return {
-                  success: false,
-                  errors: {
-                    url: "Invalid URL - check your connection or client URL",
-                  },
+                errors = {
+                  url: "Invalid URL - check your connection or client URL",
                 };
-              }
-              if (
-                error.name === "TypeError" &&
-                error.message.includes("CORS")
+              } else if (
+                err.name === "TypeError" &&
+                err.message.includes("CORS")
               ) {
-                return {
-                  success: false,
-                  errors: { url: "CORS error - check server configuration" },
+                errors = {
+                  url: "CORS error - check server configuration",
                 };
+              } else {
+                errors = { url: "An unexpected error occurred" };
               }
             }
-            return {
-              success: false,
-              errors: { url: "An unexpected error occurred" },
-            };
           }
         }
 
-        return { success: false, errors };
+        return { success, errors, hasConfig };
       },
     }),
     {

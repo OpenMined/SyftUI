@@ -1,10 +1,6 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Folder, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Folder } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -20,144 +16,110 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-
-// Config form schema
-const configFormSchema = z.object({
-  dataDir: z.string().min(1, "Data directory is required"),
-  serverUrl: z.string().url("Must be a valid URL"),
-  email: z.string().email("Please enter a valid email address"),
-});
-
-// Config form type
-type ConfigFormValues = z.infer<typeof configFormSchema>;
+import { useFormContext } from "react-hook-form";
 
 interface ConfigureStepProps {
   onNext: () => void;
   onBack: () => void;
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
 }
 
-export function ConfigureStep({
-  onNext,
-  onBack,
-  isLoading,
-  setIsLoading,
-}: ConfigureStepProps) {
-  const form = useForm<ConfigFormValues>({
-    resolver: zodResolver(configFormSchema),
-    defaultValues: {
-      dataDir: "~/SyftBox",
-      serverUrl: "https://syftbox.openmined.org/",
-      email: "user@example.com",
-    },
-  });
+export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
+  const { control, getValues, setValue, trigger } = useFormContext();
 
-  const handleDirectorySelect = () => {
-    toast({
-      icon: "🐱",
-      title: "Feature Coming Soon!",
-      description:
-        "Hang tight! We're working on this feature. Meanwhile, here's a cat for ya!",
-      variant: "default",
+  const handleDirectorySelect = async () => {
+    if (typeof window === "undefined" || !window.__TAURI__) return;
+
+    const { open } = window.__TAURI__.dialog;
+    const filepath = await open({
+      defaultPath: getValues("dataDir"),
+      multiple: false,
+      directory: true,
     });
+    if (filepath) setValue("dataDir", filepath);
   };
 
-  const handleConfigureClient = () => {
-    setIsLoading(true);
-
-    // Simulate saving configuration
-    setTimeout(() => {
-      setIsLoading(false);
+  const handleConfigureClient = async () => {
+    const isValid = await trigger(["dataDir", "serverUrl"]);
+    if (isValid) {
       onNext();
-    }, 750);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission
+      handleConfigureClient();
+    }
   };
 
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl">Configure SyftBox</CardTitle>
+        <CardTitle className="text-2xl">Welcome to SyftBox</CardTitle>
         <CardDescription>
           Let&apos;s get you set up in just a few steps
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleConfigureClient)}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="dataDir"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Where do you want SyftBox to store data?
-                  </FormLabel>
-                  <div className="flex space-x-2">
-                    <FormControl>
-                      <Input placeholder="~/SyftBox" {...field} />
-                    </FormControl>
-                    <Button
-                      variant="outline"
-                      onClick={handleDirectorySelect}
-                      type="button"
-                    >
-                      <Folder className="mr-2 h-4 w-4" />
-                      Browse
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <CardContent className="space-y-4">
+        <FormField
+          control={control}
+          name="dataDir"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Where do you want SyftBox to store data?</FormLabel>
+              <div className="flex space-x-2">
+                <FormControl>
+                  <Input
+                    placeholder="~/SyftBox"
+                    onKeyDown={handleKeyDown}
+                    {...field}
+                  />
+                </FormControl>
+                {typeof window !== "undefined" && window.__TAURI__ && (
+                  <Button
+                    variant="outline"
+                    onClick={handleDirectorySelect}
+                    type="button"
+                  >
+                    <Folder className="mr-2 h-4 w-4" />
+                    Browse
+                  </Button>
+                )}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-            <FormField
-              control={form.control}
-              name="serverUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Enter the SyftBox Server URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://syftbox.openmined.org/"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full cursor-pointer"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Next
-                </>
-              ) : (
-                "Next"
-              )}
-            </Button>
-          </form>
-        </Form>
+        <FormField
+          control={control}
+          name="serverUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Enter the SyftBox Server URL</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="https://syftbox.openmined.org"
+                  onKeyDown={handleKeyDown}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </CardContent>
 
       <CardFooter className="flex justify-between">
-        <Button
-          variant="outline"
-          className="cursor-pointer"
-          onClick={onBack}
-          disabled={isLoading}
-        >
+        <Button variant="outline" className="cursor-pointer" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
+        </Button>
+
+        <Button className="cursor-pointer" onClick={handleConfigureClient}>
+          Next
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

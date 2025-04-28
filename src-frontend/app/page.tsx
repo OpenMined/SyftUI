@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoComponent } from "@/components/logo/logo";
@@ -12,19 +13,23 @@ export default function HomePage() {
   const router = useRouter();
   const { status, settings } = useConnectionStore();
 
-  // Navigate to app with next parameter support
-  const navigateToApp = () => {
-    const params = new URLSearchParams(window.location.search);
-    const nextUrl = params.get("next") || "/dashboard";
-    router.push(nextUrl);
+  const navigateToApp = useCallback(
+    (didOnboard: boolean = false) => {
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get("next") || "/dashboard";
+      router.push(nextUrl);
 
-    toast({
-      icon: "🎉",
-      title: "Welcome to SyftBox!",
-      description: "You're all set up and ready to go.",
-      variant: "default",
-    });
-  };
+      if (didOnboard) {
+        toast({
+          icon: "🎉",
+          title: "Welcome to SyftBox!",
+          description: "You're all set up and ready to go.",
+          variant: "default",
+        });
+      }
+    },
+    [router],
+  );
 
   return (
     <>

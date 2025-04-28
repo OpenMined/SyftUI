@@ -243,6 +243,8 @@ fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
     let win_builder = WebviewWindowBuilder::new(app, "main", url)
         .title("")
         .focused(true)
+        .maximized(true)
+        .min_inner_size(800.0, 600.0)
         .inner_size(1200.0, 720.0);
 
     // set transparent title bar only when building for macOS

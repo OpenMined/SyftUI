@@ -1,11 +1,9 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { ArrowLeft, Loader2, LucideCheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,46 +18,54 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-// Verification form schema
-const verificationFormSchema = z.object({
-  token: z.string().min(6, "Verification token must be at least 6 characters"),
-});
-
-// Verification form type
-type VerificationFormValues = z.infer<typeof verificationFormSchema>;
+import { useConnectionStore } from "@/stores";
 
 interface VerifyStepProps {
   onComplete: () => void;
   onBack: () => void;
   isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  email: string;
 }
 
-export function VerifyStep({
-  onComplete,
-  onBack,
-  isLoading,
-  setIsLoading,
-  email,
-}: VerifyStepProps) {
-  const form = useForm<VerificationFormValues>({
-    resolver: zodResolver(verificationFormSchema),
-    defaultValues: {
-      token:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhdXF1aXJAb3Blbm1pbmVkLm9yZyIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJpYXQiOjE3MzY5NDQxNjd9.YqRMwd9StsRUA_sAQuz1zSwkHtAV_RWdhCltCHW1E5x",
-    },
-  });
+export function VerifyStep({ onComplete, onBack, isLoading }: VerifyStepProps) {
+  const { control, getValues, trigger } = useFormContext();
+  const {
+    settings: { url, token },
+  } = useConnectionStore();
 
-  const handleCompleteSetup = () => {
-    setIsLoading(true);
+  const handleCompleteSetup = async () => {
+    const isValid = await trigger(["token"]);
+    if (!isValid) return;
 
-    // Simulate token verification
-    setTimeout(() => {
-      setIsLoading(false);
-      onComplete();
-    }, 750);
+    const response = await fetch(`${url}/v1/init/datasite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        dataDir: getValues("dataDir"),
+        email: getValues("email"),
+        serverUrl: getValues("serverUrl"),
+        token: getValues("token"),
+      }),
+    });
+
+    if (!response.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to verify email",
+      });
+      return;
+    }
+
+    onComplete();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleCompleteSetup();
+    }
   };
 
   return (
@@ -71,48 +77,30 @@ export function VerifyStep({
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleCompleteSetup)}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="token"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Please enter the token sent to {email}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter verification token"
-                      autoComplete="off"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-muted-foreground text-sm">
-                    Also check your spam folder if you don&apos;t see the email.
-                  </p>
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              className="w-full cursor-pointer"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Complete Setup"
-              )}
-            </Button>
-          </form>
-        </Form>
+      <CardContent className="space-y-4">
+        <FormField
+          control={control}
+          name="token"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Please enter the token sent to {getValues("email")}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter verification token"
+                  autoComplete="off"
+                  onKeyDown={handleKeyDown}
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-muted-foreground text-sm">
+                Also check your spam folder if you don&apos;t see the email.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </CardContent>
 
       <CardFooter className="flex justify-between">
@@ -122,7 +110,23 @@ export function VerifyStep({
           onClick={onBack}
           disabled={isLoading}
         >
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
+        </Button>
+        <Button
+          className="cursor-pointer"
+          disabled={isLoading}
+          onClick={handleCompleteSetup}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            "Complete Setup"
+          )}
+          <LucideCheckCircle className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

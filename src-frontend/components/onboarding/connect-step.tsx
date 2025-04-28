@@ -27,15 +27,15 @@ import {
 } from "@/stores";
 
 interface ConnectStepProps {
+  onComplete: () => void;
   onNext: () => void;
-  onBack?: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
 }
 
 export function ConnectStep({
+  onComplete,
   onNext,
-  onBack,
   isLoading,
   setIsLoading,
 }: ConnectStepProps) {
@@ -55,7 +55,7 @@ export function ConnectStep({
     form.setValue("token", settings.token);
   }, [settings.url, settings.token, form]);
 
-  const handleConnectClient = async (values: ConnectionFormValues) => {
+  const handleConnectDaemon = async (values: ConnectionFormValues) => {
     setIsLoading(true);
 
     // Update connection settings from form values
@@ -70,7 +70,11 @@ export function ConnectStep({
 
     // Error handling
     if (result.success) {
-      onNext();
+      if (result.hasConfig) {
+        onComplete();
+      } else {
+        onNext();
+      }
     } else {
       Object.entries(result.errors).forEach(([key, value]) => {
         if (value && key in values) {
@@ -85,27 +89,30 @@ export function ConnectStep({
 
   return (
     <Card className="mx-auto max-w-md">
-      <CardHeader>
-        <CardTitle className="text-2xl">Connect to SyftBox</CardTitle>
-        <CardDescription>Connect to your SyftBox CLI client</CardDescription>
-      </CardHeader>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleConnectDaemon)}
+          className="space-y-4"
+        >
+          <CardHeader>
+            <CardTitle className="text-2xl">Connect to the daemon</CardTitle>
+            <CardDescription>
+              Run <code className="font-bold">syftbox</code> command in your
+              terminal to get started.
+            </CardDescription>
+          </CardHeader>
 
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleConnectClient)}
-            className="space-y-4"
-          >
+          <CardContent>
             <FormField
               control={form.control}
               name="url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="client-url">Client URL</FormLabel>
+                  <FormLabel htmlFor="daemon-url">Daemon URL</FormLabel>
                   <FormControl>
                     <Input
-                      id="client-url"
-                      placeholder="Enter your client URL"
+                      id="daemon-url"
+                      placeholder="Enter your daemon URL"
                       {...field}
                     />
                   </FormControl>
@@ -119,13 +126,13 @@ export function ConnectStep({
               name="token"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="client-token">Token</FormLabel>
+                  <FormLabel htmlFor="daemon-token">Token</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
-                        id="client-token"
+                        id="daemon-token"
                         type={showToken ? "text" : "password"}
-                        placeholder="Enter your client token"
+                        placeholder="Enter your daemon token"
                         autoComplete="off"
                         {...field}
                       />
@@ -149,7 +156,9 @@ export function ConnectStep({
                 </FormItem>
               )}
             />
+          </CardContent>
 
+          <CardFooter>
             <Button
               type="submit"
               className="w-full cursor-pointer"
@@ -164,22 +173,9 @@ export function ConnectStep({
                 "Connect"
               )}
             </Button>
-          </form>
-        </Form>
-      </CardContent>
-
-      {onBack && (
-        <CardFooter className="flex justify-between">
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            onClick={onBack}
-            disabled={isLoading}
-          >
-            Back
-          </Button>
-        </CardFooter>
-      )}
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }
