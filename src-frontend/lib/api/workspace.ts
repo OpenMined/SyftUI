@@ -5,6 +5,15 @@ interface WorkspaceItemsResponse {
   items: FileSystemItem[];
 }
 
+interface WorkspaceItemCreateResponse {
+  item: FileSystemItem;
+}
+
+interface WorkspaceItemCreateRequest {
+  path: string;
+  type: "file" | "folder";
+}
+
 export async function getWorkspaceItems(
   path: string = "",
   depth: number = 0,
@@ -31,4 +40,28 @@ export async function getWorkspaceItems(
 
   const data: WorkspaceItemsResponse = await response.json();
   return data.items;
+}
+
+export async function createWorkspaceItem(
+  request: WorkspaceItemCreateRequest,
+): Promise<FileSystemItem> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/workspace/items`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create workspace item: ${response.statusText}`);
+  }
+
+  const data: WorkspaceItemCreateResponse = await response.json();
+  return data.item;
 }

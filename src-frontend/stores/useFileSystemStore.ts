@@ -12,7 +12,8 @@ import type {
 } from "@/lib/types";
 import { updateUrlWithPath } from "@/lib/utils/url";
 import { useNotificationStore } from "./useNotificationStore";
-import { getWorkspaceItems } from "@/lib/api/workspace";
+import { getWorkspaceItems, createWorkspaceItem } from "@/lib/api/workspace";
+import { toast } from "@/hooks/use-toast";
 
 const SYNC_DELAY_MS = 1000;
 const SYNC_COMPLETION_MS = 2000;
@@ -89,8 +90,8 @@ interface FileSystemState {
   navigateTo: (path: string[]) => void;
 
   // File operations
-  handleCreateFolder: (name: string) => void;
-  handleCreateFile: (name: string) => void;
+  handleCreateFolder: (name: string) => Promise<void>;
+  handleCreateFile: (name: string) => Promise<void>;
   handleDelete: (itemIds: string[]) => void;
   handleRename: (itemId: string, newName: string) => void;
   moveItems: (itemIds: string[], targetPath: string[]) => void;
@@ -616,32 +617,42 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     },
 
     // File operations implementations
-    handleCreateFolder: (name) => {
+    handleCreateFolder: async (name) => {
       try {
         const state = get();
-        const { currentPath, updateSyncStatus } = state;
-        const notificationStore = useNotificationStore.getState();
+        const { currentPath, refreshFileSystem } = state;
 
-        const newFolder: FileSystemItem = {
-          id: `folder-${Date.now()}`,
-          name,
-          type: "folder",
-          children: [],
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          syncStatus: "pending",
-        };
+        // Build the full path for the new folder
+        const folderPath =
+          currentPath.length === 0
+            ? `/${name}`
+            : `/${currentPath.join("/")}/${name}`;
 
-        if (currentPath.length === 0) {
-          set((state) => ({ fileSystem: [...state.fileSystem, newFolder] }));
-        } else {
+        const isCreatedAtCurrentPath = !name.includes("/");
+
+        if (isCreatedAtCurrentPath) {
+          // Create optimistic folder item
+          const realName = name.split("/").pop();
+          const optimisticFolder: FileSystemItem = {
+            id: folderPath,
+            name: realName,
+            type: "folder",
+            path: folderPath,
+            createdAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
+            syncStatus: "pending",
+            children: [],
+            size: 0,
+          };
+
+          // Add optimistic folder to the UI
           const updateFileSystem = (
             items: FileSystemItem[],
             path: string[],
             depth: number,
           ): FileSystemItem[] => {
             if (depth === path.length) {
-              return [...items, newFolder];
+              return [...items, optimisticFolder];
             }
 
             return items.map((item) => {
@@ -664,96 +675,116 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           }));
         }
 
-        setTimeout(() => {
-          updateSyncStatus(newFolder.id, "syncing");
+        // Call the API to create the folder
+        await createWorkspaceItem({
+          path: folderPath,
+          type: "folder",
+        });
 
-          setTimeout(() => {
-            updateSyncStatus(newFolder.id, "synced");
-            notificationStore.addNotification({
-              title: "Folder Created",
-              message: `Folder "${name}" has been created and synced`,
-              type: "success",
-            });
-          }, SYNC_COMPLETION_MS);
-        }, SYNC_DELAY_MS);
+        // Refresh the file system to get the real folder info
+        if (isCreatedAtCurrentPath) await refreshFileSystem();
       } catch (error) {
         console.error("Error creating folder:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
+
+        // Refresh the file system to remove the optimistic folder
+        if (isCreatedAtCurrentPath) await get().refreshFileSystem();
+
+        // Show error toast
+        toast({
+          icon: "⚠️",
           title: "Error Creating Folder",
-          message: `Failed to create folder "${name}". Please try again.`,
-          type: "error",
+          description: `Failed to create folder "${name}". Please try again.`,
+          variant: "destructive",
         });
       }
     },
 
-    handleCreateFile: (name) => {
+    handleCreateFile: async (name) => {
       try {
         const state = get();
-        const { currentPath, updateSyncStatus } = state;
-        const notificationStore = useNotificationStore.getState();
+        const { currentPath, refreshFileSystem } = state;
 
-        const newFile: FileSystemItem = {
-          id: `file-${Date.now()}`,
-          name,
-          type: "file",
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          syncStatus: "pending",
-          size: 0,
-        };
+        // Build the full path for the new file
+        const filePath =
+          currentPath.length === 0
+            ? `/${name}`
+            : `/${currentPath.join("/")}/${name}`;
 
-        if (currentPath.length === 0) {
-          set((state) => ({ fileSystem: [...state.fileSystem, newFile] }));
-        } else {
-          const updateFileSystem = (
-            items: FileSystemItem[],
-            path: string[],
-            depth: number,
-          ): FileSystemItem[] => {
-            if (depth === path.length) {
-              return [...items, newFile];
-            }
+        const isCreatedAtCurrentPath = !name.includes("/");
 
-            return items.map((item) => {
-              if (item.type === "folder" && item.name === path[depth]) {
-                return {
-                  ...item,
-                  children: updateFileSystem(
-                    item.children || [],
-                    path,
-                    depth + 1,
-                  ),
-                };
-              }
-              return item;
-            });
+        if (isCreatedAtCurrentPath) {
+          // Create optimistic file item
+          const optimisticFile: FileSystemItem = {
+            id: filePath,
+            name,
+            type: "file",
+            path: filePath,
+            createdAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
+            syncStatus: "syncing",
+            size: 0,
           };
 
-          set((state) => ({
-            fileSystem: updateFileSystem([...state.fileSystem], currentPath, 0),
-          }));
+          // Add optimistic file to the UI
+          if (currentPath.length === 0) {
+            set((state) => ({
+              fileSystem: [...state.fileSystem, optimisticFile],
+            }));
+          } else {
+            const updateFileSystem = (
+              items: FileSystemItem[],
+              path: string[],
+              depth: number,
+            ): FileSystemItem[] => {
+              if (depth === path.length) {
+                return [...items, optimisticFile];
+              }
+
+              return items.map((item) => {
+                if (item.type === "folder" && item.name === path[depth]) {
+                  return {
+                    ...item,
+                    children: updateFileSystem(
+                      item.children || [],
+                      path,
+                      depth + 1,
+                    ),
+                  };
+                }
+                return item;
+              });
+            };
+
+            set((state) => ({
+              fileSystem: updateFileSystem(
+                [...state.fileSystem],
+                currentPath,
+                0,
+              ),
+            }));
+          }
         }
 
-        setTimeout(() => {
-          updateSyncStatus(newFile.id, "syncing");
+        // Call the API to create the file
+        await createWorkspaceItem({
+          path: filePath,
+          type: "file",
+        });
 
-          setTimeout(() => {
-            updateSyncStatus(newFile.id, "synced");
-            notificationStore.addNotification({
-              title: "File Created",
-              message: `File "${name}" has been created and synced`,
-              type: "success",
-            });
-          }, SYNC_COMPLETION_MS);
-        }, SYNC_DELAY_MS);
+        // Refresh the file system to get the real file info
+        if (isCreatedAtCurrentPath) await refreshFileSystem();
       } catch (error) {
         console.error("Error creating file:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
+
+        // Refresh the file system to remove the optimistic file
+        if (isCreatedAtCurrentPath) await get().refreshFileSystem();
+
+        // Show error toast
+        toast({
+          icon: "⚠️",
           title: "Error Creating File",
-          message: `Failed to create file "${name}". Please try again.`,
-          type: "error",
+          description: `Failed to create file "${name}". Please try again.`,
+          variant: "destructive",
         });
       }
     },
@@ -1108,12 +1139,6 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         });
       } catch (error) {
         console.error("Error refreshing file system:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
-          title: "Error Refreshing",
-          message: "Failed to refresh the file system. Please try again.",
-          type: "error",
-        });
         set({ isRefreshing: false });
       }
     },
