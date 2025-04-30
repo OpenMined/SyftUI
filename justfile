@@ -250,6 +250,7 @@ package TARGET_TRIPLE="":
     try:
         subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
         subprocess.run(["just", "package-daemon", "{{ TARGET_TRIPLE }}"], check=True)
+        subprocess.run(["just", "update-version", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "package-desktop", "{{ TARGET_TRIPLE }}"], check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
