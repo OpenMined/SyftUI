@@ -397,7 +397,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   );
 
   const textClasses = cn(
-    "truncate",
+    "truncate select-none",
     viewMode === "grid"
       ? "w-full text-center mt-2 px-1"
       : "flex-1 text-left ml-2",

@@ -30,6 +30,7 @@ export interface FileSystemItem {
   id: string;
   name: string;
   type: "file" | "folder";
+  path: string;
   createdAt: string;
   modifiedAt: string;
   size?: number;

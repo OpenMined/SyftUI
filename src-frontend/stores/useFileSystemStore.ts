@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { mockFileSystem } from "@/lib/mock-data";
 import type {
   FileSystemItem,
   SyncStatus,
@@ -13,6 +12,7 @@ import type {
 } from "@/lib/types";
 import { updateUrlWithPath } from "@/lib/utils/url";
 import { useNotificationStore } from "./useNotificationStore";
+import { getWorkspaceItems } from "@/lib/api/workspace";
 
 const SYNC_DELAY_MS = 1000;
 const SYNC_COMPLETION_MS = 2000;
@@ -95,7 +95,7 @@ interface FileSystemState {
   handleRename: (itemId: string, newName: string) => void;
   moveItems: (itemIds: string[], targetPath: string[]) => void;
   updatePermissions: (itemId: string, permissions: Permission[]) => void;
-  refreshFileSystem: () => void;
+  refreshFileSystem: () => Promise<void>;
 
   // Helper methods
   getCurrentItems: () => FileSystemItem[];
@@ -106,7 +106,7 @@ interface FileSystemState {
 export const useFileSystemStore = create<FileSystemState>((set, get) => {
   return {
     // Initial state
-    fileSystem: mockFileSystem,
+    fileSystem: [],
     currentPath: [],
     selectedItems: [],
     viewMode: "grid",
@@ -1022,20 +1022,20 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     // Helper methods
     getCurrentItems: () => {
       const { fileSystem, currentPath } = get();
-      let current = fileSystem;
 
-      for (const segment of currentPath) {
-        const folder = current.find(
-          (item) => item.type === "folder" && item.name === segment,
-        );
-        if (folder && folder.type === "folder" && folder.children) {
-          current = folder.children;
-        } else {
-          return [];
-        }
+      if (currentPath.length === 0) {
+        return fileSystem;
       }
 
-      return current;
+      const folder = fileSystem.find(
+        (item) =>
+          item.type === "folder" && item.path === `/${currentPath.join("/")}`,
+      );
+
+      if (!folder) {
+        return [];
+      }
+      return folder.children || [];
     },
 
     getCurrentDirectoryInfo: () => {
@@ -1043,7 +1043,7 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
 
       if (currentPath.length === 0) {
         return {
-          id: "root-directory",
+          id: "/",
           name: "Workspace",
           type: "folder" as const,
           children: getCurrentItems(),
@@ -1057,25 +1057,10 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
         };
       }
 
-      let current = fileSystem;
-      let currentDir: FileSystemItem | null = null;
-
-      for (let i = 0; i < currentPath.length; i++) {
-        const segment = currentPath[i];
-        const folder = current.find(
-          (item) => item.type === "folder" && item.name === segment,
-        );
-
-        if (folder && folder.type === "folder" && folder.children) {
-          current = folder.children;
-          if (i === currentPath.length - 1) {
-            currentDir = folder;
-          }
-        } else {
-          return null;
-        }
-      }
-
+      const currentDir = fileSystem.find(
+        (item) =>
+          item.type === "folder" && item.path === `/${currentPath.join("/")}`,
+      );
       return currentDir;
     },
 
@@ -1089,30 +1074,58 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     },
 
     // Refresh file system
-    refreshFileSystem: () => {
+    refreshFileSystem: async () => {
       set({ isRefreshing: true });
 
-      // Simulate a minimum refresh time for better visual feedback
-      setTimeout(() => {
-        // For now, we just re-set the file system from the mock data
+      try {
+        const { currentPath, setCurrentPath, setPreviewFile } = get();
+
+        // Always get the parent path in the memory
+        const path = currentPath.slice(0, -1).join("/") || "/";
+        const items = await getWorkspaceItems(path, 1);
+
+        const isRoot = currentPath.length === 0;
+
+        if (!isRoot) {
+          // If the current path is a file, we need to set it's parent path as the current path
+          // and set the preview file to the current file
+          const currentPathItem = items.find(
+            (item) => item.path === `/${currentPath.join("/")}`,
+          );
+
+          if (currentPathItem && currentPathItem.type === "file") {
+            const parentPath = currentPath.slice(0, -1);
+            setCurrentPath(parentPath);
+            await get().refreshFileSystem();
+            setPreviewFile(currentPathItem);
+            return;
+          }
+        }
+
         set({
-          fileSystem: [...mockFileSystem],
+          fileSystem: items,
           isRefreshing: false,
         });
-      }, 750); // Show refreshing state for at least 750ms
+      } catch (error) {
+        console.error("Error refreshing file system:", error);
+        const notificationStore = useNotificationStore.getState();
+        notificationStore.addNotification({
+          title: "Error Refreshing",
+          message: "Failed to refresh the file system. Please try again.",
+          type: "error",
+        });
+        set({ isRefreshing: false });
+      }
     },
   };
 });
 
 // This function initializes the file system store
 // It should be called from the FileManager component
-export const initializeFileSystemStore = (
-  fileSystem: FileSystemItem[],
-  initialPath: string[] = [],
-) => {
+export const initializeFileSystemStore = async (initialPath: string[] = []) => {
   const store = useFileSystemStore.getState();
 
   // Initialize state
-  store.setFileSystem(fileSystem);
   store.setCurrentPath(initialPath);
+  await store.refreshFileSystem();
 };

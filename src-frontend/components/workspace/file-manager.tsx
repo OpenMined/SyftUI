@@ -18,16 +18,9 @@ import {
   processPath,
   findFileInPath,
 } from "@/lib/utils/url";
-import {
-  useFileSystemStore,
-  initializeFileSystemStore,
-} from "@/stores/useFileSystemStore";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
-interface FileManagerProps {
-  initialPath?: string[];
-}
-
-export function FileManager({ initialPath = [] }: FileManagerProps) {
+export function FileManager() {
   // Stores
   const {
     clipboard,
@@ -35,7 +28,6 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
     copyItems,
     pasteItems,
     fileSystem,
-    setFileSystem,
     currentPath,
     selectedItems,
     viewMode,
@@ -60,7 +52,6 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
     clearUpload,
   } = useFileSystemStore();
 
-  // Local states
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
 
@@ -203,27 +194,6 @@ export function FileManager({ initialPath = [] }: FileManagerProps) {
       setMobileDetailsOpen(true);
     }
   };
-
-  // Initialize the file system store
-  useEffect(() => {
-    // Set initial state in the store
-    initializeFileSystemStore(fileSystem, initialPath);
-
-    // Check for file in path on initial load
-    const pathFromUrl = getPathFromUrl();
-    const { dirPath, fileName } = processPath(pathFromUrl, fileSystem);
-
-    if (dirPath.length > 0) {
-      useFileSystemStore.getState().setCurrentPath(dirPath);
-    }
-
-    if (fileName) {
-      const fileToOpen = findFileInPath(fileSystem, dirPath, fileName);
-      if (fileToOpen) {
-        useFileSystemStore.getState().setPreviewFile(fileToOpen);
-      }
-    }
-  }, [fileSystem, setFileSystem, initialPath]);
 
   // Listen for popstate events (when browser back/forward buttons are used)
   useEffect(() => {

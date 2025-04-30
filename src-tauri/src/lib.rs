@@ -153,12 +153,14 @@ async fn _check_for_updates(app: &AppHandle, has_user_checked_manually: bool) {
         has_user_checked_manually
     );
     let handle = app.clone();
+    let current_version = handle.package_info().version.to_string();
+
     if has_user_checked_manually {
         _show_update_window(
             app,
             UpdateWindowType::Checking,
             "".to_string(),
-            "".to_string(),
+            current_version.clone(),
             "".to_string(),
             "".to_string(),
             0,
@@ -210,7 +212,7 @@ async fn _check_for_updates(app: &AppHandle, has_user_checked_manually: bool) {
                     app,
                     UpdateWindowType::None,
                     "".to_string(),
-                    "".to_string(),
+                    current_version.clone(),
                     "".to_string(),
                     "".to_string(),
                     0,
@@ -228,7 +230,7 @@ async fn _check_for_updates(app: &AppHandle, has_user_checked_manually: bool) {
                     app,
                     UpdateWindowType::Error,
                     "".to_string(),
-                    "".to_string(),
+                    current_version.clone(),
                     "".to_string(),
                     error_message,
                     0,

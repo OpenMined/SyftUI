@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { mockFileSystem } from "@/lib/mock-data";
+import { useEffect } from "react";
+import { useQueryState } from "nuqs";
 import { FileManager } from "@/components/workspace/file-manager";
-import { getPathFromUrl, processPath } from "@/lib/utils/url";
+import { initializeFileSystemStore } from "@/stores/useFileSystemStore";
 
 export default function FilesPage() {
-  const [initialPath] = useState(() => {
-    const pathFromUrl = getPathFromUrl();
-    const { dirPath } = processPath(pathFromUrl, mockFileSystem);
-    return dirPath;
-  });
+  const [initialPath] = useQueryState("path");
+
+  useEffect(() => {
+    initializeFileSystemStore(initialPath?.split("/") || []);
+  }, [initialPath]);
 
   return (
-    <div className="bg-background flex min-h-screen">
-      <FileManager initialPath={initialPath} />
+    <div className="bg-background flex h-screen">
+      <FileManager />
     </div>
   );
 }

@@ -27,6 +27,49 @@ interface FileDetailsProps {
   setDetailsItem?: (item: FileSystemItem | null) => void;
 }
 
+const getFileType = (item: FileSystemItem) => {
+  if (item.type === "folder") {
+    return "Folder";
+  }
+
+  const extension = item.name.split(".").pop()?.toLowerCase() || "";
+
+  switch (extension) {
+    case "pdf":
+      return "PDF Document";
+    case "doc":
+    case "docx":
+      return "Word Document";
+    case "xls":
+    case "xlsx":
+      return "Excel Spreadsheet";
+    case "ppt":
+    case "pptx":
+      return "PowerPoint Presentation";
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+      return "Image";
+    case "mp4":
+    case "mov":
+    case "avi":
+      return "Video";
+    case "mp3":
+    case "wav":
+      return "Audio";
+    case "zip":
+    case "rar":
+      return "Archive";
+    case "html":
+    case "css":
+    case "js":
+      return "Web File";
+    default:
+      return `${extension.toUpperCase()} File`;
+  }
+};
+
 export function FileDetails({
   item,
   onClose,
@@ -34,13 +77,18 @@ export function FileDetails({
 }: FileDetailsProps) {
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState(item.name);
+  const [newName, setNewName] = useState();
+  const [fileType, setFileType] = useState();
+  const [fileExtension, setFileExtension] = useState();
 
   // Get file operations from the store
   const { handleDelete, handleRename } = useFileSystemStore();
 
   useEffect(() => {
+    if (!item) return;
     setNewName(item.name);
+    setFileType(getFileType(item));
+    setFileExtension(item.name.split(".").pop()?.toLowerCase() || "");
     // Reset dialog state when item changes
     setIsPermissionsDialogOpen(false);
   }, [item]);
@@ -51,53 +99,6 @@ export function FileDetails({
     }
     setIsRenaming(false);
   };
-
-  const getFileType = () => {
-    if (item.type === "folder") {
-      return "Folder";
-    }
-
-    const extension = item.name.split(".").pop()?.toLowerCase() || "";
-
-    switch (extension) {
-      case "pdf":
-        return "PDF Document";
-      case "doc":
-      case "docx":
-        return "Word Document";
-      case "xls":
-      case "xlsx":
-        return "Excel Spreadsheet";
-      case "ppt":
-      case "pptx":
-        return "PowerPoint Presentation";
-      case "jpg":
-      case "jpeg":
-      case "png":
-      case "gif":
-        return "Image";
-      case "mp4":
-      case "mov":
-      case "avi":
-        return "Video";
-      case "mp3":
-      case "wav":
-        return "Audio";
-      case "zip":
-      case "rar":
-        return "Archive";
-      case "html":
-      case "css":
-      case "js":
-        return "Web File";
-      default:
-        return `${extension.toUpperCase()} File`;
-    }
-  };
-
-  const fileType = getFileType();
-  const extension =
-    item.type === "file" ? item.name.split(".").pop() : undefined;
 
   return item ? (
     <div className="bg-card flex h-full flex-col">
@@ -137,7 +138,7 @@ export function FileDetails({
                 >
                   <FileIcon
                     type={item.type}
-                    extension={extension}
+                    extension={fileExtension}
                     className="h-full w-full"
                   />
                 </motion.div>

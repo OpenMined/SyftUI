@@ -16,7 +16,7 @@ export default function HomePage() {
   const navigateToApp = useCallback(
     (didOnboard: boolean = false) => {
       const params = new URLSearchParams(window.location.search);
-      const nextUrl = params.get("next") || "/dashboard";
+      const nextUrl = params.get("next") || "/workspace";
       router.push(nextUrl);
 
       if (didOnboard) {
