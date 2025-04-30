@@ -77,7 +77,7 @@ const defaultTopology: NetworkTopology = {
       name: "SyftBox CLI",
       icon: SquareTerminal,
       tooltip: "Local client running in your terminal",
-      address: "127.0.0.1:8080",
+      address: "127.0.0.1:7938",
     },
     {
       id: "server",

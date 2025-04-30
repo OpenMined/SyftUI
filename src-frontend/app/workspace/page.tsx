@@ -9,7 +9,13 @@ export default function FilesPage() {
   const [initialPath] = useQueryState("path");
 
   useEffect(() => {
-    initializeFileSystemStore(initialPath?.split("/") || []);
+    initializeFileSystemStore(initialPath);
+
+    // Periodically update the file system
+    const interval = setInterval(() => {
+      initializeFileSystemStore(initialPath);
+    }, 3000);
+    return () => clearInterval(interval);
   }, [initialPath]);
 
   return (

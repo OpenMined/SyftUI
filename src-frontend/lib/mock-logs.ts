@@ -15,7 +15,7 @@ export const mockLogs: Log[] = [
   "client_config": {
     "data_dir": "/Users/tauquir/SyftBoxStage",
     "server_url": "https://syftboxstage.openmined.org/",
-    "client_url": "http://127.0.0.1:8080/",
+    "client_url": "http://127.0.0.1:7938/",
     "email": "tauquir@openmined.org",
     "token": "0",
     "client_timeout": 5.0
@@ -46,7 +46,7 @@ export const mockLogs: Log[] = [
     timestamp: "2025-03-26T07:50:42.040Z",
     app: "system",
     level: "info",
-    message: "Starting local server on http://127.0.0.1:8080/",
+    message: "Starting local server on http://127.0.0.1:7938/",
   },
   {
     timestamp: "2025-03-26T07:50:42.040Z",

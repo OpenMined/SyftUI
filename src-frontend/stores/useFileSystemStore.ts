@@ -1126,6 +1126,6 @@ export const initializeFileSystemStore = async (initialPath: string[] = []) => {
   const store = useFileSystemStore.getState();
 
   // Initialize state
-  store.setCurrentPath(initialPath);
+  store.setCurrentPath(initialPath?.split("/") || []);
   await store.refreshFileSystem();
 };

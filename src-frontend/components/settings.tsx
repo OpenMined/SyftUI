@@ -33,7 +33,7 @@ export function Settings() {
   const [settings, setSettings] = useState<SettingsData>({
     data_dir: "~/SyftBoxStage",
     server_url: "https://syftbox.openmined.org/",
-    client_url: "http://127.0.0.1:8080/",
+    client_url: "http://127.0.0.1:7938/",
     email: "user@example.com",
     token: "eyJlbWFpbCI6InRhdXF1aXJAb3Blbm1pbmVkLm9yZyIsInR5cGUiOiJhY2Nlc3N",
     access_token:

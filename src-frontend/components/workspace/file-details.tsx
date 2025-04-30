@@ -103,7 +103,7 @@ export function FileDetails({
   return item ? (
     <div className="bg-card flex h-full flex-col">
       <div className="flex items-center justify-between border-b p-4">
-        <h3 className="font-medium">Details</h3>
+        <h3 className="font-medium select-none">Details</h3>
         <Button
           variant="ghost"
           size="icon"
