@@ -46,6 +46,26 @@ export function ConnectionStatus() {
     form.setValue("token", settings.token);
   }, [form, settings.url, settings.token]);
 
+  // Run once at start and then periodically check connection status
+  useEffect(() => {
+    // Connect immediately when component mounts
+    connect();
+
+    // Set up interval for subsequent connection attempts
+    const interval = setInterval(() => {
+      connect();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [connect]);
+
+  // Focus first input when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      form.setFocus("url");
+    }
+  }, [isDialogOpen, form]);
+
   // Handle form submission
   const onSubmit = async (values: ConnectionFormValues) => {
     // Update connection settings from form values
@@ -71,13 +91,6 @@ export function ConnectionStatus() {
       });
     }
   };
-
-  // Focus first input when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      form.setFocus("url");
-    }
-  }, [isDialogOpen, form]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
