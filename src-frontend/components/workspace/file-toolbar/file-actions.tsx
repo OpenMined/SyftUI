@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
+import { Grid, List } from "lucide-react";
 import { addToFavorites } from "@/lib/utils/favorites";
 import {
   FolderPlus,
@@ -17,6 +18,7 @@ import {
   Star,
   FilePlus,
   TextCursorInput,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,18 +30,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { FileSystemItem } from "@/lib/types";
 
@@ -62,6 +63,8 @@ export function FileActions() {
     currentPath,
     syncPaused,
     setSyncDialogOpen,
+    viewMode,
+    setViewMode,
   } = useFileSystemStore();
 
   // Check if any selected items are folders
@@ -77,7 +80,6 @@ export function FileActions() {
   const [newFileName, setNewFileName] = useState("");
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameValue, setRenameValue] = useState("");
-  const [sortMenuOpen, setSortMenuOpen] = useState(false);
 
   const handleCreateFolderSubmit = () => {
     if (newFolderName.trim()) {
@@ -171,240 +173,422 @@ export function FileActions() {
     );
   };
 
+  // State for tracking which menu is open
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isCompactView, setIsCompactView] = useState(false);
+
+  // Effect to detect viewport width and set compact mode
+  useEffect(() => {
+    function handleResize() {
+      setIsCompactView(window.innerWidth < 640); // sm breakpoint in Tailwind
+    }
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Handler for toggling menu open/close
+  const toggleMenu = (menu: string) => {
+    if (activeMenu === menu) {
+      setActiveMenu(null);
+    } else {
+      setActiveMenu(menu);
+    }
+  };
+
   return (
     <>
       {/* Sync status button */}
       {renderSyncStatusButton()}
 
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={refreshFileSystem}
-              disabled={isRefreshing}
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Refresh</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      {/* Sort dropdown with tooltip */}
-      <DropdownMenu open={sortMenuOpen} onOpenChange={setSortMenuOpen}>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8">
-                  <ArrowUpDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent className="select-none">
-              <p>Sort by</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <DropdownMenuContent align="start" className="w-40">
-          <DropdownMenuRadioGroup
-            value={sortConfig?.sortBy || "name"}
-            onValueChange={(value) =>
-              setSortConfig?.({
-                ...(sortConfig || { direction: "asc" }),
-                sortBy: value as "name" | "date" | "size" | "type",
-              })
-            }
+      {isCompactView ? (
+        /* Compact Menu - Single dropdown with all options */
+        <div className="ml-1 flex items-center gap-1">
+          <DropdownMenu
+            open={activeMenu === "menu"}
+            onOpenChange={(open) => setActiveMenu(open ? "menu" : null)}
           >
-            <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="date">
-              Date Modified
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="type">Type</DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={sortConfig?.direction || "asc"}
-            onValueChange={(value) =>
-              setSortConfig?.({
-                ...(sortConfig || { sortBy: "name" }),
-                direction: value as "asc" | "desc",
-              })
-            }
-          >
-            <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="desc">
-              Descending
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsCreateFolderOpen(true)}
-            >
-              <FolderPlus className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>New Folder</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsCreateFileOpen(true)}
-            >
-              <FilePlus className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>New File</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <Upload className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Upload</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      {/* Favorite button - only visible when a folder is selected */}
-      {hasSelectedFolder && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleAddToFavorites}
+                size="sm"
+                className={`${activeMenu === "menu" ? "bg-accent" : ""}`}
+                onClick={() => toggleMenu("menu")}
               >
-                <Star className="h-4 w-4" />
+                <ChevronDown className="mr-2 h-4 w-4" />
+                Menu
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add to Favorites</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {/* File Section */}
+              <div className="text-muted-foreground px-2 py-1 text-xs font-semibold">
+                File
+              </div>
+              <DropdownMenuItem onClick={() => setIsCreateFileOpen(true)}>
+                <FilePlus className="mr-2 h-4 w-4" />
+                New File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsCreateFolderOpen(true)}>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                New Folder
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={refreshFileSystem}
+                disabled={isRefreshing}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </DropdownMenuItem>
 
-      <TooltipProvider>
-        {selectedItems.length > 0 && (
-          <>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={openRenameDialog}
-                >
-                  <TextCursorInput className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Rename</p>
-              </TooltipContent>
-            </Tooltip>
+              <DropdownMenuSeparator />
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleDelete(selectedItems)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => cutItems(selectedItems)}
-                >
-                  <Scissors className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Cut (Ctrl+X)</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => copyItems(selectedItems)}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Copy (Ctrl+C)</p>
-              </TooltipContent>
-            </Tooltip>
-          </>
-        )}
-
-        {clipboard && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
+              {/* Edit Section */}
+              <div className="text-muted-foreground px-2 py-1 text-xs font-semibold">
+                Edit
+              </div>
+              <DropdownMenuItem
+                onClick={openRenameDialog}
+                disabled={selectedItems.length !== 1}
+                className={selectedItems.length !== 1 ? "opacity-50" : ""}
+              >
+                <TextCursorInput className="mr-2 h-4 w-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => cutItems(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={selectedItems.length === 0 ? "opacity-50" : ""}
+              >
+                <Scissors className="mr-2 h-4 w-4" />
+                Cut
+                <DropdownMenuShortcut>⌘X</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => copyItems(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={selectedItems.length === 0 ? "opacity-50" : ""}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
+                <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={pasteItems}
+                disabled={!clipboard}
+                className={!clipboard ? "opacity-50" : ""}
               >
-                <Clipboard className="h-4 w-4" />
+                <Clipboard className="mr-2 h-4 w-4" />
+                Paste
+                <DropdownMenuShortcut>⌘V</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleAddToFavorites}
+                disabled={!hasSelectedFolder}
+                className={!hasSelectedFolder ? "opacity-50" : ""}
+              >
+                <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                Add to Favorites
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDelete(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={`${selectedItems.length === 0 ? "opacity-50" : ""} text-destructive focus:text-destructive`}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* View Section */}
+              <div className="text-muted-foreground px-2 py-1 text-xs font-semibold">
+                View
+              </div>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Grid className="mr-2 h-4 w-4" />
+                  View Mode
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={viewMode || "grid"}
+                    onValueChange={(value) =>
+                      setViewMode?.(value as "grid" | "list")
+                    }
+                  >
+                    <DropdownMenuRadioItem value="grid">
+                      <Grid className="mr-2 h-4 w-4" />
+                      Grid View
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="list">
+                      <List className="mr-2 h-4 w-4" />
+                      List View
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  Sort By
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={sortConfig?.sortBy || "name"}
+                    onValueChange={(value) =>
+                      setSortConfig?.({
+                        ...(sortConfig || { direction: "asc" }),
+                        sortBy: value as "name" | "date" | "size" | "type",
+                      })
+                    }
+                  >
+                    <DropdownMenuRadioItem value="name">
+                      Name
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="date">
+                      Date Modified
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="size">
+                      Size
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="type">
+                      Type
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  Direction
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={sortConfig?.direction || "asc"}
+                    onValueChange={(value) =>
+                      setSortConfig?.({
+                        ...(sortConfig || { sortBy: "name" }),
+                        direction: value as "asc" | "desc",
+                      })
+                    }
+                  >
+                    <DropdownMenuRadioItem value="asc">
+                      Ascending
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="desc">
+                      Descending
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ) : (
+        /* Regular Menu Bar - Separate File, Edit, View menus */
+        <div className="ml-1 flex items-center gap-1">
+          {/* File Menu */}
+          <DropdownMenu
+            open={activeMenu === "file"}
+            onOpenChange={(open) => setActiveMenu(open ? "file" : null)}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`${activeMenu === "file" ? "bg-accent" : ""}`}
+                onClick={() => toggleMenu("file")}
+              >
+                File
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Paste (Ctrl+V)</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </TooltipProvider>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => setIsCreateFileOpen(true)}>
+                <FilePlus className="mr-2 h-4 w-4" />
+                New File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsCreateFolderOpen(true)}>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                New Folder
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={refreshFileSystem}
+                disabled={isRefreshing}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Edit Menu */}
+          <DropdownMenu
+            open={activeMenu === "edit"}
+            onOpenChange={(open) => setActiveMenu(open ? "edit" : null)}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`${activeMenu === "edit" ? "bg-accent" : ""}`}
+                onClick={() => toggleMenu("edit")}
+              >
+                Edit
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem
+                onClick={openRenameDialog}
+                disabled={selectedItems.length !== 1}
+                className={selectedItems.length !== 1 ? "opacity-50" : ""}
+              >
+                <TextCursorInput className="mr-2 h-4 w-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => cutItems(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={selectedItems.length === 0 ? "opacity-50" : ""}
+              >
+                <Scissors className="mr-2 h-4 w-4" />
+                Cut
+                <DropdownMenuShortcut>⌘X</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => copyItems(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={selectedItems.length === 0 ? "opacity-50" : ""}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
+                <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={pasteItems}
+                disabled={!clipboard}
+                className={!clipboard ? "opacity-50" : ""}
+              >
+                <Clipboard className="mr-2 h-4 w-4" />
+                Paste
+                <DropdownMenuShortcut>⌘V</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleAddToFavorites}
+                disabled={!hasSelectedFolder}
+                className={!hasSelectedFolder ? "opacity-50" : ""}
+              >
+                <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                Add to Favorites
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDelete(selectedItems)}
+                disabled={selectedItems.length === 0}
+                className={`${selectedItems.length === 0 ? "opacity-50" : ""} text-destructive focus:text-destructive`}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* View Menu */}
+          <DropdownMenu
+            open={activeMenu === "view"}
+            onOpenChange={(open) => setActiveMenu(open ? "view" : null)}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`${activeMenu === "view" ? "bg-accent" : ""}`}
+                onClick={() => toggleMenu("view")}
+              >
+                View
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <div className="text-muted-foreground px-2 py-1 text-xs">
+                View mode:
+              </div>
+              <DropdownMenuRadioGroup
+                value={viewMode || "grid"}
+                onValueChange={(value) =>
+                  setViewMode?.(value as "grid" | "list")
+                }
+              >
+                <DropdownMenuRadioItem value="grid">
+                  <Grid className="mr-2 h-4 w-4" />
+                  Grid View
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="list">
+                  <List className="mr-2 h-4 w-4" />
+                  List View
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <div className="text-muted-foreground px-2 py-1 text-xs">
+                Sort by:
+              </div>
+              <DropdownMenuRadioGroup
+                value={sortConfig?.sortBy || "name"}
+                onValueChange={(value) =>
+                  setSortConfig?.({
+                    ...(sortConfig || { direction: "asc" }),
+                    sortBy: value as "name" | "date" | "size" | "type",
+                  })
+                }
+              >
+                <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="date">
+                  Date Modified
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="size">Size</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="type">Type</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <div className="text-muted-foreground px-2 py-1 text-xs">
+                Direction:
+              </div>
+              <DropdownMenuRadioGroup
+                value={sortConfig?.direction || "asc"}
+                onValueChange={(value) =>
+                  setSortConfig?.({
+                    ...(sortConfig || { sortBy: "name" }),
+                    direction: value as "asc" | "desc",
+                  })
+                }
+              >
+                <DropdownMenuRadioItem value="asc">
+                  Ascending
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="desc">
+                  Descending
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
         <DialogContent>
