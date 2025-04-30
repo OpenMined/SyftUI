@@ -346,7 +346,7 @@ export function FileDetails({
               size="sm"
               className="text-destructive hover:text-destructive flex-1"
               onClick={() => {
-                handleDelete([item.id]);
+                handleDelete([item.path]);
                 onClose();
               }}
             >

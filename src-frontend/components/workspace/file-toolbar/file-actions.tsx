@@ -71,7 +71,7 @@ export function FileActions() {
   const hasSelectedFolder =
     selectedItems.length === 1 &&
     fileSystem
-      .filter((item) => item.id === selectedItems[0])
+      .filter((item) => item.path === selectedItems[0])
       .some((item) => item.type === "folder");
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
@@ -133,8 +133,10 @@ export function FileActions() {
   // Function to handle favoriting the selected folder
   const handleAddToFavorites = () => {
     if (hasSelectedFolder) {
-      const selectedFolderId = selectedItems[0];
-      const folder = fileSystem.find((item) => item.id === selectedFolderId);
+      const selectedFolderPath = selectedItems[0];
+      const folder = fileSystem.find(
+        (item) => item.path === selectedFolderPath,
+      );
 
       if (folder && folder.type === "folder") {
         addToFavorites({

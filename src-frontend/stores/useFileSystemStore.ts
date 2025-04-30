@@ -12,7 +12,11 @@ import type {
 } from "@/lib/types";
 import { updateUrlWithPath } from "@/lib/utils/url";
 import { useNotificationStore } from "./useNotificationStore";
-import { getWorkspaceItems, createWorkspaceItem } from "@/lib/api/workspace";
+import {
+  getWorkspaceItems,
+  createWorkspaceItem,
+  deleteWorkspaceItems,
+} from "@/lib/api/workspace";
 import { toast } from "@/hooks/use-toast";
 
 const SYNC_DELAY_MS = 1000;
@@ -92,7 +96,7 @@ interface FileSystemState {
   // File operations
   handleCreateFolder: (name: string) => Promise<void>;
   handleCreateFile: (name: string) => Promise<void>;
-  handleDelete: (itemIds: string[]) => void;
+  handleDelete: (paths: string[]) => Promise<void>;
   handleRename: (itemId: string, newName: string) => void;
   moveItems: (itemIds: string[], targetPath: string[]) => void;
   updatePermissions: (itemId: string, permissions: Permission[]) => void;
@@ -789,50 +793,46 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       }
     },
 
-    handleDelete: (itemIds) => {
+    handleDelete: async (paths) => {
       try {
         const state = get();
-        const { setSelectedItems, setDetailsItem } = state;
-        const notificationStore = useNotificationStore.getState();
+        const { currentPath, refreshFileSystem } = state;
 
-        const itemsToDelete: FileSystemItem[] = [];
+        let destinationPath = currentPath;
 
-        const findItems = (items: FileSystemItem[]): FileSystemItem[] => {
-          return items.filter((item) => {
-            if (itemIds.includes(item.id)) {
-              itemsToDelete.push(item);
-              return false;
-            }
-
-            if (item.type === "folder" && item.children) {
-              item.children = findItems(item.children);
-            }
-
-            return true;
-          });
-        };
-
-        set((state) => ({ fileSystem: findItems([...state.fileSystem]) }));
-
-        setSelectedItems([]);
-
-        const detailsItem = state.detailsItem;
-        if (detailsItem && itemIds.includes(detailsItem.id)) {
-          setDetailsItem(null);
+        while (
+          destinationPath.length > 0 &&
+          paths.includes(`/${destinationPath.join("/")}`)
+        ) {
+          destinationPath = destinationPath.slice(0, -1);
         }
 
-        notificationStore.addNotification({
+        // Call API to delete the items
+        await deleteWorkspaceItems({ paths });
+
+        // Refresh the file system to ensure UI matches server state
+        await refreshFileSystem();
+
+        // Update the current path
+        set({ currentPath: destinationPath });
+
+        // Show success toast
+        toast({
           title: "Items Deleted",
-          message: `${itemsToDelete.length} item(s) have been deleted`,
-          type: "info",
+          description: `${paths.length} item(s) have been deleted successfully`,
+          variant: "default",
         });
       } catch (error) {
         console.error("Error deleting items:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
+
+        // Refresh to restore the correct state
+        await get().refreshFileSystem();
+
+        // Show error toast
+        toast({
           title: "Error Deleting Items",
-          message: "Failed to delete items. Please try again.",
-          type: "error",
+          description: "Failed to delete items. Please try again.",
+          variant: "destructive",
         });
       }
     },

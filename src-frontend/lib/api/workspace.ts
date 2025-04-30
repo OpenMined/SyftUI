@@ -14,6 +14,10 @@ interface WorkspaceItemCreateRequest {
   type: "file" | "folder";
 }
 
+interface WorkspaceItemDeleteRequest {
+  paths: string[];
+}
+
 export async function getWorkspaceItems(
   path: string = "",
   depth: number = 0,
@@ -64,4 +68,25 @@ export async function createWorkspaceItem(
 
   const data: WorkspaceItemCreateResponse = await response.json();
   return data.item;
+}
+
+export async function deleteWorkspaceItems(
+  request: WorkspaceItemDeleteRequest,
+): Promise<void> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/workspace/items`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete workspace items: ${response.statusText}`);
+  }
 }

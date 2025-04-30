@@ -348,7 +348,7 @@ interface FileExplorerItemProps {
   setDetailsItem: (item: FileSystemItem | null) => void;
   openRenameDialog: (item: FileSystemItem) => void;
   openShareDialog: (item: FileSystemItem) => void;
-  handleDelete: (ids: string[]) => void;
+  handleDelete: (paths: string[]) => void;
   isMobile: boolean;
 }
 
@@ -379,7 +379,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   const itemClasses = cn(
     `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
     viewMode === "grid" ? `${GRID_ITEM_SIZE} shrink-0 grow-0` : "w-full",
-    selectedItems.includes(item.id) ? "bg-accent" : "hover:bg-muted",
+    selectedItems.includes(item.path) ? "bg-accent" : "hover:bg-muted",
     dropTarget === item.id && "ring-2 ring-primary",
     viewMode === "list" && "justify-start gap-3",
   );
@@ -513,7 +513,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
         )}
         <ContextMenuSeparator />
         <ContextMenuItem
-          onClick={() => handleDelete([item.id])}
+          onClick={() => handleDelete([item.path])}
           className="text-destructive focus:text-destructive"
         >
           Delete
@@ -653,22 +653,22 @@ export function FileExplorer({
       if (event.ctrlKey || event.metaKey) {
         // Multi-select with Ctrl/Cmd
         setSelectedItems(
-          selectedItems.includes(item.id)
-            ? selectedItems.filter((id) => id !== item.id)
-            : [...selectedItems, item.id],
+          selectedItems.includes(item.path)
+            ? selectedItems.filter((path) => path !== item.path)
+            : [...selectedItems, item.path],
         );
       } else if (event.shiftKey && selectedItems.length > 0) {
         // Range select with Shift
-        const itemIds = items.map((i) => i.id);
-        const firstSelectedIndex = itemIds.indexOf(selectedItems[0]);
-        const clickedIndex = itemIds.indexOf(item.id);
+        const itemPaths = items.map((i) => i.path);
+        const firstSelectedIndex = itemPaths.indexOf(selectedItems[0]);
+        const clickedIndex = itemPaths.indexOf(item.path);
         const start = Math.min(firstSelectedIndex, clickedIndex);
         const end = Math.max(firstSelectedIndex, clickedIndex);
-        const rangeIds = itemIds.slice(start, end + 1);
-        setSelectedItems(rangeIds);
+        const rangePaths = itemPaths.slice(start, end + 1);
+        setSelectedItems(rangePaths);
       } else {
         // Single select - show details panel
-        setSelectedItems([item.id]);
+        setSelectedItems([item.path]);
         if (isMobile) {
           handleItemDoubleClick(item);
         } else {
