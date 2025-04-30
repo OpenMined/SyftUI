@@ -6,10 +6,15 @@ import { Toolbar } from "@/components/ui/toolbar";
 import { PingStatusCard } from "@/components/diagnostic/ping-status-card";
 import { BugReportDialog } from "@/components/diagnostic/bug-report-dialog";
 import { Button } from "@/components/ui/button";
+import { AnnouncementBar } from "@/components/ui/announcement-bar";
 
 export default function DiagnosticPage() {
   return (
     <div className="flex h-full flex-col">
+      <AnnouncementBar variant="warning">
+        This is a mocked version of the diagnostic page. The real version with
+        full functionality is coming soon.
+      </AnnouncementBar>
       <Toolbar
         title="Diagnostic"
         icon={<Gauge className="h-5 w-5" />}

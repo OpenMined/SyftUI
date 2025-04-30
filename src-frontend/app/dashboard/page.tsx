@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AnnouncementBar } from "@/components/ui/announcement-bar";
 
 export default function HomePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -143,6 +144,10 @@ export default function HomePage() {
 
   return (
     <div className="flex h-full flex-col">
+      <AnnouncementBar variant="warning">
+        This is a mocked version of the dashboard. The real version with full
+        functionality is coming soon.
+      </AnnouncementBar>
       <Toolbar
         title="Dashboard"
         icon={<LayoutDashboard className="h-5 w-5" />}

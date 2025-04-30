@@ -11,6 +11,7 @@ import { AppDetail } from "@/components/app/app-detail";
 import { AppList } from "@/components/app/app-list";
 import { mockApps } from "@/lib/mock-apps";
 import { Toolbar } from "@/components/ui/toolbar";
+import { AnnouncementBar } from "@/components/ui/announcement-bar";
 
 export default function AppsPage() {
   const router = useRouter();
@@ -33,6 +34,10 @@ export default function AppsPage() {
 
   return (
     <div className="flex h-full flex-col">
+      <AnnouncementBar variant="warning">
+        This is a mocked version of the apps page. The real version with full
+        functionality is coming soon.
+      </AnnouncementBar>
       <Toolbar title="Apps" icon={<AppWindow className="h-5 w-5" />}>
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />

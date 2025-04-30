@@ -24,6 +24,7 @@ import { Toolbar } from "@/components/ui/toolbar";
 import { mockApps } from "@/lib/mock-apps";
 import { mockLogs } from "@/lib/mock-logs";
 import { cn } from "@/lib/utils";
+import { AnnouncementBar } from "./ui/announcement-bar";
 
 const installedApps = [
   { id: "system", name: "System" },
@@ -154,6 +155,10 @@ export function Logs() {
 
   return (
     <div className="flex h-full flex-col">
+      <AnnouncementBar variant="warning">
+        This is a mocked version of the logs page. The real version with full
+        functionality is coming soon.
+      </AnnouncementBar>
       <Toolbar title="System Logs" icon={<ScrollText className="h-5 w-5" />}>
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
