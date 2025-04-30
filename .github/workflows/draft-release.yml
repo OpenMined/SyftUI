@@ -87,6 +87,7 @@ jobs:
       - name: Build app (macOS)
         if: runner.os == 'macOS'
         run: |
+          just update-version ${{ matrix.args }}
           GITHUB_CI=1 just package ${{ matrix.args }}
 
           # Create artifacts directory
@@ -100,6 +101,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          just update-version ${{ matrix.args }}
           $env:GITHUB_CI = "1"; just package ${{ matrix.args }}
 
           # Create artifacts directory
