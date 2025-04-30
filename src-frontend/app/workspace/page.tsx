@@ -3,20 +3,26 @@
 import { useEffect } from "react";
 import { useQueryState } from "nuqs";
 import { FileManager } from "@/components/workspace/file-manager";
-import { initializeFileSystemStore } from "@/stores/useFileSystemStore";
+import {
+  initializeFileSystemStore,
+  useFileSystemStore,
+} from "@/stores/useFileSystemStore";
 
 export default function FilesPage() {
   const [initialPath] = useQueryState("path");
+  const { refreshFileSystem } = useFileSystemStore();
 
   useEffect(() => {
     initializeFileSystemStore(initialPath);
+  }, [initialPath]);
 
-    // Periodically update the file system
+  useEffect(() => {
+    // Periodically refresh the file system
     const interval = setInterval(() => {
-      initializeFileSystemStore(initialPath);
+      refreshFileSystem();
     }, 3000);
     return () => clearInterval(interval);
-  }, [initialPath]);
+  }, [refreshFileSystem]);
 
   return (
     <div className="bg-background flex h-screen">
