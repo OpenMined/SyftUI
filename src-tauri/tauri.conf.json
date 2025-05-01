@@ -51,7 +51,7 @@
         "type": "downloadBootstrapper"
       }
     },
-    "targets": ["app", "dmg", "msi"]
+    "targets": ["app", "appimage", "deb", "dmg", "msi", "rpm"]
   },
   "plugins": {
     "updater": {

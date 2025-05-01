@@ -20,6 +20,8 @@ jobs:
             args: "x86_64-apple-darwin"
           - runs-on: windows-latest
             args: "x86_64-pc-windows-msvc"
+          - runs-on: ubuntu-latest
+            args: "x86_64-unknown-linux-gnu"
     runs-on: ${{ matrix.runs-on }}
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -107,6 +109,18 @@ jobs:
           Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi -Destination artifacts\SyftBox-${{ matrix.args }}.msi
           Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi.sig -Destination artifacts\SyftBox-${{ matrix.args }}.msi.sig
 
+      - name: Build app (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          GITHUB_CI=1 just package ${{ matrix.args }}
+
+          # Create artifacts directory
+          mkdir -p artifacts
+
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/deb/*.deb artifacts/SyftBox-${{ matrix.args }}.deb
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/rpm/*.rpm artifacts/SyftBox-${{ matrix.args }}.rpm
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/appimage/*.appimage artifacts/SyftBox-${{ matrix.args }}.appimage
+
       - name: Setup git config
         env:
           GH_TOKEN: ${{ github.token }}
@@ -135,14 +149,27 @@ jobs:
           name: ${{ inputs.version }}
           draft: true
           allowUpdates: true
+          omitBodyDuringUpdate: true
           generateReleaseNotes: true
           makeLatest: true
           artifacts: |
-            ./artifacts/*.dmg
             ./artifacts/*.app.tar.gz
             ./artifacts/*.app.tar.gz.sig
+
+            ./artifacts/*.appimage
+            ./artifacts/*.appimage.sig
+
+            ./artifacts/*.deb
+            ./artifacts/*.deb.sig
+
+            ./artifacts/*.dmg
+            ./artifacts/*.dmg.sig
+
             ./artifacts/*.msi
             ./artifacts/*.msi.sig
+
+            ./artifacts/*.rpm
+            ./artifacts/*.rpm.sig
 
       - name: Clean up all user keychains
         if: always() && runner.os == 'macOS'

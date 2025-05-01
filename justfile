@@ -431,6 +431,99 @@ deploy-frontend-to-stage:
 
 # -------------------------------------------------- UTILITY COMMANDS -------------------------------------------------
 
+# Generate and upload release.json
+[group('utils')]
+generate-release-json version upload="no":
+    #!/usr/bin/env python
+    import json
+    import requests
+    import subprocess
+    import sys
+    from typing import Dict, Any
+
+    def run_command(cmd: str) -> str:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Error running command: {cmd}")
+            print(f"Error: {result.stderr}")
+            sys.exit(1)
+        return result.stdout.strip()
+
+    version = "{{ version }}"
+
+    release_info = run_command(f"gh release view {version} --json assets,body,createdAt,publishedAt,tagName")
+    release_info = json.loads(release_info)
+    asset_name_to_url_map = {asset['name']: asset['url'] for asset in release_info['assets']}
+
+    platform_to_assets_map = {
+        "darwin-aarch64": {
+            "url": "SyftBox-aarch64-apple-darwin.app.tar.gz",
+            "signature": "SyftBox-aarch64-apple-darwin.app.tar.gz.sig"
+        },
+        "darwin-x86_64": {
+            "url": "SyftBox-x86_64-apple-darwin.app.tar.gz",
+            "signature": "SyftBox-x86_64-apple-darwin.app.tar.gz.sig"
+        },
+        "windows-x86_64": {
+            "url": "SyftBox-x86_64-pc-windows-msvc.msi",
+            "signature": "SyftBox-x86_64-pc-windows-msvc.msi.sig"
+        },
+        "linux-x86_64": {
+            "url": "SyftBox-x86_64-unknown-linux-gnu.appimage",
+            "signature": "SyftBox-x86_64-unknown-linux-gnu.appimage.sig"
+        }
+    }
+
+    platforms = {}
+    for platform, assets in platform_to_assets_map.items():
+        # if both url and signature are present, add them to the platforms dict
+        if not assets['url'] in asset_name_to_url_map:
+            print(f"Skipping {platform} because the URL \"{assets['url']}\" is not present in the release assets.")
+        elif not assets['signature'] in asset_name_to_url_map:
+            print(f"Skipping {platform} because the signature file \"{assets['signature']}\" is not present in the release assets.")
+        else:
+            asset_url = asset_name_to_url_map[assets['url']]
+
+            signature_url = asset_name_to_url_map[assets['signature']]
+            signature_response = requests.get(signature_url)
+            if signature_response.status_code != 200:
+                print(f"{{ _red }}Failed to download signature file from {signature_url}. Skipping {platform} from release.json...{{ _nc }}")
+                continue
+            signature_content = signature_response.content
+
+            platforms[platform] = {
+                "signature": signature_content,
+                "url": asset_url,
+            }
+
+    if len(platforms) == 0:
+        print(f"{{ _red }}Generation of release.json failed because no valid platforms were found in the release assets.{{ _nc }}")
+        sys.exit(1)
+
+    data = {
+        "version": version,
+        "notes": release_info['body'],
+        "pub_date": release_info.get('publishedAt') or release_info.get('createdAt'),
+        "platforms": platforms
+    }
+
+    with open('release.json', 'w') as f:
+        json.dump(data, f, indent=2)
+
+    print(f"{{ _green }}Generated release.json:{{ _nc }}")
+    print(json.dumps(data, indent=2))
+
+    if upload == "yes":
+        print(f"{{ _green }}Uploading release.json to GitHub...{{ _nc }}")
+        run_command(f"gh release upload {version} release.json --clobber")
+        print(f"{{ _green }}Release.json uploaded successfully.{{ _nc }}")
+
+    # remove all the .sig files from the release
+    sig_files = [asset for asset in release_info['assets'] if asset['name'].endswith('.sig')]
+    for sig_file in sig_files:
+        run_command(f"gh release delete-asset -y {version} {sig_file['name']}")
+        print(f"{{ _green }}Deleted {sig_file['name']} from the release.{{ _nc }}")
+
 # Update version numbers
 [group('utils')]
 update-version TARGET_TRIPLE="":
