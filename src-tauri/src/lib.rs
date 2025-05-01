@@ -490,10 +490,7 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
                             percent as usize,
                         );
                     },
-                    || {
-                        log::info!("Update installation complete - restarting application");
-                        app.restart();
-                    },
+                    || {},
                 )
                 .await
             {
@@ -511,6 +508,9 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
                     error_message,
                     0,
                 );
+            } else {
+                log::info!("Update installation complete - restarting application");
+                app.restart();
             }
         } else {
             log::info!("User declined update for version {}", update.version);
