@@ -140,7 +140,7 @@ tidy-desktop:
     import sys
 
     try:
-        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml', 
+        subprocess.run(['cargo', 'clippy', '--manifest-path', './src-tauri/Cargo.toml',
                        '--fix', '--allow-staged'], check=True)
         subprocess.run(['cargo', 'fmt', '--manifest-path', './src-tauri/Cargo.toml'], check=True)
         print(f"\n{{ _green }}Desktop app code tidied up successfully.{{ _nc }}\n")
@@ -504,7 +504,7 @@ reset:
         sys.exit(1)
 
     # Deinitialize submodules
-    subprocess.run(['git', 'submodule', 'deinit', '--all', '--force'], 
+    subprocess.run(['git', 'submodule', 'deinit', '--all', '--force'],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     print("Removing generated files...")
@@ -565,7 +565,7 @@ setup skip_prerequisites="no":
             # Unix-like systems (macOS, Linux)
             try:
                 subprocess.run([
-                    "curl", "-fsSL", "https://bun.sh/install", "|", "bash"
+                    "curl -fsSL https://bun.sh/install | bash"
                 ], shell=True, check=True)
             except subprocess.CalledProcessError:
                 print(f"{{ _red }}Failed to install Bun. Please install manually:{{ _nc }}")
@@ -592,7 +592,7 @@ setup skip_prerequisites="no":
             # Unix-like systems (macOS, Linux)
             try:
                 subprocess.run([
-                    "curl", "--proto", "=https", "--tlsv1.2", "-sSf", "https://sh.rustup.rs", "|", "sh", "-s", "--", "-y"
+                    "curl --proto =https --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
                 ], shell=True, check=True)
             except subprocess.CalledProcessError:
                 print(f"{{ _red }}Failed to install Rust. Please install manually:{{ _nc }}")
@@ -636,6 +636,9 @@ setup skip_prerequisites="no":
         subprocess.run([bunx_exec, 'x', 'husky'], check=True)
     else:
         subprocess.run([bunx_exec, 'husky'], check=True)
+
+    # TODO: Install the daemon's toolchain
+    # subprocess.run(['just', '--justfile', 'src-daemon/justfile', 'setup-toolchain'], check=True)
 
     print(f"\n{{ _green }}Setup complete!{{ _nc }}")
     print(f"You can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading.")
@@ -713,33 +716,36 @@ _install-os-pre-requisites skip_prerequisites="no":
                     print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
                     print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
                     deps = [
-                        "libwebkit2gtk-4.0-dev", "build-essential", "curl", "wget", "file", 
-                        "libssl-dev", "libgtk-3-dev", "libayatana-appindicator3-dev", "librsvg2-dev"
+                        "libwebkit2gtk-4.1-dev", "build-essential", "curl", "wget",
+                        "file", "libxdo-dev", "libssl-dev",
+                        "libayatana-appindicator3-dev", "librsvg2-dev"
                     ]
                     cmd = ["sudo", "apt", "update", "&&", "sudo", "apt", "install", "-y"] + deps
                     print(" ".join(cmd))
+                    subprocess.run(cmd, shell=True, check=True)
 
                 elif distro in ['fedora', 'rhel', 'centos']:
                     print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
                     print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
                     deps = [
-                        "webkit2gtk3-devel", "openssl-devel", "curl", "wget", 
-                        "file", "gtk3-devel", "libappindicator-gtk3-devel", 
-                        "librsvg2-devel"
+                        "webkit2gtk4.1-devel", "openssl-devel", "curl", "wget",
+                        "file", "libappindicator-gtk3-devel", "librsvg2-devel"
                     ]
                     cmd = ["sudo", "dnf", "install", "-y"] + deps
                     print(" ".join(cmd))
+                    subprocess.run(cmd, shell=True, check=True)
 
                 elif distro in ['arch', 'manjaro']:
                     print(f"{{ _green }}Detected {distro} distribution{{ _nc }}")
                     print(f"{{ _yellow }}Installing Tauri dependencies...{{ _nc }}")
                     deps = [
-                        "webkit2gtk", "base-devel", "curl", "wget", "openssl", 
-                        "appmenu-gtk-module", "gtk3", "libappindicator-gtk3", 
+                        "webkit2gtk-4.1", "base-devel", "curl", "wget", "file",
+                        "openssl", "appmenu-gtk-module", "libappindicator-gtk3",
                         "librsvg"
                     ]
                     cmd = ["sudo", "pacman", "-Syu", "--needed"] + deps
                     print(" ".join(cmd))
+                    subprocess.run(cmd, shell=True, check=True)
 
                 else:
                     print(f"{{ _red }}Unsupported Linux distribution: {distro}{{ _nc }}")
