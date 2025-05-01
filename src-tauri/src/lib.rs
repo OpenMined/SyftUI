@@ -289,6 +289,7 @@ fn _show_about_window(app: &AppHandle) {
             DESKTOP_VERSION, FRONTEND_VERSION, DAEMON_VERSION, COMMIT_HASH
         );
         let _about_window = WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url.into()))
+            .title("About SyftBox")
             .inner_size(280.0, 450.0)
             .focused(true)
             .maximizable(false)
@@ -386,6 +387,7 @@ fn _show_update_window(
             .into()
             )
         )
+        .title("Updates")
         .inner_size(800.0, 600.0)
         .focused(true)
         .decorations(false)

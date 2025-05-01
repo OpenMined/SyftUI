@@ -198,13 +198,15 @@ dev-daemon:
     import os
     import subprocess
     import sys
+    from pathlib import Path
 
     http_addr = f"{os.environ.get('DAEMON_HOST', 'localhost')}:{os.environ.get('DAEMON_PORT', '7938')}"
 
     try:
         os.chdir('src-daemon')
         cmd = [
-            "air", "--",
+            f"{Path.home()}/go/bin/air",
+            "--",
             "daemon",
             "--http-addr", http_addr,
             "--http-token", os.environ.get("DAEMON_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"),
@@ -721,7 +723,8 @@ _install-os-pre-requisites skip_prerequisites="no":
                         "libayatana-appindicator3-dev", "librsvg2-dev"
                     ]
                     cmd = ["sudo", "apt", "update", "&&", "sudo", "apt", "install", "-y"] + deps
-                    print(" ".join(cmd))
+                    cmd = " ".join(cmd)
+                    print(cmd)
                     subprocess.run(cmd, shell=True, check=True)
 
                 elif distro in ['fedora', 'rhel', 'centos']:
@@ -732,7 +735,8 @@ _install-os-pre-requisites skip_prerequisites="no":
                         "file", "libappindicator-gtk3-devel", "librsvg2-devel"
                     ]
                     cmd = ["sudo", "dnf", "install", "-y"] + deps
-                    print(" ".join(cmd))
+                    cmd = " ".join(cmd)
+                    print(cmd)
                     subprocess.run(cmd, shell=True, check=True)
 
                 elif distro in ['arch', 'manjaro']:
@@ -744,7 +748,8 @@ _install-os-pre-requisites skip_prerequisites="no":
                         "librsvg"
                     ]
                     cmd = ["sudo", "pacman", "-Syu", "--needed"] + deps
-                    print(" ".join(cmd))
+                    cmd = " ".join(cmd)
+                    print(cmd)
                     subprocess.run(cmd, shell=True, check=True)
 
                 else:
@@ -753,7 +758,7 @@ _install-os-pre-requisites skip_prerequisites="no":
                     print("https://tauri.app/start/prerequisites/#linux")
 
             except Exception as e:
-                print(f"{{ _red }}Error detecting Linux distribution: {e}{{ _nc }}")
+                print(f"{{ _red }}Error installing Linux OS dependencies for Tauri: {e}{{ _nc }}")
                 print("Please install Tauri dependencies manually according to:")
                 print("https://tauri.app/start/prerequisites/#linux")
 
