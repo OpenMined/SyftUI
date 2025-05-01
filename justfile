@@ -469,8 +469,8 @@ generate-release-json version upload="no":
             "signature": "SyftBox-x86_64-pc-windows-msvc.msi.sig"
         },
         "linux-x86_64": {
-            "url": "SyftBox-x86_64-unknown-linux-gnu.appimage",
-            "signature": "SyftBox-x86_64-unknown-linux-gnu.appimage.sig"
+            "url": "SyftBox-x86_64-unknown-linux-gnu.AppImage",
+            "signature": "SyftBox-x86_64-unknown-linux-gnu.AppImage.sig"
         }
     }
 
@@ -489,7 +489,7 @@ generate-release-json version upload="no":
             if signature_response.status_code != 200:
                 print(f"{{ _red }}Failed to download signature file from {signature_url}. Skipping {platform} from release.json...{{ _nc }}")
                 continue
-            signature_content = signature_response.content
+            signature_content = signature_response.text
 
             platforms[platform] = {
                 "signature": signature_content,
@@ -507,22 +507,23 @@ generate-release-json version upload="no":
         "platforms": platforms
     }
 
-    with open('release.json', 'w') as f:
-        json.dump(data, f, indent=2)
-
+    json_data = json.dumps(data, indent=2)
     print(f"{{ _green }}Generated release.json:{{ _nc }}")
-    print(json.dumps(data, indent=2))
+    print(json_data)
 
-    if upload == "yes":
+    with open('release.json', 'w') as f:
+        f.write(json_data)
+
+    if "{{ upload }}" == "yes":
         print(f"{{ _green }}Uploading release.json to GitHub...{{ _nc }}")
         run_command(f"gh release upload {version} release.json --clobber")
         print(f"{{ _green }}Release.json uploaded successfully.{{ _nc }}")
 
-    # remove all the .sig files from the release
-    sig_files = [asset for asset in release_info['assets'] if asset['name'].endswith('.sig')]
-    for sig_file in sig_files:
-        run_command(f"gh release delete-asset -y {version} {sig_file['name']}")
-        print(f"{{ _green }}Deleted {sig_file['name']} from the release.{{ _nc }}")
+        # remove all the .sig files from the release
+        sig_files = [asset for asset in release_info['assets'] if asset['name'].endswith('.sig')]
+        for sig_file in sig_files:
+            run_command(f"gh release delete-asset -y {version} {sig_file['name']}")
+            print(f"{{ _green }}Deleted {sig_file['name']} from the release.{{ _nc }}")
 
 # Update version numbers
 [group('utils')]
