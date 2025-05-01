@@ -133,8 +133,13 @@ jobs:
           mkdir -p artifacts
 
           mv src-tauri/target/${{ matrix.args }}/release/bundle/deb/*.deb artifacts/SyftBox-${{ matrix.args }}.deb
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/deb/*.deb.sig artifacts/SyftBox-${{ matrix.args }}.deb.sig
+
           mv src-tauri/target/${{ matrix.args }}/release/bundle/rpm/*.rpm artifacts/SyftBox-${{ matrix.args }}.rpm
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/rpm/*.rpm.sig artifacts/SyftBox-${{ matrix.args }}.rpm.sig
+
           mv src-tauri/target/${{ matrix.args }}/release/bundle/appimage/*.AppImage artifacts/SyftBox-${{ matrix.args }}.AppImage
+          mv src-tauri/target/${{ matrix.args }}/release/bundle/appimage/*.AppImage.sig artifacts/SyftBox-${{ matrix.args }}.AppImage.sig
 
       - name: Setup git config
         env:
