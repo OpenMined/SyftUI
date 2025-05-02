@@ -62,11 +62,12 @@ export const initializationService = {
     if (typeof window === "undefined") return;
     const favorites = [
       { id: "dir-datasites", name: "Datasites", path: ["datasites"] },
-      {
-        id: "folder-9",
-        name: "My datasite",
-        path: ["datasites", "user@example.com"],
-      },
+      // TODO: enable this once we have a way to get user's email
+      // {
+      //   id: "folder-9",
+      //   name: "My datasite",
+      //   path: ["datasites", "user@example.com"],
+      // },
     ];
     localStorage.setItem("syftui-favorites", JSON.stringify(favorites));
   },

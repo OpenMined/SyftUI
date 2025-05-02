@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from "react";
 import {
-  LayoutDashboard,
   Database,
   FolderHeart,
   AppWindow,
-  ShoppingBag,
   ScrollText,
-  Gauge,
   Star,
   ChevronDown,
   ChevronRight,
@@ -122,15 +119,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   };
 
   const mainNavItems = [
-    {
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      action: () => {
-        setActiveItem("Dashboard");
-        router.push("/dashboard/");
-        closeSidebar();
-      },
-    },
+    // TODO: enable features once we implement them, hide for now
+    // {
+    //   icon: LayoutDashboard,
+    //   label: "Dashboard",
+    //   action: () => {
+    //     setActiveItem("Dashboard");
+    //     router.push("/dashboard/");
+    //     closeSidebar();
+    //   },
+    // },
     {
       icon: Database,
       label: "Workspace",
@@ -150,15 +148,15 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         closeSidebar();
       },
     },
-    {
-      icon: ShoppingBag,
-      label: "Marketplace",
-      action: () => {
-        setActiveItem("Marketplace");
-        router.push("/marketplace/");
-        closeSidebar();
-      },
-    },
+    // {
+    //   icon: ShoppingBag,
+    //   label: "Marketplace",
+    //   action: () => {
+    //     setActiveItem("Marketplace");
+    //     router.push("/marketplace/");
+    //     closeSidebar();
+    //   },
+    // },
     {
       icon: ScrollText,
       label: "Logs",
@@ -168,15 +166,15 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         closeSidebar();
       },
     },
-    {
-      icon: Gauge,
-      label: "Diagnostic",
-      action: () => {
-        setActiveItem("Diagnostic");
-        router.push("/diagnostic/");
-        closeSidebar();
-      },
-    },
+    // {
+    //   icon: Gauge,
+    //   label: "Diagnostic",
+    //   action: () => {
+    //     setActiveItem("Diagnostic");
+    //     router.push("/diagnostic/");
+    //     closeSidebar();
+    //   },
+    // },
   ];
 
   const handleProfileClick = () => {
