@@ -34,22 +34,22 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
       read: false,
     },
-    {
-      id: "2",
-      title: "Sync Complete",
-      message: "All files have been synced successfully",
-      type: "success",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      read: true,
-    },
-    {
-      id: "3",
-      title: "Sync Error",
-      message: "Failed to sync 'Project Proposal.pdf'",
-      type: "error",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-      read: false,
-    },
+    // {
+    //   id: "2",
+    //   title: "Sync Complete",
+    //   message: "All files have been synced successfully",
+    //   type: "success",
+    //   timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    //   read: true,
+    // },
+    // {
+    //   id: "3",
+    //   title: "Sync Error",
+    //   message: "Failed to sync 'Project Proposal.pdf'",
+    //   type: "error",
+    //   timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+    //   read: false,
+    // },
   ],
 
   unreadCount: () => {

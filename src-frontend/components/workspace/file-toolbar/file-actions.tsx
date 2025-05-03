@@ -19,6 +19,8 @@ import {
   FilePlus,
   TextCursorInput,
   ChevronDown,
+  Square,
+  CheckSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +67,8 @@ export function FileActions() {
     setSyncDialogOpen,
     viewMode,
     setViewMode,
+    showHiddenFiles,
+    setShowHiddenFiles,
   } = useFileSystemStore();
 
   // Check if any selected items are folders
@@ -395,6 +399,19 @@ export function FileActions() {
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setShowHiddenFiles(!showHiddenFiles)}
+              >
+                <>
+                  {showHiddenFiles ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                  Show Hidden Files
+                </>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -587,6 +604,19 @@ export function FileActions() {
                   Descending
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setShowHiddenFiles(!showHiddenFiles)}
+              >
+                <>
+                  {showHiddenFiles ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                  Show Hidden Files
+                </>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
