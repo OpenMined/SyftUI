@@ -28,6 +28,16 @@ interface WorkspaceItemMoveResponse {
   item: FileSystemItem;
 }
 
+interface WorkspaceItemCopyRequest {
+  sourcePath: string;
+  newPath: string;
+  overwrite?: boolean;
+}
+
+interface WorkspaceItemCopyResponse {
+  item: FileSystemItem;
+}
+
 export async function getWorkspaceItems(
   path: string = "",
   depth: number = 0,
@@ -130,5 +140,37 @@ export async function moveWorkspaceItem(
   }
 
   const data: WorkspaceItemMoveResponse = await response.json();
+  return data.item;
+}
+
+export async function copyWorkspaceItem(
+  sourcePath: string,
+  newPath: string,
+  options: { overwrite?: boolean } = {},
+): Promise<FileSystemItem> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const request: WorkspaceItemCopyRequest = {
+    sourcePath,
+    newPath,
+    overwrite: options.overwrite,
+  };
+
+  const response = await fetch(`${url}/v1/workspace/items/copy`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to copy workspace item: ${response.statusText}`);
+  }
+
+  const data: WorkspaceItemCopyResponse = await response.json();
   return data.item;
 }

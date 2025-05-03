@@ -17,6 +17,7 @@ import {
   createWorkspaceItem,
   deleteWorkspaceItems,
   moveWorkspaceItem,
+  copyWorkspaceItem,
 } from "@/lib/api/workspace";
 import { toast } from "@/hooks/use-toast";
 
@@ -86,9 +87,9 @@ interface FileSystemState {
   processFiles: (files: File[]) => void;
 
   // Clipboard actions
-  cutItems: (itemIds: string[]) => void;
-  copyItems: (itemIds: string[]) => void;
-  pasteItems: () => void;
+  cutItemsToClipboard: (itemIds: string[]) => void;
+  copyItemsToClipboard: (itemIds: string[]) => void;
+  pasteItemsFromClipboard: () => void;
 
   // Navigation
   navigateTo: (path: string[]) => void;
@@ -98,7 +99,8 @@ interface FileSystemState {
   handleCreateFile: (name: string) => Promise<void>;
   handleDelete: (paths: string[]) => Promise<void>;
   handleRename: (itemId: string, newName: string) => void;
-  moveItems: (itemIds: string[], targetPath: string[]) => void;
+  moveItems: (itemIds: string[], targetPath: string[]) => Promise<void>;
+  copyItems: (itemIds: string[], targetPath: string[]) => Promise<void>;
   updatePermissions: (itemId: string, permissions: Permission[]) => void;
   refreshFileSystem: () => Promise<void>;
 
@@ -507,10 +509,9 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
     },
 
     // Clipboard actions
-    cutItems: (itemIds) => {
+    cutItemsToClipboard: (itemIds) => {
       const state = get();
       const { findItemsByIds } = state;
-      const notificationStore = useNotificationStore.getState();
 
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
@@ -527,18 +528,18 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           },
         });
 
-        notificationStore.addNotification({
+        toast({
+          icon: "✂️",
           title: "Items Cut",
-          message: `${allItems.length} item(s) have been cut to clipboard`,
-          type: "info",
+          description: `${allItems.length} item(s) have been cut to the clipboard`,
+          variant: "default",
         });
       }
     },
 
-    copyItems: (itemIds) => {
+    copyItemsToClipboard: (itemIds) => {
       const state = get();
       const { findItemsByIds } = state;
-      const notificationStore = useNotificationStore.getState();
 
       const foundItems = findItemsByIds(itemIds);
       if (foundItems.length > 0) {
@@ -555,58 +556,37 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           },
         });
 
-        notificationStore.addNotification({
+        toast({
+          icon: "📋",
           title: "Items Copied",
-          message: `${allItems.length} item(s) have been copied to clipboard`,
-          type: "info",
+          description: `${allItems.length} item(s) have been copied to the clipboard`,
+          variant: "default",
         });
       }
     },
 
-    pasteItems: () => {
+    pasteItemsFromClipboard: async () => {
       const state = get();
-      const { clipboard, currentPath, deepCloneItems } = state;
-      const notificationStore = useNotificationStore.getState();
+      const { clipboard, copyItems, currentPath, moveItems } = state;
 
       if (!clipboard) return;
 
+      const itemIds = clipboard.items.map((item) => item.id);
+
       if (clipboard.operation === "cut") {
-        const itemIds = clipboard.items.map((item) => item.id);
-        get().moveItems(itemIds, currentPath);
+        await moveItems(itemIds, currentPath);
         set({ clipboard: null });
       } else {
-        const clonedItems = deepCloneItems(clipboard.items);
-
-        const addItems = (
-          items: FileSystemItem[],
-          path: string[],
-          depth: number,
-        ): FileSystemItem[] => {
-          if (depth === path.length) {
-            return [...items, ...clonedItems];
-          }
-
-          return items.map((item) => {
-            if (item.type === "folder" && item.name === path[depth]) {
-              return {
-                ...item,
-                children: addItems(item.children || [], path, depth + 1),
-              };
-            }
-            return item;
-          });
-        };
-
-        set((state) => ({
-          fileSystem: addItems([...state.fileSystem], currentPath, 0),
-        }));
-
-        notificationStore.addNotification({
-          title: "Items Pasted",
-          message: `${clonedItems.length} item(s) have been pasted`,
-          type: "success",
-        });
+        await copyItems(itemIds, currentPath);
+        // Keep clipboard content for potential future pastes
       }
+
+      toast({
+        icon: "📋",
+        title: "Items Pasted",
+        description: `${itemIds.length} item(s) have been pasted from the clipboard`,
+        variant: "default",
+      });
     },
 
     // Navigation
@@ -910,6 +890,59 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
           icon: "⚠️",
           title: "Error Moving Items",
           description: `Failed to move items. Please try again.`,
+          variant: "destructive",
+        });
+      }
+    },
+
+    copyItems: async (itemIds, targetDir) => {
+      try {
+        const state = get();
+        const { refreshFileSystem } = state;
+
+        // Convert target path array to string path
+        const targetDirString =
+          targetDir.length > 0 ? `/${targetDir.join("/")}` : "/";
+
+        // Find all items to copy
+        const itemsToCopy: FileSystemItem[] = [];
+        const findItemsForCopy = (items: FileSystemItem[]) => {
+          for (const item of items) {
+            if (itemIds.includes(item.id)) {
+              itemsToCopy.push(item);
+            }
+
+            if (item.type === "folder" && item.children) {
+              findItemsForCopy(item.children);
+            }
+          }
+        };
+
+        // Populate items to copy
+        findItemsForCopy(state.fileSystem);
+
+        // TODO Optimistically update UI
+
+        // Call the API to copy each item individually
+        for (const item of itemsToCopy) {
+          const baseName = item.name;
+          const newPath = `${targetDirString}/${baseName}`;
+          await copyWorkspaceItem(item.path, newPath);
+        }
+
+        // Refresh to get accurate state
+        await refreshFileSystem();
+      } catch (error) {
+        console.error("Error copying items:", error);
+
+        // Refresh to restore the correct state
+        await get().refreshFileSystem();
+
+        // Show error toast
+        toast({
+          icon: "⚠️",
+          title: "Error Copying Items",
+          description: `Failed to copy items. Please try again.`,
           variant: "destructive",
         });
       }

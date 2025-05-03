@@ -341,9 +341,9 @@ interface FileExplorerItemProps {
   handleDragLeave: () => void;
   handleDrop: (e: React.DragEvent, targetId?: string) => void;
   dropTarget: string | null;
-  cutItems: (ids: string[]) => void;
-  copyItems: (ids: string[]) => void;
-  pasteItems: () => void;
+  cutItemsToClipboard: (ids: string[]) => void;
+  copyItemsToClipboard: (ids: string[]) => void;
+  pasteItemsFromClipboard: () => void;
   clipboard: ClipboardItem | null;
   setDetailsItem: (item: FileSystemItem | null) => void;
   openRenameDialog: (item: FileSystemItem) => void;
@@ -365,9 +365,9 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   handleDragLeave,
   handleDrop,
   dropTarget,
-  cutItems,
-  copyItems,
-  pasteItems,
+  cutItemsToClipboard,
+  copyItemsToClipboard,
+  pasteItemsFromClipboard,
   clipboard,
   setDetailsItem,
   openRenameDialog,
@@ -464,16 +464,16 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
         <ContextMenuItem onClick={() => handleItemDoubleClick(item)}>
           {item.type === "folder" ? "Open" : "Preview"}
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => cutItems([item.id])}>
+        <ContextMenuItem onClick={() => cutItemsToClipboard([item.id])}>
           Cut
           <ContextMenuShortcut>⌘X</ContextMenuShortcut>
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => copyItems([item.id])}>
+        <ContextMenuItem onClick={() => copyItemsToClipboard([item.id])}>
           Copy
           <ContextMenuShortcut>⌘C</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem
-          onClick={pasteItems}
+          onClick={pasteItemsFromClipboard}
           disabled={!clipboard}
           className={
             !clipboard
@@ -598,9 +598,9 @@ export function FileExplorer({
     handleRename,
     setDetailsItem,
     moveItems,
-    cutItems,
-    copyItems,
-    pasteItems,
+    cutItemsToClipboard,
+    copyItemsToClipboard,
+    pasteItemsFromClipboard,
     clipboard,
     handleCreateFolder,
     handleCreateFile,
@@ -906,7 +906,7 @@ export function FileExplorer({
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}
           clipboard={clipboard}
-          pasteItems={pasteItems}
+          pasteItems={pasteItemsFromClipboard}
         />
       </ContextMenu>
     ),
@@ -923,7 +923,7 @@ export function FileExplorer({
       toggleSyncPause,
       syncPaused,
       clipboard,
-      pasteItems,
+      pasteItemsFromClipboard,
       getCurrentDirectoryInfo,
       setSortConfig,
       fsSetViewMode,
@@ -969,9 +969,9 @@ export function FileExplorer({
                     handleDragLeave={handleDragLeave}
                     handleDrop={handleDrop}
                     dropTarget={dropTarget}
-                    cutItems={cutItems}
-                    copyItems={copyItems}
-                    pasteItems={pasteItems}
+                    cutItemsToClipboard={cutItemsToClipboard}
+                    copyItemsToClipboard={copyItemsToClipboard}
+                    pasteItemsFromClipboard={pasteItemsFromClipboard}
                     clipboard={clipboard}
                     setDetailsItem={setDetailsItem}
                     openRenameDialog={openRenameDialog}
@@ -1010,7 +1010,7 @@ export function FileExplorer({
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}
           clipboard={clipboard}
-          pasteItems={pasteItems}
+          pasteItems={pasteItemsFromClipboard}
         />
       </ContextMenu>
 

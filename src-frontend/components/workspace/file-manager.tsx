@@ -24,9 +24,9 @@ export function FileManager() {
   // Stores
   const {
     clipboard,
-    cutItems,
-    copyItems,
-    pasteItems,
+    cutItemsToClipboard,
+    copyItemsToClipboard,
+    pasteItemsFromClipboard,
     fileSystem,
     currentPath,
     selectedItems,
@@ -151,17 +151,23 @@ export function FileManager() {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === "x" && selectedItems.length > 0) {
           e.preventDefault();
-          cutItems(selectedItems);
+          cutItemsToClipboard(selectedItems);
         } else if (e.key === "c" && selectedItems.length > 0) {
           e.preventDefault();
-          copyItems(selectedItems);
+          copyItemsToClipboard(selectedItems);
         } else if (e.key === "v" && clipboard) {
           e.preventDefault();
-          pasteItems();
+          pasteItemsFromClipboard();
         }
       }
     },
-    [selectedItems, clipboard, cutItems, copyItems, pasteItems],
+    [
+      selectedItems,
+      clipboard,
+      cutItemsToClipboard,
+      copyItemsToClipboard,
+      pasteItemsFromClipboard,
+    ],
   );
 
   // Add keyboard event listeners

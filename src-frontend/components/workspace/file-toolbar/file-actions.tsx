@@ -47,9 +47,9 @@ import { FileSystemItem } from "@/lib/types";
 export function FileActions() {
   const {
     clipboard,
-    cutItems,
-    copyItems,
-    pasteItems,
+    cutItemsToClipboard,
+    copyItemsToClipboard,
+    pasteItemsFromClipboard,
     selectedItems,
     handleCreateFolder,
     handleCreateFile,
@@ -269,7 +269,7 @@ export function FileActions() {
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => cutItems(selectedItems)}
+                onClick={() => cutItemsToClipboard(selectedItems)}
                 disabled={selectedItems.length === 0}
                 className={selectedItems.length === 0 ? "opacity-50" : ""}
               >
@@ -278,7 +278,7 @@ export function FileActions() {
                 <DropdownMenuShortcut>⌘X</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => copyItems(selectedItems)}
+                onClick={() => copyItemsToClipboard(selectedItems)}
                 disabled={selectedItems.length === 0}
                 className={selectedItems.length === 0 ? "opacity-50" : ""}
               >
@@ -287,7 +287,7 @@ export function FileActions() {
                 <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={pasteItems}
+                onClick={pasteItemsFromClipboard}
                 disabled={!clipboard}
                 className={!clipboard ? "opacity-50" : ""}
               >
@@ -467,7 +467,7 @@ export function FileActions() {
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => cutItems(selectedItems)}
+                onClick={() => cutItemsToClipboard(selectedItems)}
                 disabled={selectedItems.length === 0}
                 className={selectedItems.length === 0 ? "opacity-50" : ""}
               >
@@ -476,7 +476,7 @@ export function FileActions() {
                 <DropdownMenuShortcut>⌘X</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => copyItems(selectedItems)}
+                onClick={() => copyItemsToClipboard(selectedItems)}
                 disabled={selectedItems.length === 0}
                 className={selectedItems.length === 0 ? "opacity-50" : ""}
               >
@@ -485,7 +485,7 @@ export function FileActions() {
                 <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={pasteItems}
+                onClick={pasteItemsFromClipboard}
                 disabled={!clipboard}
                 className={!clipboard ? "opacity-50" : ""}
               >
