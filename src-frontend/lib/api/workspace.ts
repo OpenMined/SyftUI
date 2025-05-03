@@ -5,17 +5,27 @@ interface WorkspaceItemsResponse {
   items: FileSystemItem[];
 }
 
-interface WorkspaceItemCreateResponse {
-  item: FileSystemItem;
-}
-
 interface WorkspaceItemCreateRequest {
   path: string;
   type: "file" | "folder";
 }
 
+interface WorkspaceItemCreateResponse {
+  item: FileSystemItem;
+}
+
 interface WorkspaceItemDeleteRequest {
   paths: string[];
+}
+
+interface WorkspaceItemMoveRequest {
+  sourcePath: string;
+  destinationPath: string;
+  overwrite?: boolean;
+}
+
+interface WorkspaceItemMoveResponse {
+  item: FileSystemItem;
 }
 
 export async function getWorkspaceItems(
@@ -89,4 +99,36 @@ export async function deleteWorkspaceItems(
   if (!response.ok) {
     throw new Error(`Failed to delete workspace items: ${response.statusText}`);
   }
+}
+
+export async function moveWorkspaceItem(
+  oldPath: string,
+  newPath: string,
+  options: { overwrite?: boolean } = {},
+): Promise<FileSystemItem> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const request: WorkspaceItemMoveRequest = {
+    oldPath,
+    newPath,
+    overwrite: options.overwrite,
+  };
+
+  const response = await fetch(`${url}/v1/workspace/items/move`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to move workspace item: ${response.statusText}`);
+  }
+
+  const data: WorkspaceItemMoveResponse = await response.json();
+  return data.item;
 }

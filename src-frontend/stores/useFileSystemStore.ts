@@ -16,10 +16,10 @@ import {
   getWorkspaceItems,
   createWorkspaceItem,
   deleteWorkspaceItems,
+  moveWorkspaceItem,
 } from "@/lib/api/workspace";
 import { toast } from "@/hooks/use-toast";
 
-const SYNC_DELAY_MS = 1000;
 const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
 
@@ -837,156 +837,80 @@ export const useFileSystemStore = create<FileSystemState>((set, get) => {
       }
     },
 
-    handleRename: (itemId, newName) => {
+    handleRename: async (itemId, newName) => {
       try {
-        const state = get();
-        const { setDetailsItem, findItemById } = state;
-        const notificationStore = useNotificationStore.getState();
+        const { findItemById, refreshFileSystem } = get();
+        const itemPath = findItemById(itemId)?.path;
+        const parentPath = itemPath.split("/").slice(0, -1).join("/");
+        const destinationPath = parentPath + `/${newName}`;
+        console.info(`Renaming ${itemPath} to ${destinationPath}`);
 
-        let oldName = "";
+        // TODO optimistic updates (optimistically rename the item in the UI, and revert if the server call fails)
 
-        const renameItem = (items: FileSystemItem[]): FileSystemItem[] => {
-          return items.map((item) => {
-            if (item.id === itemId) {
-              oldName = item.name;
-              return {
-                ...item,
-                name: newName,
-                modifiedAt: new Date().toISOString(),
-                syncStatus: "pending",
-              };
-            }
-
-            if (item.type === "folder" && item.children) {
-              return {
-                ...item,
-                children: renameItem(item.children),
-              };
-            }
-
-            return item;
-          });
-        };
-
-        set((state) => ({ fileSystem: renameItem(state.fileSystem) }));
-
-        const detailsItem = findItemById(itemId);
-        if (detailsItem && detailsItem.id === itemId) {
-          setDetailsItem({
-            ...detailsItem,
-            name: newName,
-            modifiedAt: new Date().toISOString(),
-            syncStatus: "pending",
-          });
-        }
-
-        setTimeout(() => {
-          state.updateSyncStatus(itemId, "syncing");
-
-          setTimeout(() => {
-            state.updateSyncStatus(itemId, "synced");
-            notificationStore.addNotification({
-              title: "Item Renamed",
-              message: `"${oldName}" has been renamed to "${newName}"`,
-              type: "success",
-            });
-          }, SYNC_COMPLETION_MS);
-        }, SYNC_DELAY_MS);
+        await moveWorkspaceItem(itemPath, destinationPath);
+        await refreshFileSystem();
       } catch (error) {
         console.error("Error renaming item:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
+
+        // Show error notification
+        toast({
+          icon: "⚠️",
           title: "Error Renaming Item",
-          message: "Failed to rename item. Please try again.",
-          type: "error",
+          description: `Failed to rename item. ${error}`,
+          variant: "destructive",
         });
       }
     },
 
-    moveItems: (itemIds, targetPath) => {
+    moveItems: async (itemIds, targetDir) => {
       try {
         const state = get();
-        const { setDetailsItem, updateSyncStatus } = state;
-        const notificationStore = useNotificationStore.getState();
+        const { refreshFileSystem } = state;
 
+        // Convert target path array to string path
+        const targetDirString =
+          targetDir.length > 0 ? `/${targetDir.join("/")}` : "/";
+
+        // Find all items to move
         const itemsToMove: FileSystemItem[] = [];
-
-        const removeItems = (
-          items: FileSystemItem[],
-          path: string[] = [],
-        ): FileSystemItem[] => {
-          const remainingItems = items.filter((item) => {
+        const findItemsForMove = (items: FileSystemItem[]) => {
+          for (const item of items) {
             if (itemIds.includes(item.id)) {
-              itemsToMove.push({ ...item, syncStatus: "pending" });
-              sourcePath = path;
-              return false;
+              itemsToMove.push(item);
             }
-            return true;
-          });
 
-          return remainingItems.map((item) => {
             if (item.type === "folder" && item.children) {
-              return {
-                ...item,
-                children: removeItems(item.children, [...path, item.name]),
-              };
+              findItemsForMove(item.children);
             }
-            return item;
-          });
-        };
-
-        const addItems = (
-          items: FileSystemItem[],
-          path: string[],
-          depth: number,
-        ): FileSystemItem[] => {
-          if (depth === path.length) {
-            return [...items, ...itemsToMove];
           }
-
-          return items.map((item) => {
-            if (item.type === "folder" && item.name === path[depth]) {
-              return {
-                ...item,
-                children: addItems(item.children || [], path, depth + 1),
-              };
-            }
-            return item;
-          });
         };
 
-        set((state) => {
-          const newFileSystem = removeItems([...state.fileSystem]);
-          return { fileSystem: addItems(newFileSystem, targetPath, 0) };
-        });
+        // Populate items to move
+        findItemsForMove(state.fileSystem);
 
-        const detailsItem = state.detailsItem;
-        if (detailsItem && itemIds.includes(detailsItem.id)) {
-          setDetailsItem(null);
+        // TODO Optimistically update UI
+
+        // Call the API to move each item individually
+        for (const item of itemsToMove) {
+          const baseName = item.name;
+          const newPath = targetDirString.trimEnd("/") + "/" + baseName;
+          await moveWorkspaceItem(item.path, newPath);
         }
 
-        itemsToMove.forEach((item) => {
-          setTimeout(() => {
-            updateSyncStatus(item.id, "syncing");
-
-            setTimeout(() => {
-              updateSyncStatus(item.id, "synced");
-            }, SYNC_COMPLETION_MS);
-          }, SYNC_DELAY_MS);
-        });
-
-        notificationStore.addNotification({
-          title: "Items Moved",
-          message: `${itemsToMove.length} item(s) have been moved`,
-          type: "success",
-        });
+        // Refresh to get accurate state
+        await refreshFileSystem();
       } catch (error) {
         console.error("Error moving items:", error);
-        const notificationStore = useNotificationStore.getState();
-        notificationStore.addNotification({
+
+        // Refresh to restore the correct state
+        await get().refreshFileSystem();
+
+        // Show error toast
+        toast({
+          icon: "⚠️",
           title: "Error Moving Items",
-          message: "Failed to move items. Please try again.",
-          type: "error",
+          description: `Failed to move items. Please try again.`,
+          variant: "destructive",
         });
       }
     },
