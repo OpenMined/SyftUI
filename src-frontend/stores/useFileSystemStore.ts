@@ -58,6 +58,10 @@ interface FileSystemState {
     items?: FileSystemItem[],
     path?: string[],
   ) => { items: FileSystemItem[]; path: string[] }[];
+  findItemByPath: (
+    path: string,
+    items?: FileSystemItem[],
+  ) => FileSystemItem | null;
   deepCloneItems: (items: FileSystemItem[]) => FileSystemItem[];
 
   // Actions
@@ -170,6 +174,20 @@ export const useFileSystemStore = create<FileSystemState>(
           }
         }
         return result;
+      },
+
+      findItemByPath: (path, items = get().fileSystem) => {
+        for (const item of items) {
+          if (item.path === path) {
+            return item;
+          }
+
+          if (item.type === "folder" && item.children) {
+            const found = get().findItemByPath(path, item.children);
+            if (found) return found;
+          }
+        }
+        return null;
       },
 
       deepCloneItems: (items) => {
@@ -608,9 +626,11 @@ export const useFileSystemStore = create<FileSystemState>(
 
       // File operations implementations
       handleCreateFolder: async (name) => {
+        const isCreatedAtCurrentPath = !name.includes("/");
+
         try {
           const state = get();
-          const { currentPath, refreshFileSystem } = state;
+          const { currentPath, findItemByPath, refreshFileSystem } = state;
 
           // Build the full path for the new folder
           const folderPath =
@@ -618,7 +638,17 @@ export const useFileSystemStore = create<FileSystemState>(
               ? `/${name}`
               : `/${currentPath.join("/")}/${name}`;
 
-          const isCreatedAtCurrentPath = !name.includes("/");
+          // Check if the folder already exists
+          const existingItem = findItemByPath(folderPath);
+          if (existingItem) {
+            toast({
+              icon: "⚠️",
+              title: "Item already exists",
+              description: `The name "${name}" is already taken. Please choose a different name.`,
+              variant: "destructive",
+            });
+            return;
+          }
 
           if (isCreatedAtCurrentPath) {
             // Create optimistic folder item
@@ -687,16 +717,18 @@ export const useFileSystemStore = create<FileSystemState>(
           toast({
             icon: "⚠️",
             title: "Error Creating Folder",
-            description: `Failed to create folder "${name}". Please try again.`,
+            description: `Failed to create folder "${name}". ${error}`,
             variant: "destructive",
           });
         }
       },
 
       handleCreateFile: async (name) => {
+        const isCreatedAtCurrentPath = !name.includes("/");
+
         try {
           const state = get();
-          const { currentPath, refreshFileSystem } = state;
+          const { currentPath, findItemByPath, refreshFileSystem } = state;
 
           // Build the full path for the new file
           const filePath =
@@ -704,7 +736,17 @@ export const useFileSystemStore = create<FileSystemState>(
               ? `/${name}`
               : `/${currentPath.join("/")}/${name}`;
 
-          const isCreatedAtCurrentPath = !name.includes("/");
+          // Check if the file already exists
+          const existingItem = findItemByPath(filePath);
+          if (existingItem) {
+            toast({
+              icon: "⚠️",
+              title: "Item already exists",
+              description: `The name "${name}" is already taken. Please choose a different name.`,
+              variant: "destructive",
+            });
+            return;
+          }
 
           if (isCreatedAtCurrentPath) {
             // Create optimistic file item
@@ -777,7 +819,7 @@ export const useFileSystemStore = create<FileSystemState>(
           toast({
             icon: "⚠️",
             title: "Error Creating File",
-            description: `Failed to create file "${name}". Please try again.`,
+            description: `Failed to create file "${name}". ${error}`,
             variant: "destructive",
           });
         }
@@ -821,7 +863,7 @@ export const useFileSystemStore = create<FileSystemState>(
           // Show error toast
           toast({
             title: "Error Deleting Items",
-            description: "Failed to delete items. Please try again.",
+            description: `Failed to delete items. ${error}`,
             variant: "destructive",
           });
         }
@@ -829,11 +871,23 @@ export const useFileSystemStore = create<FileSystemState>(
 
       handleRename: async (itemId, newName) => {
         try {
-          const { findItemById, refreshFileSystem } = get();
+          const { findItemById, findItemByPath, refreshFileSystem } = get();
           const itemPath = findItemById(itemId)?.path;
           const parentPath = itemPath.split("/").slice(0, -1).join("/");
           const destinationPath = parentPath + `/${newName}`;
           console.info(`Renaming ${itemPath} to ${destinationPath}`);
+
+          // Check if the item already exists
+          const existingItem = findItemByPath(destinationPath);
+          if (existingItem) {
+            toast({
+              icon: "⚠️",
+              title: "Item already exists",
+              description: `The name "${newName}" is already taken. Please choose a different name.`,
+              variant: "destructive",
+            });
+            return;
+          }
 
           // TODO optimistic updates (optimistically rename the item in the UI, and revert if the server call fails)
 
@@ -899,7 +953,7 @@ export const useFileSystemStore = create<FileSystemState>(
           toast({
             icon: "⚠️",
             title: "Error Moving Items",
-            description: `Failed to move items. Please try again.`,
+            description: `Failed to move items. ${error}`,
             variant: "destructive",
           });
         }
@@ -952,7 +1006,7 @@ export const useFileSystemStore = create<FileSystemState>(
           toast({
             icon: "⚠️",
             title: "Error Copying Items",
-            description: `Failed to copy items. Please try again.`,
+            description: `Failed to copy items. ${error}`,
             variant: "destructive",
           });
         }
@@ -1011,7 +1065,7 @@ export const useFileSystemStore = create<FileSystemState>(
           const notificationStore = useNotificationStore.getState();
           notificationStore.addNotification({
             title: "Error Updating Permissions",
-            message: "Failed to update permissions. Please try again.",
+            message: `Failed to update permissions. ${error}`,
             type: "error",
           });
         }
@@ -1019,18 +1073,15 @@ export const useFileSystemStore = create<FileSystemState>(
 
       // Helper methods
       getCurrentItems: () => {
-        const { fileSystem, currentPath, showHiddenFiles } = get();
+        const { fileSystem, currentPath, showHiddenFiles, findItemByPath } =
+          get();
 
         let items = [];
 
         if (currentPath.length === 0) {
           items = fileSystem;
         } else {
-          const folder = fileSystem.find(
-            (item) =>
-              item.type === "folder" &&
-              item.path === `/${currentPath.join("/")}`,
-          );
+          const folder = findItemByPath(`/${currentPath.join("/")}`);
 
           if (!folder) {
             return [];
@@ -1047,7 +1098,7 @@ export const useFileSystemStore = create<FileSystemState>(
       },
 
       getCurrentDirectoryInfo: () => {
-        const { fileSystem, currentPath, getCurrentItems } = get();
+        const { currentPath, findItemByPath, getCurrentItems } = get();
 
         if (currentPath.length === 0) {
           return {
@@ -1065,10 +1116,7 @@ export const useFileSystemStore = create<FileSystemState>(
           };
         }
 
-        const currentDir = fileSystem.find(
-          (item) =>
-            item.type === "folder" && item.path === `/${currentPath.join("/")}`,
-        );
+        const currentDir = findItemByPath(`/${currentPath.join("/")}`);
         return currentDir;
       },
 
