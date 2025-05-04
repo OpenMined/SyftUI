@@ -185,9 +185,9 @@ dev:
             "--kill-others",
             "--success", "first",
             "--prefix", "name",
-            "--names", "  DAEMON , FRONTEND ,  DESKTOP ",
+            '--names="  DAEMON , FRONTEND ,  DESKTOP "',
             "--prefix-colors", "red,yellow,green",
-            "just dev-daemon", "just dev-frontend", "just dev-desktop"
+            '"just dev-daemon"', '"just dev-frontend"', '"just dev-desktop"'
         ], env=env, check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
@@ -196,23 +196,28 @@ dev:
 dev-daemon:
     #!/usr/bin/env python
     import os
+    import shutil
     import subprocess
     import sys
     from pathlib import Path
 
     http_addr = f"{os.environ.get('DAEMON_HOST', 'localhost')}:{os.environ.get('DAEMON_PORT', '7938')}"
+    http_token = f"{os.environ.get('DAEMON_TOKEN', 'SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS')}"
+
+    air_path = shutil.which("air")
+    if not Path(air_path).exists():
+        print(f"{{ _red }}Air not found at {air_path}.{{ _nc }}")
+        print(f"{{ _yellow }}Please install Air using:{{ _nc }}")
+        print(f"{{ _yellow }}go install github.com/cosmtrek/air@latest{{ _nc }}")
+        sys.exit(1)
+
+    exec_path_unix = "tmp/main" + (".exe" if os.name == "nt" else "")
+    exec_path_with_os_sep = str(Path(exec_path_unix))  # uses backslash separator on windows
+    air_cmd = f'air -build.cmd "just build-client-target && cp .out/syftbox_client_`go env GOOS`_`go env GOARCH` {exec_path_unix}" -build.bin "{exec_path_with_os_sep}" -- daemon --http-addr {http_addr} --http-token {http_token} --http-swagger'
 
     try:
-        os.chdir('src-daemon')
-        cmd = [
-            f"{Path.home()}/go/bin/air",
-            "--",
-            "daemon",
-            "--http-addr", http_addr,
-            "--http-token", os.environ.get("DAEMON_TOKEN", "SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS"),
-            "--http-swagger"
-        ]
-        subprocess.run(cmd, check=True)
+        cmd = ["sh", "-c", air_cmd]
+        subprocess.run(cmd, cwd="src-daemon", check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
