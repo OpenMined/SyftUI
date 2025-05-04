@@ -9,39 +9,28 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileIcon } from "@/components/workspace/file-icon";
-import type { FileSystemItem } from "@/lib/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { formatFileSize } from "@/lib/utils";
+import { useState } from "react";
+import { useConflictDialogStore } from "@/stores/useConflictDialogStore";
 
-interface ConflictItem {
-  file: File;
-  existingItem: FileSystemItem;
-  path: string[];
-}
+export function FileConflictDialog() {
+  const { conflicts, isOpen, closeDialog, currentIndex, handleResolution } =
+    useConflictDialogStore();
+  const [applyToAll, setApplyToAll] = useState(false);
 
-interface FileConflictDialogProps {
-  conflicts: ConflictItem[];
-  onResolve: (
-    resolution: "replace" | "rename" | "skip",
-    conflict: ConflictItem,
-  ) => void;
-  onApplyToAll: (resolution: "replace" | "rename" | "skip") => void;
-  onCancel: () => void;
-}
-
-export function FileConflictDialog({
-  conflicts,
-  onResolve,
-  onApplyToAll,
-  onCancel,
-}: FileConflictDialogProps) {
-  const currentConflict = conflicts[0];
+  const currentConflict = conflicts[currentIndex];
 
   if (!currentConflict) return null;
 
-  const extension = currentConflict.file.name.split(".").pop()?.toLowerCase();
+  const extension = currentConflict.existingItem.name
+    .split(".")
+    .pop()
+    ?.toLowerCase();
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>File Already Exists</DialogTitle>
@@ -54,10 +43,10 @@ export function FileConflictDialog({
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">
-                {currentConflict.file.name}
+                {currentConflict.existingItem.name}
               </p>
               <p className="text-muted-foreground text-sm">
-                {formatFileSize(currentConflict.file.size)}
+                {formatFileSize(currentConflict.existingItem.size)}
               </p>
             </div>
           </div>
@@ -69,8 +58,8 @@ export function FileConflictDialog({
 
           {conflicts.length > 1 && (
             <p className="text-muted-foreground mb-4 text-sm">
-              {conflicts.length} conflicts found. Resolving 1 of{" "}
-              {conflicts.length}.
+              {conflicts.length} conflicts found. Resolving {currentIndex + 1}{" "}
+              of {conflicts.length}.
             </p>
           )}
         </div>
@@ -80,38 +69,38 @@ export function FileConflictDialog({
             <Button
               variant="outline"
               className="justify-start font-normal"
-              onClick={() => onResolve("replace", currentConflict)}
+              onClick={() => handleResolution("replace", applyToAll)}
             >
               Replace the existing file
             </Button>
             <Button
               variant="outline"
               className="justify-start font-normal"
-              onClick={() => onResolve("rename", currentConflict)}
+              onClick={() => handleResolution("rename", applyToAll)}
             >
               Keep both files (rename the new file)
             </Button>
             <Button
               variant="outline"
               className="justify-start font-normal"
-              onClick={() => onResolve("skip", currentConflict)}
+              onClick={() => handleResolution("skip", applyToAll)}
             >
               Skip this file
             </Button>
           </div>
 
           {conflicts.length > 1 && (
-            <div className="mt-2 flex w-full justify-between border-t pt-2">
-              <Button variant="ghost" size="sm" onClick={onCancel}>
-                Cancel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onApplyToAll("replace")}
-              >
-                Apply to all conflicts
-              </Button>
+            <div className="mt-2 flex w-full items-center justify-between border-t pt-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="apply-to-all"
+                  checked={applyToAll}
+                  onCheckedChange={(checked) => setApplyToAll(checked === true)}
+                />
+                <Label htmlFor="apply-to-all">
+                  Apply to all remaining conflicts
+                </Label>
+              </div>
             </div>
           )}
         </DialogFooter>

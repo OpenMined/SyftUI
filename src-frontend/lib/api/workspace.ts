@@ -20,7 +20,7 @@ interface WorkspaceItemDeleteRequest {
 
 interface WorkspaceItemMoveRequest {
   sourcePath: string;
-  destinationPath: string;
+  newPath: string;
   overwrite?: boolean;
 }
 
@@ -36,6 +36,12 @@ interface WorkspaceItemCopyRequest {
 
 interface WorkspaceItemCopyResponse {
   item: FileSystemItem;
+}
+
+interface WorkspaceConflictError {
+  errorCode: string;
+  error: string;
+  existingItem: FileSystemItem;
 }
 
 export async function getWorkspaceItems(
@@ -112,16 +118,16 @@ export async function deleteWorkspaceItems(
 }
 
 export async function moveWorkspaceItem(
-  oldPath: string,
+  sourcePath: string,
   newPath: string,
   options: { overwrite?: boolean } = {},
-): Promise<FileSystemItem> {
+): Promise<{ item: FileSystemItem; isConflict: boolean }> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
 
   const request: WorkspaceItemMoveRequest = {
-    oldPath,
+    sourcePath,
     newPath,
     overwrite: options.overwrite,
   };
@@ -135,19 +141,24 @@ export async function moveWorkspaceItem(
     body: JSON.stringify(request),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to move workspace item: ${response.statusText}`);
+  if (response.ok) {
+    const data: WorkspaceItemMoveResponse = await response.json();
+    return { item: data.item, isConflict: false };
   }
 
-  const data: WorkspaceItemMoveResponse = await response.json();
-  return data.item;
+  if (response.status === 409) {
+    const data: WorkspaceConflictError = await response.json();
+    return { item: data.existingItem, isConflict: true };
+  }
+
+  throw new Error(`Failed to move workspace item: ${response.statusText}`);
 }
 
 export async function copyWorkspaceItem(
   sourcePath: string,
   newPath: string,
   options: { overwrite?: boolean } = {},
-): Promise<FileSystemItem> {
+): Promise<{ item: FileSystemItem; isConflict: boolean }> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
@@ -167,10 +178,15 @@ export async function copyWorkspaceItem(
     body: JSON.stringify(request),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to copy workspace item: ${response.statusText}`);
+  if (response.ok) {
+    const data: WorkspaceItemCopyResponse = await response.json();
+    return { item: data.item, isConflict: false };
   }
 
-  const data: WorkspaceItemCopyResponse = await response.json();
-  return data.item;
+  if (response.status === 409) {
+    const data: WorkspaceConflictError = await response.json();
+    return { item: data.existingItem, isConflict: true };
+  }
+
+  throw new Error(`Failed to copy workspace item: ${response.statusText}`);
 }

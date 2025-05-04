@@ -45,10 +45,7 @@ export function FileManager() {
     syncPaused,
     setSyncPaused,
     uploads,
-    conflicts,
     handleExternalFileDrop,
-    handleConflictResolution,
-    handleApplyToAll,
     clearUpload,
   } = useFileSystemStore();
 
@@ -312,14 +309,7 @@ export function FileManager() {
         )}
       </AnimatePresence>
 
-      <FileConflictDialog
-        conflicts={conflicts}
-        onResolve={handleConflictResolution}
-        onCancel={() => {
-          /* Handle cancel */
-        }}
-        onApplyToAll={handleApplyToAll}
-      />
+      <FileConflictDialog />
 
       <SyncStatusDialog
         open={syncDialogOpen}

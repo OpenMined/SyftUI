@@ -21,6 +21,7 @@ import {
   copyWorkspaceItem,
 } from "@/lib/api/workspace";
 import { toast } from "@/hooks/use-toast";
+import { useConflictDialogStore } from "@/stores/useConflictDialogStore";
 
 const SYNC_COMPLETION_MS = 2000;
 const NOTIFICATION_DELAY_MS = 5000;
@@ -43,7 +44,6 @@ interface FileSystemState {
 
   // Upload state
   uploads: UploadItem[];
-  conflicts: ConflictItem[];
 
   // Clipboard state
   clipboard: ClipboardItem | null;
@@ -85,13 +85,7 @@ interface FileSystemState {
 
   // Upload actions
   handleExternalFileDrop: (files: FileList) => void;
-  handleConflictResolution: (
-    resolution: "replace" | "rename" | "skip",
-    conflict: ConflictItem,
-  ) => void;
-  handleApplyToAll: (resolution: "replace" | "rename" | "skip") => void;
   clearUpload: (id: string) => void;
-  processFiles: (files: File[]) => void;
 
   // Clipboard actions
   cutItemsToClipboard: (itemIds: string[]) => void;
@@ -106,8 +100,16 @@ interface FileSystemState {
   handleCreateFile: (name: string) => Promise<void>;
   handleDelete: (paths: string[]) => Promise<void>;
   handleRename: (itemId: string, newName: string) => void;
-  moveItems: (itemIds: string[], targetPath: string[]) => Promise<void>;
-  copyItems: (itemIds: string[], targetPath: string[]) => Promise<void>;
+  moveItems: (
+    itemIds: string[],
+    targetPath: string,
+    overwrite?: boolean,
+  ) => Promise<void>;
+  copyItems: (
+    itemIds: string[],
+    targetPath: string,
+    overwrite?: boolean,
+  ) => Promise<void>;
   updatePermissions: (itemId: string, permissions: Permission[]) => void;
   refreshFileSystem: () => Promise<void>;
 
@@ -137,7 +139,6 @@ export const useFileSystemStore = create<FileSystemState>(
 
       // Upload state
       uploads: [],
-      conflicts: [],
 
       // Clipboard state
       clipboard: null,
@@ -316,214 +317,8 @@ export const useFileSystemStore = create<FileSystemState>(
         });
       },
 
-      // Upload actions
-      processFiles: (files) => {
-        const state = get();
-        const { currentPath, updateSyncStatus } = state;
-        const notificationStore = useNotificationStore.getState();
-
-        const uploadItems: UploadItem[] = files.map((file) => ({
-          id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          name: file.name,
-          progress: 0,
-          size: file.size,
-          status: "uploading",
-        }));
-
-        set((state) => ({ uploads: [...state.uploads, ...uploadItems] }));
-
-        uploadItems.forEach((item) => {
-          const interval = setInterval(() => {
-            set((state) => ({
-              uploads: state.uploads.map((upload) => {
-                if (upload.id === item.id) {
-                  const newProgress = Math.min(upload.progress + 10, 100);
-                  if (newProgress === 100) {
-                    clearInterval(interval);
-                    return {
-                      ...upload,
-                      progress: newProgress,
-                      status: "completed",
-                    };
-                  }
-                  return { ...upload, progress: newProgress };
-                }
-                return upload;
-              }),
-            }));
-          }, 300);
-        });
-
-        const newFiles: FileSystemItem[] = files.map((file) => ({
-          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          name: file.name,
-          type: "file",
-          size: file.size,
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          syncStatus: "pending",
-        }));
-
-        const addFiles = (
-          items: FileSystemItem[],
-          path: string[],
-          depth: number,
-        ): FileSystemItem[] => {
-          if (depth === path.length) {
-            return [...items, ...newFiles];
-          }
-
-          return items.map((item) => {
-            if (item.type === "folder" && item.name === path[depth]) {
-              return {
-                ...item,
-                children: addFiles(item.children || [], path, depth + 1),
-              };
-            }
-            return item;
-          });
-        };
-
-        set((state) => ({
-          fileSystem: addFiles([...state.fileSystem], currentPath, 0),
-        }));
-
-        newFiles.forEach((file) => {
-          setTimeout(() => {
-            updateSyncStatus(file.id, "syncing");
-
-            setTimeout(() => {
-              updateSyncStatus(file.id, "synced");
-            }, 2000);
-          }, 1000);
-        });
-
-        setTimeout(() => {
-          set((state) => ({
-            uploads: state.uploads.filter(
-              (upload) => upload.status !== "completed",
-            ),
-          }));
-        }, 5000);
-
-        notificationStore.addNotification({
-          title: "Files Uploaded",
-          message: `${files.length} file(s) have been uploaded`,
-          type: "success",
-        });
-      },
-
       handleExternalFileDrop: (files) => {
-        const state = get();
-        const { processFiles } = state;
-        const currentItems = state.getCurrentItems();
-        const conflictsList: ConflictItem[] = [];
-        const nonConflictingFiles: File[] = [];
-
-        Array.from(files).forEach((file) => {
-          const existingItem = currentItems.find(
-            (item) => item.name === file.name,
-          );
-          if (existingItem) {
-            conflictsList.push({
-              file,
-              existingItem,
-              path: state.currentPath,
-            });
-          } else {
-            nonConflictingFiles.push(file);
-          }
-        });
-
-        if (conflictsList.length > 0) {
-          set({ conflicts: conflictsList });
-        }
-
-        if (nonConflictingFiles.length > 0) {
-          processFiles(nonConflictingFiles);
-        }
-      },
-
-      handleConflictResolution: (resolution, conflict) => {
-        const state = get();
-        const { processFiles } = state;
-
-        if (resolution === "replace") {
-          set((state) => {
-            const deleteFile = (items: FileSystemItem[]): FileSystemItem[] => {
-              return items
-                .filter((item) => item.id !== conflict.existingItem.id)
-                .map((item) => {
-                  if (item.type === "folder" && item.children) {
-                    return {
-                      ...item,
-                      children: deleteFile(item.children),
-                    };
-                  }
-                  return item;
-                });
-            };
-            return { fileSystem: deleteFile([...state.fileSystem]) };
-          });
-
-          processFiles([conflict.file]);
-        } else if (resolution === "rename") {
-          const nameParts = conflict.file.name.split(".");
-          const extension = nameParts.length > 1 ? nameParts.pop() : "";
-          const baseName = nameParts.join(".");
-          const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
-
-          const newFile = new File([conflict.file], newName, {
-            type: conflict.file.type,
-          });
-          processFiles([newFile]);
-        }
-
-        set((state) => ({
-          conflicts: state.conflicts.filter((c) => c.file !== conflict.file),
-        }));
-      },
-
-      handleApplyToAll: (resolution) => {
-        const state = get();
-        const { conflicts, processFiles } = state;
-
-        if (resolution === "replace") {
-          const itemIds = conflicts.map((conflict) => conflict.existingItem.id);
-
-          set((state) => {
-            const deleteFiles = (items: FileSystemItem[]): FileSystemItem[] => {
-              return items
-                .filter((item) => !itemIds.includes(item.id))
-                .map((item) => {
-                  if (item.type === "folder" && item.children) {
-                    return {
-                      ...item,
-                      children: deleteFiles(item.children),
-                    };
-                  }
-                  return item;
-                });
-            };
-            return { fileSystem: deleteFiles([...state.fileSystem]) };
-          });
-
-          const files = conflicts.map((conflict) => conflict.file);
-          processFiles(files);
-        } else if (resolution === "rename") {
-          const files = conflicts.map((conflict) => {
-            const nameParts = conflict.file.name.split(".");
-            const extension = nameParts.length > 1 ? nameParts.pop() : "";
-            const baseName = nameParts.join(".");
-            const newName = `${baseName} (copy)${extension ? `.${extension}` : ""}`;
-            return new File([conflict.file], newName, {
-              type: conflict.file.type,
-            });
-          });
-          processFiles(files);
-        }
-
-        set({ conflicts: [] });
+        console.log("handleExternalFileDrop", files);
       },
 
       clearUpload: (id) => {
@@ -906,7 +701,7 @@ export const useFileSystemStore = create<FileSystemState>(
         }
       },
 
-      moveItems: async (itemIds, targetDir) => {
+      moveItems: async (itemIds, targetDir, overwrite = false) => {
         try {
           const state = get();
           const { refreshFileSystem } = state;
@@ -932,13 +727,84 @@ export const useFileSystemStore = create<FileSystemState>(
           // Populate items to move
           findItemsForMove(state.fileSystem);
 
-          // TODO Optimistically update UI
-
           // Call the API to move each item individually
+          const conflictsList: ConflictItem[] = [];
+
           for (const item of itemsToMove) {
             const baseName = item.name;
             const newPath = targetDirString.trimEnd("/") + "/" + baseName;
-            await moveWorkspaceItem(item.path, newPath);
+            const { item: result, isConflict } = await moveWorkspaceItem(
+              item.path,
+              newPath,
+              {
+                overwrite,
+              },
+            );
+
+            if (isConflict) {
+              conflictsList.push({
+                operation: "move",
+                sourceItem: item,
+                existingItem: result,
+              });
+            }
+          }
+
+          if (conflictsList.length > 0) {
+            const conflictResponses = await useConflictDialogStore
+              .getState()
+              .showConflicts(conflictsList);
+            for (const conflict of conflictResponses) {
+              if (conflict.resolution === "skip") {
+                continue;
+              }
+
+              if (conflict.resolution === "replace") {
+                await moveWorkspaceItem(
+                  conflict.conflict.sourceItem.path,
+                  conflict.conflict.existingItem.path,
+                  { overwrite: true },
+                );
+              }
+
+              if (conflict.resolution === "rename") {
+                const nameParts = conflict.conflict.sourceItem.name.split(".");
+                const extension = nameParts.length > 1 ? nameParts.pop() : "";
+                const parentPath = conflict.conflict.existingItem.path
+                  .split("/")
+                  .slice(0, -1)
+                  .join("/");
+                const baseName = nameParts.join(".");
+
+                // Find the next available number for the copy
+                let copyNumber = 1;
+                let newName = `${baseName} copy`;
+                let newPath =
+                  parentPath +
+                  "/" +
+                  newName +
+                  (extension ? `.${extension}` : "");
+
+                // Keep trying until we find an available name
+                while (true) {
+                  const { isConflict } = await moveWorkspaceItem(
+                    conflict.conflict.sourceItem.path,
+                    newPath,
+                    { overwrite: false },
+                  );
+
+                  if (!isConflict) break;
+
+                  copyNumber++;
+                  newName = `${baseName} copy ${copyNumber}`;
+                  newPath =
+                    parentPath +
+                    "/" +
+                    newName +
+                    (extension ? `.${extension}` : "");
+                }
+              }
+            }
           }
 
           // Refresh to get accurate state
@@ -959,7 +825,7 @@ export const useFileSystemStore = create<FileSystemState>(
         }
       },
 
-      copyItems: async (itemIds, targetDir) => {
+      copyItems: async (itemIds, targetDir, overwrite = false) => {
         try {
           const state = get();
           const { refreshFileSystem } = state;
@@ -985,13 +851,84 @@ export const useFileSystemStore = create<FileSystemState>(
           // Populate items to copy
           findItemsForCopy(state.fileSystem);
 
-          // TODO Optimistically update UI
-
           // Call the API to copy each item individually
+          const conflictsList: ConflictItem[] = [];
+
           for (const item of itemsToCopy) {
             const baseName = item.name;
             const newPath = `${targetDirString}/${baseName}`;
-            await copyWorkspaceItem(item.path, newPath);
+            const { item: result, isConflict } = await copyWorkspaceItem(
+              item.path,
+              newPath,
+              {
+                overwrite,
+              },
+            );
+
+            if (isConflict) {
+              conflictsList.push({
+                operation: "copy",
+                sourceItem: item,
+                existingItem: result,
+              });
+            }
+          }
+
+          if (conflictsList.length > 0) {
+            const conflictResponses = await useConflictDialogStore
+              .getState()
+              .showConflicts(conflictsList);
+            for (const conflict of conflictResponses) {
+              if (conflict.resolution === "skip") {
+                continue;
+              }
+
+              if (conflict.resolution === "replace") {
+                await copyWorkspaceItem(
+                  conflict.conflict.sourceItem.path,
+                  conflict.conflict.existingItem.path,
+                  { overwrite: true },
+                );
+              }
+
+              if (conflict.resolution === "rename") {
+                const nameParts = conflict.conflict.sourceItem.name.split(".");
+                const extension = nameParts.length > 1 ? nameParts.pop() : "";
+                const parentPath = conflict.conflict.existingItem.path
+                  .split("/")
+                  .slice(0, -1)
+                  .join("/");
+                const baseName = nameParts.join(".");
+
+                // Find the next available number for the copy
+                let copyNumber = 1;
+                let newName = `${baseName} copy`;
+                let newPath =
+                  parentPath +
+                  "/" +
+                  newName +
+                  (extension ? `.${extension}` : "");
+
+                // Keep trying until we find an available name
+                while (true) {
+                  const { isConflict } = await copyWorkspaceItem(
+                    conflict.conflict.sourceItem.path,
+                    newPath,
+                    { overwrite: false },
+                  );
+
+                  if (!isConflict) break;
+
+                  copyNumber++;
+                  newName = `${baseName} copy ${copyNumber}`;
+                  newPath =
+                    parentPath +
+                    "/" +
+                    newName +
+                    (extension ? `.${extension}` : "");
+                }
+              }
+            }
           }
 
           // Refresh to get accurate state

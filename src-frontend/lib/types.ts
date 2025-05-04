@@ -48,9 +48,9 @@ export interface UploadItem {
 }
 
 export interface ConflictItem {
-  file: File;
+  operation: "move" | "copy";
+  sourceItem: FileSystemItem;
   existingItem: FileSystemItem;
-  path: string[];
 }
 
 export interface ClipboardItem {
