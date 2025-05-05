@@ -30,7 +30,7 @@ interface EmailStepProps {
 }
 
 export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
-  const { control, getValues, trigger } = useFormContext();
+  const { control, getValues, trigger, resetField } = useFormContext();
   const {
     settings: { url, token },
   } = useConnectionStore();
@@ -49,6 +49,9 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
     // Trigger validation for fields in this step
     const isValid = await trigger(["email"]);
     if (!isValid) return;
+
+    // Clear the token field in the form
+    resetField("token");
 
     const response = await fetch(
       `${url}/v1/init/token?email=${getValues("email")}&server_url=${getValues("serverUrl")}`,

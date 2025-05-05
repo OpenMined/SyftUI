@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useConnectionStore } from "@/stores";
+import { toast } from "@/hooks/use-toast";
 
 interface VerifyStepProps {
   onComplete: () => void;

@@ -101,6 +101,7 @@ export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
               <FormControl>
                 <Input
                   placeholder="https://syftbox.openmined.org"
+                  disabled={true}
                   onKeyDown={handleKeyDown}
                   {...field}
                 />
