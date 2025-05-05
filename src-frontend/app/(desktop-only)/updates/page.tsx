@@ -59,6 +59,11 @@ export default function UpdatePage() {
   const [progress, setProgress] = useQueryState("progress", parseAsInteger);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
+  const { openPath } =
+    typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
+      ? window.__TAURI__.opener
+      : { openPath: () => {} };
+
   useEffect(() => {
     const updateWindowStateListener = async () => {
       if (typeof window !== "undefined") {
@@ -324,7 +329,23 @@ export default function UpdatePage() {
             >
               {type === "available" && releaseNotes && (
                 <div className="prose prose-sm dark:prose-invert max-w-none select-auto">
-                  <Markdown remarkPlugins={[remarkGfm]}>
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ href, children }) => (
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (href) openPath(href);
+                          }}
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
                     {decodeURIComponent(releaseNotes)}
                   </Markdown>
                 </div>

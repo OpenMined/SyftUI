@@ -170,7 +170,6 @@ jobs:
           draft: true
           allowUpdates: true
           omitBodyDuringUpdate: true
-          generateReleaseNotes: true
           makeLatest: true
           artifacts: |
             ./artifacts/*.app.tar.gz

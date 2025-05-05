@@ -6,6 +6,14 @@
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "https://github.com/OpenMined/SyftUI/releases/tag/*"
+        }
+      ]
+    }
   ]
 }
