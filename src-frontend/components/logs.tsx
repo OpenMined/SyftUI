@@ -13,69 +13,49 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Toolbar } from "@/components/ui/toolbar";
-import { mockApps } from "@/lib/mock-apps";
-import { mockLogs } from "@/lib/mock-logs";
 import { cn } from "@/lib/utils";
-import { AnnouncementBar } from "./ui/announcement-bar";
-
-const installedApps = [
-  { id: "system", name: "System" },
-  ...mockApps.filter((app) => app.installed),
-];
-const levels: Log["level"][] = ["debug", "info", "warn", "error"];
-interface Log {
-  timestamp: string;
-  app: string;
-  level: "debug" | "info" | "warning" | "error";
-  message: string;
-}
+import { getLogs, logLevels, type LogsResponse } from "@/lib/api/logs";
 
 export function Logs() {
-  const [logs, setLogs] = useState<Array<Log>>(mockLogs);
+  const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
+  const [nextToken, setNextToken] = useState<number>(0);
   const [isPaused, setIsPaused] = useState(false);
   const [filter, setFilter] = useState("");
-  const [filterApp, setFilterApp] = useState<string | null>(null);
   const [filterLevel, setFilterLevel] = useState<string | null>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const logsRef = useRef(logs);
+  const nextTokenRef = useRef(nextToken);
 
-  // Mock log stream generation
+  // Keep refs in sync with state
+  useEffect(() => {
+    logsRef.current = logs;
+    nextTokenRef.current = nextToken;
+  }, [logs, nextToken]);
+
+  // Poll for new logs
   useEffect(() => {
     if (isPaused) return;
 
-    const messages = [
-      "Initializing system components...",
-      "Loading configuration files...",
-      "Establishing database connection...",
-      "Processing data request...",
-      "Updating cache...",
-      "Synchronizing with remote server...",
-      "Validating input parameters...",
-      "Generating report...",
-      "Cleaning up temporary files...",
-      "Backing up data...",
-    ];
+    const fetchLogs = async () => {
+      try {
+        const response = await getLogs(nextTokenRef.current, 100);
+        setLogs([...logsRef.current, ...response.logs]);
+        setNextToken(response.nextToken);
+      } catch (error) {
+        console.error("Failed to fetch logs:", error);
+      }
+    };
 
-    const interval = setInterval(() => {
-      const timestamp = new Date().toISOString();
-      const app =
-        installedApps[Math.floor(Math.random() * installedApps.length)].name;
-      const level = levels[Math.floor(Math.random() * levels.length)];
-      const message = messages[Math.floor(Math.random() * messages.length)];
+    // Make the first request immediately
+    fetchLogs();
 
-      setLogs((prevLogs) => [...prevLogs, { timestamp, app, level, message }]);
-    }, 1000);
+    // Then set up the interval for subsequent requests
+    const interval = setInterval(fetchLogs, 3000);
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused]); // Only depend on isPaused
 
   // Auto-scroll effect
   useEffect(() => {
@@ -111,9 +91,8 @@ export function Logs() {
     const matchesText = filter
       ? log.message.toLowerCase().includes(filter.toLowerCase())
       : true;
-    const matchesApp = filterApp ? log.app === filterApp : true;
     const matchesLevel = filterLevel ? log.level === filterLevel : true;
-    return matchesText && matchesApp && matchesLevel;
+    return matchesText && matchesLevel;
   });
 
   const handleClear = () => {
@@ -155,10 +134,6 @@ export function Logs() {
 
   return (
     <div className="flex h-full flex-col">
-      <AnnouncementBar variant="warning">
-        This is a mocked version of the logs page. The real version with full
-        functionality is coming soon.
-      </AnnouncementBar>
       <Toolbar title="System Logs" icon={<ScrollText className="h-5 w-5" />}>
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
@@ -200,7 +175,7 @@ export function Logs() {
       </Toolbar>
 
       <div className="flex gap-2 overflow-x-auto border-b p-2">
-        {levels.map((level) => (
+        {logLevels.map((level) => (
           <Badge
             key={level}
             className={cn(
@@ -215,26 +190,6 @@ export function Logs() {
             {level.toUpperCase()}
           </Badge>
         ))}
-        <div className="ml-2 flex items-start">
-          <Select
-            value={filterApp || "all"}
-            onValueChange={(value) =>
-              setFilterApp(value === "all" ? null : value)
-            }
-          >
-            <SelectTrigger className="h-8 select-none">
-              <SelectValue placeholder="All apps" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All apps</SelectItem>
-              {installedApps.map((app) => (
-                <SelectItem key={app.id} value={app.name}>
-                  {app.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
@@ -264,16 +219,6 @@ export function Logs() {
                         }
                       >
                         {log.level.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td className="align-baseline">
-                      <Badge
-                        className="cursor-pointer border-purple-200 bg-purple-100 text-nowrap text-purple-800 select-none hover:border-purple-300 hover:bg-purple-200 hover:text-purple-900"
-                        onClick={() =>
-                          setFilterApp(filterApp === log.app ? null : log.app)
-                        }
-                      >
-                        {log.app.toUpperCase()}
                       </Badge>
                     </td>
                     <td className="align-baseline text-wrap whitespace-pre">

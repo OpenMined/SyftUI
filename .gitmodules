@@ -1,4 +1,4 @@
 [submodule "src-daemon"]
 	path = src-daemon
 	url = ../syftbox
-	branch = syftui
+	branch = syftui2

@@ -213,7 +213,7 @@ dev-daemon:
 
     exec_path_unix = "tmp/main" + (".exe" if os.name == "nt" else "")
     exec_path_with_os_sep = str(Path(exec_path_unix))  # uses backslash separator on windows
-    air_cmd = f'air -build.cmd "just build-client-target && cp .out/syftbox_client_`go env GOOS`_`go env GOARCH` {exec_path_unix}" -build.bin "{exec_path_with_os_sep}" -- daemon --http-addr {http_addr} --http-token {http_token} --http-swagger'
+    air_cmd = f'air -build.cmd "just build-client-target && mv .out/syftbox_client_`go env GOOS`_`go env GOARCH` {exec_path_unix}" -build.bin "{exec_path_with_os_sep}" -- daemon --http-addr {http_addr} --http-token {http_token} --http-swagger'
 
     try:
         cmd = ["sh", "-c", air_cmd]
