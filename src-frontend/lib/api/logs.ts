@@ -11,6 +11,7 @@ interface Log {
 interface LogsResponse {
   logs: Log[];
   nextToken: number;
+  hasMore: boolean;
 }
 
 /**

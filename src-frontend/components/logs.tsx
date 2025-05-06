@@ -38,24 +38,37 @@ export function Logs() {
   useEffect(() => {
     if (isPaused) return;
 
-    const fetchLogs = async () => {
+    let isFetching = false;
+
+    const fetchAllLogs = async () => {
+      if (isFetching) return;
+      isFetching = true;
       try {
-        const response = await getLogs(nextTokenRef.current, 100);
-        setLogs([...logsRef.current, ...response.logs]);
-        setNextToken(response.nextToken);
+        let accumulatedLogs = [...logsRef.current];
+        let localNextToken = nextTokenRef.current;
+        let hasMore = true;
+        while (hasMore) {
+          const response = await getLogs(localNextToken, 100);
+          accumulatedLogs = [...accumulatedLogs, ...response.logs];
+          localNextToken = response.nextToken;
+          hasMore = response.hasMore;
+          setLogs([...accumulatedLogs]);
+          setNextToken(localNextToken);
+        }
       } catch (error) {
         console.error("Failed to fetch logs:", error);
+      } finally {
+        isFetching = false;
       }
     };
 
     // Make the first request immediately
-    fetchLogs();
+    fetchAllLogs();
 
     // Then set up the interval for subsequent requests
-    const interval = setInterval(fetchLogs, 3000);
-
+    const interval = setInterval(fetchAllLogs, 3000);
     return () => clearInterval(interval);
-  }, [isPaused]); // Only depend on isPaused
+  }, [isPaused]); // Only depend on isPaused, use refs for other dependencies to avoid infinite loops
 
   // Auto-scroll effect
   useEffect(() => {
