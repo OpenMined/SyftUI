@@ -129,6 +129,8 @@ jobs:
         run: |
           GITHUB_CI=1 just package ${{ matrix.args }}
 
+          rm -rf src-tauri/target/${{ matrix.args }}/release/bundle/
+
           # Create artifacts directory
           mkdir -p artifacts
 
