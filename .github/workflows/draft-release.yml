@@ -127,9 +127,9 @@ jobs:
       - name: Build app (Linux)
         if: runner.os == 'Linux'
         run: |
-          GITHUB_CI=1 just package ${{ matrix.args }}
-
           rm -rf src-tauri/target/${{ matrix.args }}/release/bundle/
+
+          GITHUB_CI=1 just package ${{ matrix.args }}
 
           # Create artifacts directory
           mkdir -p artifacts
