@@ -14,8 +14,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppDetail } from "@/components/app/app-detail";
-import { AppList } from "@/components/app/app-list";
+import { AppDetail } from "@/components/marketplace/app-detail";
+import { AppList } from "@/components/marketplace/app-list";
 import { mockApps } from "@/lib/mock-apps";
 import { Toolbar } from "@/components/ui/toolbar";
 import { toast } from "@/hooks/use-toast";
