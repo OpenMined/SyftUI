@@ -38,12 +38,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
-import { installApp, listApps } from "@/lib/api/apps";
-import type { App } from "@/lib/api/apps";
+import { installApp } from "@/lib/api/apps";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 
 // Install form schema
@@ -68,12 +67,15 @@ interface AppListProps {
   onUninstall: (appId: string) => Promise<boolean>;
 }
 
-export function AppList({ onSelectApp, onUninstall }: AppListProps) {
+export function AppList({
+  apps,
+  isLoading,
+  onSelectApp,
+  onUninstall,
+}: AppListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [apps, setApps] = useState<App[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const installForm = useForm<InstallFormValues>({
     resolver: zodResolver(installFormSchema),
@@ -85,27 +87,6 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
       force: false,
     },
   });
-
-  useEffect(() => {
-    loadApps();
-  }, []);
-
-  const loadApps = async () => {
-    try {
-      const apps = await listApps();
-      setApps(apps);
-    } catch (error) {
-      toast({
-        icon: "❌",
-        title: "Failed to load apps",
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleInstallSubmit = async (data: InstallFormValues) => {
     try {
@@ -145,7 +126,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
 
   // Filter apps based on search query
   const filteredApps = apps.filter((app) =>
-    app.toLowerCase().includes(searchQuery.toLowerCase()),
+    app.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -166,7 +147,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
         </Button>
       </Toolbar>
 
-      <Tabs defaultValue="all" className="flex-1">
+      <Tabs defaultValue="all" className="flex-1 overflow-hidden">
         <div className="overflow-x-auto border-b px-4 py-2">
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
@@ -175,7 +156,10 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
           </TabsList>
         </div>
 
-        <TabsContent value="all" className="h-full flex-1 px-4 py-2">
+        <TabsContent
+          value="all"
+          className="h-full flex-1 overflow-auto px-4 py-2"
+        >
           {isLoading ? (
             <div className="flex h-40 items-center justify-center">
               <p className="text-muted-foreground">Loading apps...</p>
@@ -187,20 +171,22 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                   <tr>
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Status</th>
+                    <th className="px-6 py-3 text-left">PID</th>
+                    <th className="px-6 py-3 text-left">Port</th>
                     <th className="px-6 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredApps.map((appName, index) => (
+                  {filteredApps.map((app, index) => (
                     <tr
                       key={index}
                       className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => onSelectApp(appName)}
+                      onClick={() => onSelectApp(app.id)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <AppIcon name={appName} />
-                          <span className="font-medium">{appName}</span>
+                          <AppIcon name={app.name} />
+                          <span className="font-medium">{app.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -208,8 +194,16 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                           variant="outline"
                           className="border-green-200 bg-green-50 text-green-700"
                         >
-                          Running
+                          {app.status}
                         </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-muted-foreground">{app.pid}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-muted-foreground">
+                          {app.port}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
@@ -267,13 +261,13 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="running" className="flex-1 p-0">
+        <TabsContent value="running" className="flex-1 overflow-auto p-0">
           <div className="text-muted-foreground flex h-40 items-center justify-center">
             Your running apps will appear here
           </div>
         </TabsContent>
 
-        <TabsContent value="favorite" className="flex-1 p-0">
+        <TabsContent value="favorite" className="flex-1 overflow-auto p-0">
           <div className="text-muted-foreground flex h-40 items-center justify-center">
             Your favorite apps will appear here
           </div>

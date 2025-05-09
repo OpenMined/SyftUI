@@ -27,14 +27,21 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { type App } from "@/lib/api/apps";
 
 interface AppDetailProps {
-  appName: string;
+  app?: App;
+  isLoading: boolean;
   onUninstall: () => Promise<boolean>;
   onBack: () => void;
 }
 
-export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
+export function AppDetail({
+  app,
+  isLoading,
+  onUninstall,
+  onBack,
+}: AppDetailProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState<
     "running" | "stopped" | "restarting"
@@ -190,10 +197,31 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
     }, 2000);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">Loading app...</p>
+      </div>
+    );
+  }
+
+  if (!app) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+        <div className="mb-4 text-5xl">📦</div>
+        <h3 className="mb-2 text-lg font-medium">App not found</h3>
+        <p className="text-muted-foreground mb-4">
+          The app you are looking for does not exist.
+        </p>
+        <Button onClick={onBack}>Go back</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col">
       <Toolbar
-        title={appName}
+        title={app.name}
         icon={
           <ChevronLeft className="h-4 w-4 cursor-pointer" onClick={onBack} />
         }
@@ -328,7 +356,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
                         App interface would be displayed here in an iframe
                       </p>
                       <p className="text-muted-foreground mt-2 text-sm">
-                        URL: http://localhost:3000/{appName.toLowerCase()}
+                        URL: http://localhost:3000/{app.name.toLowerCase()}
                       </p>
                     </div>
                   </div>

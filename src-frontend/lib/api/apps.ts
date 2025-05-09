@@ -1,5 +1,16 @@
 import { useConnectionStore } from "@/stores/useConnectionStore";
 
+interface App {
+  id: string;
+  name: string;
+  path: string;
+  pid: number;
+  status: string;
+  port: number;
+  cpu: number;
+  memory: number;
+}
+
 interface AppInstallRequest {
   repoURL: string;
   branch?: string;
@@ -9,7 +20,7 @@ interface AppInstallRequest {
 }
 
 interface AppListResponse {
-  apps: string[];
+  apps: App[];
 }
 
 export async function installApp(request: AppInstallRequest): Promise<void> {
@@ -52,7 +63,7 @@ export async function uninstallApp(appName: string): Promise<void> {
   }
 }
 
-export async function listApps(): Promise<string[]> {
+export async function listApps(): Promise<AppListResponse> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
@@ -67,6 +78,21 @@ export async function listApps(): Promise<string[]> {
     throw new Error(`Failed to list apps: ${response.statusText}`);
   }
 
-  const data: AppListResponse = await response.json();
-  return data.apps;
+  const { apps: appNames }: string[] = await response.json();
+  const apps: App[] = [];
+  for (const appName of appNames) {
+    const app = {
+      id: `openmined-${appName}`,
+      name: appName,
+      path: `/apps/${appName}`,
+      pid: 0,
+      status: "running",
+      port: "-",
+      cpu: 0.1,
+      memory: 2048,
+    };
+    apps.push(app);
+  }
+  const data: AppListResponse = { apps };
+  return data;
 }

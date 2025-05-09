@@ -171,8 +171,10 @@ export const useConnectionStore = create<ConnectionState>()(
       name: CONNECTION_STORAGE_KEY,
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => {
-        // Only persist settings when connected
-        return state.status === "connected" ? { settings: state.settings } : {};
+        // Only persist settings when valid
+        return state.settings.url !== "" && state.settings.token !== ""
+          ? { settings: state.settings }
+          : {};
       },
     },
   ),
