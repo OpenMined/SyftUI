@@ -62,7 +62,7 @@ export default function UpdatePage() {
   const { openPath } =
     typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
       ? window.__TAURI__.opener
-      : { openPath: () => {} };
+      : { openPath: (path: string) => window.open(path, "_blank") };
 
   useEffect(() => {
     const updateWindowStateListener = async () => {

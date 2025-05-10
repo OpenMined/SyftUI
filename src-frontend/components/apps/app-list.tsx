@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toolbar } from "@/components/ui/toolbar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +43,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
+import { cn } from "@/lib/utils";
+
+const FAVORITE_APPS_KEY = "favorite-apps";
+
+const saveFavoritesToLocalStorage = (favorites: string[]) => {
+  localStorage.setItem(FAVORITE_APPS_KEY, JSON.stringify(favorites));
+};
+
+const loadFavoritesFromLocalStorage = (): string[] => {
+  const favorites = localStorage.getItem(FAVORITE_APPS_KEY);
+  return favorites ? JSON.parse(favorites) : [];
+};
 
 // Install form schema
 const installFormSchema = z
@@ -73,6 +84,8 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [apps, setApps] = useState<App[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   const installForm = useForm<InstallFormValues>({
     resolver: zodResolver(installFormSchema),
@@ -87,6 +100,11 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
 
   useEffect(() => {
     loadApps();
+
+    const savedFavorites = loadFavoritesFromLocalStorage();
+    if (savedFavorites.length > 0) {
+      setFavorites(savedFavorites);
+    }
   }, []);
 
   const loadApps = async () => {
@@ -142,10 +160,35 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     if (uninstalled) await loadApps();
   };
 
+  const toggleFavorite = (appName: string) => {
+    setFavorites((prev) => {
+      const newFavorites = prev.includes(appName)
+        ? prev.filter((name) => name !== appName)
+        : [...prev, appName];
+      saveFavoritesToLocalStorage(newFavorites);
+      return newFavorites;
+    });
+  };
+
+  const getTabButtonClassNames = (tab: string) =>
+    cn(
+      "hover:text-muted-foreground h-auto px-3 py-1",
+      activeTab === tab &&
+        "bg-background text-foreground hover:bg-background hover:text-foreground shadow-sm",
+    );
+
   // Filter apps based on search query
-  const filteredApps = apps.filter((app) =>
-    app.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredApps = apps.filter((app) => {
+    const matchesSearch = app.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      activeTab === "running" ? app.status === "running" : true;
+
+    const matchesFavorites =
+      activeTab === "favorites" ? favorites.includes(app.name) : true;
+    return matchesSearch && matchesStatus && matchesFavorites;
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -165,19 +208,34 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
         </Button>
       </Toolbar>
 
-      <Tabs defaultValue="all" className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <div className="overflow-x-auto border-b px-4 py-2">
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="running">Running</TabsTrigger>
-            <TabsTrigger value="favorite">Favorites</TabsTrigger>
-          </TabsList>
+          <div className="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-1">
+            <Button
+              variant="ghost"
+              className={getTabButtonClassNames("all")}
+              onClick={() => setActiveTab("all")}
+            >
+              All
+            </Button>
+            <Button
+              variant="ghost"
+              className={getTabButtonClassNames("running")}
+              onClick={() => setActiveTab("running")}
+            >
+              Running
+            </Button>
+            <Button
+              variant="ghost"
+              className={getTabButtonClassNames("favorites")}
+              onClick={() => setActiveTab("favorites")}
+            >
+              Favorites
+            </Button>
+          </div>
         </div>
 
-        <TabsContent
-          value="all"
-          className="h-full flex-1 overflow-auto px-4 py-2"
-        >
+        <div className="h-full flex-1 overflow-auto px-4 py-2">
           {isLoading ? (
             <div className="flex h-40 items-center justify-center">
               <p className="text-muted-foreground">Loading apps...</p>
@@ -185,7 +243,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
           ) : filteredApps.length > 0 ? (
             <div className="overflow-hidden rounded-lg border">
               <table className="w-full">
-                <thead className="bg-muted/40 text-muted-foreground text-xs uppercase">
+                <thead className="bg-muted text-muted-foreground text-xs uppercase">
                   <tr>
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Status</th>
@@ -198,7 +256,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                   {filteredApps.map((app, index) => (
                     <tr
                       key={index}
-                      className="cursor-pointer hover:bg-gray-50"
+                      className="hover:bg-muted/50 cursor-pointer"
                       onClick={() => onSelectApp(app.name)}
                     >
                       <td className="px-6 py-4">
@@ -229,8 +287,18 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(app.name);
+                            }}
                           >
-                            <Star className="h-4 w-4" />
+                            <Star
+                              className={cn(
+                                "h-4 w-4",
+                                favorites.includes(app.name) &&
+                                  "fill-current text-yellow-500",
+                              )}
+                            />
                           </Button>
 
                           <DropdownMenu>
@@ -267,30 +335,42 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center">
               <div className="mb-4 text-5xl">📦</div>
-              <h3 className="mb-2 text-lg font-medium">No Apps Installed</h3>
-              <p className="text-muted-foreground mb-4">
-                You haven&apos;t installed any apps yet. Install an app to get
-                started.
-              </p>
-              <Button onClick={() => setIsInstallDialogOpen(true)}>
-                Install App
-              </Button>
+              {apps.length === 0 ? (
+                <>
+                  <h3 className="mb-2 text-lg font-medium">
+                    No Apps Installed
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    You haven&apos;t installed any apps yet. Install an app to
+                    get started. started.
+                  </p>
+                  <Button onClick={() => setIsInstallDialogOpen(true)}>
+                    Install App
+                  </Button>
+                </>
+              ) : (
+                filteredApps.length === 0 && (
+                  <>
+                    <h3 className="mb-2 text-lg font-medium">No Apps Found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      No apps match your filter criteria. Click the button below
+                      to view all installed apps.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setActiveTab("all");
+                      }}
+                    >
+                      View All Apps
+                    </Button>
+                  </>
+                )
+              )}
             </div>
           )}
-        </TabsContent>
-
-        <TabsContent value="running" className="flex-1 overflow-auto p-0">
-          <div className="text-muted-foreground flex h-40 items-center justify-center">
-            Your running apps will appear here
-          </div>
-        </TabsContent>
-
-        <TabsContent value="favorite" className="flex-1 overflow-auto p-0">
-          <div className="text-muted-foreground flex h-40 items-center justify-center">
-            Your favorite apps will appear here
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       <Dialog open={isInstallDialogOpen} onOpenChange={setIsInstallDialogOpen}>
         <DialogContent className="sm:max-w-md">

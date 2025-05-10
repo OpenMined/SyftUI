@@ -12,7 +12,7 @@ export default function MacbookInfo() {
   const { openPath } =
     typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
       ? window.__TAURI__.opener
-      : { openPath: () => {} };
+      : { openPath: (path: string) => window.open(path, "_blank") };
 
   useEffect(() => {
     if (window.__TAURI__) {

@@ -3,5 +3,9 @@
   "identifier": "main",
   "description": "enables the permissions for the 'main' window",
   "windows": ["main"],
-  "permissions": ["dialog:default", "dialog:allow-open"]
+  "permissions": [
+    "dialog:default",
+    "dialog:allow-open",
+    "opener:allow-default-urls"
+  ]
 }

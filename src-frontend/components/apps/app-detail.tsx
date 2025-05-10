@@ -38,6 +38,7 @@ interface AppDetailProps {
 
 export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
   const [app, setApp] = useState<App | null>(null);
+  const [appUrl, setAppUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState<
@@ -47,6 +48,10 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
   const {
     settings: { url: daemonUrl },
   } = useConnectionStore();
+  const { openPath } =
+    typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
+      ? window.__TAURI__.opener
+      : { openPath: (path: string) => window.open(path, "_blank") };
 
   useEffect(() => {
     const fetchApp = async () => {
@@ -69,12 +74,16 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
     fetchApp();
   }, [appName]);
 
-  const getAppUrl = () => {
-    if (!app) return "";
-    const { protocol, hostname } = new URL(daemonUrl);
-    const port = app.ports[0];
-    return `${protocol}://${hostname}:${port}`;
-  };
+  // Update the appUrl state when the app is loaded
+  useEffect(() => {
+    if (daemonUrl && app && app.ports.length > 0) {
+      const { protocol, hostname } = new URL(daemonUrl);
+      const port = app.ports[0];
+      setAppUrl(`${protocol}//${hostname}:${port}`);
+    } else {
+      setAppUrl("");
+    }
+  }, [app, daemonUrl]);
 
   // Mock data for stats
   const stats = {
@@ -366,42 +375,59 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
             value="interface"
             className="m-0 h-full data-[state=active]:flex-1"
           >
-            {appStatus === "running" ? (
+            {appStatus === "running" && appUrl ? (
               <div className="flex h-full w-full flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="px-2 text-sm font-medium">
                     App Interface
                   </span>
-                  <Button variant="ghost" size="sm">
-                    <ExternalLink className="mr-1 h-4 w-4" />
-                    Open in new tab
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openPath(appUrl)}
+                    >
+                      <ExternalLink className="mr-1 h-4 w-4" />
+                      Open in new tab
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-1 items-center justify-center">
                   <div className="bg-background flex h-full w-full items-center justify-center rounded-lg border">
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        App interface would be displayed here in an iframe
-                      </p>
-                      <p className="text-muted-foreground mt-2 text-sm">
-                        URL: {getAppUrl()}
-                      </p>
-                    </div>
+                    <iframe
+                      title={`${app.name}`}
+                      className="h-full w-full border-0"
+                      src={appUrl}
+                      sandbox="allow-scripts allow-same-origin"
+                    />
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    App is currently {appStatus}. Start the app to view its
-                    interface.
-                  </p>
-                  <Button className="mt-4" onClick={handleStart}>
-                    <Play className="mr-2 h-4 w-4" />
-                    Start App
-                  </Button>
-                </div>
+                {appStatus === "stopped" ? (
+                  <div className="text-center">
+                    <p className="text-muted-foreground">
+                      The app is currently stopped. Start the app to view its
+                      interface.
+                    </p>
+                    <Button className="mt-4" onClick={handleStart}>
+                      <Play className="mr-2 h-4 w-4" />
+                      Start App
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-muted-foreground">
+                      The app may not have a web interface, or it is still
+                      starting up. Please try again in a few seconds.
+                    </p>
+                    <Button className="mt-4" onClick={handleStart}>
+                      <Play className="mr-2 h-4 w-4" />
+                      Start App
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
