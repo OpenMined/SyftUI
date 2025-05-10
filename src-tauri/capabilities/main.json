@@ -6,6 +6,16 @@
   "permissions": [
     "dialog:default",
     "dialog:allow-open",
-    "opener:allow-default-urls"
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "http://*"
+        },
+        {
+          "path": "https://*"
+        }
+      ]
+    }
   ]
 }
