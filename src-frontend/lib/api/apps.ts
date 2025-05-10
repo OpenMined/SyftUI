@@ -1,14 +1,14 @@
 import { useConnectionStore } from "@/stores/useConnectionStore";
 
 interface App {
-  id: string;
   name: string;
   path: string;
-  pid: number;
   status: string;
-  port: number;
+  pid: number;
+  ports: number[];
   cpu: number;
   memory: number;
+  uptime: number;
 }
 
 interface AppInstallRequest {
@@ -28,7 +28,7 @@ export async function installApp(request: AppInstallRequest): Promise<void> {
     settings: { url, token },
   } = useConnectionStore.getState();
 
-  const response = await fetch(`${url}/v1/app/install`, {
+  const response = await fetch(`${url}/v1/apps/`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -50,7 +50,7 @@ export async function uninstallApp(appName: string): Promise<void> {
     settings: { url, token },
   } = useConnectionStore.getState();
 
-  const response = await fetch(`${url}/v1/app/uninstall?appName=${appName}`, {
+  const response = await fetch(`${url}/v1/apps/${appName}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ export async function listApps(): Promise<AppListResponse> {
     settings: { url, token },
   } = useConnectionStore.getState();
 
-  const response = await fetch(`${url}/v1/app/list`, {
+  const response = await fetch(`${url}/v1/apps/`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -78,21 +78,25 @@ export async function listApps(): Promise<AppListResponse> {
     throw new Error(`Failed to list apps: ${response.statusText}`);
   }
 
-  const { apps: appNames }: string[] = await response.json();
-  const apps: App[] = [];
-  for (const appName of appNames) {
-    const app = {
-      id: `openmined-${appName}`,
-      name: appName,
-      path: `/apps/${appName}`,
-      pid: 0,
-      status: "running",
-      port: "-",
-      cpu: 0.1,
-      memory: 2048,
-    };
-    apps.push(app);
+  const data: AppListResponse = await response.json();
+  return data;
+}
+
+export async function getApp(appName: string): Promise<App> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/apps/${appName}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get app: ${response.statusText}`);
   }
-  const data: AppListResponse = { apps };
+
+  const data: App = await response.json();
   return data;
 }

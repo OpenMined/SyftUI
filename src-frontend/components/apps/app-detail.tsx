@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeft,
   Play,
@@ -27,26 +27,54 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { type App } from "@/lib/api/apps";
+import { getApp, type App } from "@/lib/api/apps";
+import { useConnectionStore } from "@/stores";
 
 interface AppDetailProps {
-  app?: App;
-  isLoading: boolean;
+  appName: string;
   onUninstall: () => Promise<boolean>;
   onBack: () => void;
 }
 
-export function AppDetail({
-  app,
-  isLoading,
-  onUninstall,
-  onBack,
-}: AppDetailProps) {
+export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
+  const [app, setApp] = useState<App | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [appStatus, setAppStatus] = useState<
     "running" | "stopped" | "restarting"
   >("running");
   const [activeTab, setActiveTab] = useState("interface");
+  const {
+    settings: { url: daemonUrl },
+  } = useConnectionStore();
+
+  useEffect(() => {
+    const fetchApp = async () => {
+      try {
+        const app = await getApp(appName);
+        setApp(app);
+      } catch (error) {
+        toast({
+          icon: "❌",
+          title: "Failed to load app",
+          description:
+            error instanceof Error ? error.message : "Unknown error occurred",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApp();
+  }, [appName]);
+
+  const getAppUrl = () => {
+    if (!app) return "";
+    const { protocol, hostname } = new URL(daemonUrl);
+    const port = app.ports[0];
+    return `${protocol}://${hostname}:${port}`;
+  };
 
   // Mock data for stats
   const stats = {
@@ -356,7 +384,7 @@ export function AppDetail({
                         App interface would be displayed here in an iframe
                       </p>
                       <p className="text-muted-foreground mt-2 text-sm">
-                        URL: http://localhost:3000/{app.name.toLowerCase()}
+                        URL: {getAppUrl()}
                       </p>
                     </div>
                   </div>

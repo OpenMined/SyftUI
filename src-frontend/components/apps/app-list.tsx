@@ -38,11 +38,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
-import { installApp } from "@/lib/api/apps";
+import { type App, installApp, listApps } from "@/lib/api/apps";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 
 // Install form schema
@@ -63,19 +63,16 @@ const installFormSchema = z
 type InstallFormValues = z.infer<typeof installFormSchema>;
 
 interface AppListProps {
-  onSelectApp: (appId: string) => void;
-  onUninstall: (appId: string) => Promise<boolean>;
+  onSelectApp: (appName: string) => void;
+  onUninstall: (appName: string) => Promise<boolean>;
 }
 
-export function AppList({
-  apps,
-  isLoading,
-  onSelectApp,
-  onUninstall,
-}: AppListProps) {
+export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [apps, setApps] = useState<App[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const installForm = useForm<InstallFormValues>({
     resolver: zodResolver(installFormSchema),
@@ -87,6 +84,27 @@ export function AppList({
       force: false,
     },
   });
+
+  useEffect(() => {
+    loadApps();
+  }, []);
+
+  const loadApps = async () => {
+    try {
+      const { apps } = await listApps();
+      setApps(apps);
+    } catch (error) {
+      toast({
+        icon: "❌",
+        title: "Failed to load apps",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInstallSubmit = async (data: InstallFormValues) => {
     try {
@@ -101,7 +119,7 @@ export function AppList({
       toast({
         icon: "🎉",
         title: "App Installed!",
-        description: `The app ${data.repoURL} has been successfully installed.`,
+        description: `The app ${data.repoURL.split("/").pop()} has been successfully installed.`,
         variant: "default",
       });
 
@@ -172,7 +190,7 @@ export function AppList({
                     <th className="px-6 py-3 text-left">Name</th>
                     <th className="px-6 py-3 text-left">Status</th>
                     <th className="px-6 py-3 text-left">PID</th>
-                    <th className="px-6 py-3 text-left">Port</th>
+                    <th className="px-6 py-3 text-left">Port(s)</th>
                     <th className="px-6 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -181,7 +199,7 @@ export function AppList({
                     <tr
                       key={index}
                       className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => onSelectApp(app.id)}
+                      onClick={() => onSelectApp(app.name)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -202,7 +220,7 @@ export function AppList({
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-muted-foreground">
-                          {app.port}
+                          {app.ports.length > 0 ? app.ports.join(", ") : "-"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -231,7 +249,7 @@ export function AppList({
                                 className="text-red-500 focus:text-red-500"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleUninstallApp(appName);
+                                  handleUninstallApp(app.name);
                                 }}
                               >
                                 <Trash2 className="h-4 w-4" />
