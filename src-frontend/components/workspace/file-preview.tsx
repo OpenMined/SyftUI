@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect, useCallback } from "react";
 import { X, Download } from "lucide-react";
 import type { FileSystemItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,12 @@ import {
   prism,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
-import { getAssetPath } from "@/lib/utils";
+import {
+  getWorkspaceContent,
+  getWorkspaceContentUrl,
+} from "@/lib/api/workspace";
+import { toast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface FilePreviewProps {
   file: FileSystemItem;
@@ -22,18 +28,155 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
 
-  const renderPreview = () => {
-    // In a real app, this would handle actual file previews
-    // For this mock, we'll just show placeholders based on file type
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension || "")) {
+  // Get the correct content type for the file
+  const isTextFile = useCallback((): boolean => {
+    const textExtensions = [
+      "txt",
+      "md",
+      "js",
+      "jsx",
+      "ts",
+      "tsx",
+      "html",
+      "css",
+      "json",
+      "yaml",
+      "yml",
+      "py",
+      "java",
+      "c",
+      "cpp",
+      "rb",
+      "php",
+      "go",
+      "sh",
+      "xml",
+      "csv",
+      "log",
+      "ini",
+      "toml",
+      "rs",
+      "swift",
+      "kt",
+      "dart",
+    ];
+    return textExtensions.includes(extension || "");
+  }, [extension]);
+
+  // Load the file content
+  useEffect(() => {
+    if (!file || !file.path) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    // For text files, fetch and display the content
+    if (isTextFile()) {
+      const fetchContent = async () => {
+        try {
+          const response = await getWorkspaceContent(file.path);
+          const text = await response.text();
+          setFileContent(text);
+          setIsLoading(false);
+        } catch (err) {
+          console.error("Error fetching file content:", err);
+          setError("Failed to load file content");
+          setIsLoading(false);
+          toast({
+            title: "Error loading file",
+            description: err instanceof Error ? err.message : "Unknown error",
+            variant: "destructive",
+          });
+        }
+      };
+
+      fetchContent();
+    } else {
+      // For non-text files, we don't need to fetch the content in advance
+      setIsLoading(false);
+    }
+  }, [file, isTextFile]);
+
+  // Handle file download
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+      // Use our API function that already handles authentication
+      const response = await getWorkspaceContent(file.path);
+      const blob = await response.blob();
+
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary link element
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+
+      // Trigger the download
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setIsDownloading(false);
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      setError("Failed to download file");
+      setIsDownloading(false);
+      toast({
+        title: "Download failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const renderPreview = () => {
+    // Show loading state if content is being fetched
+    if (isLoading) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="text-primary h-8 w-8 animate-spin" />
+            <p className="text-muted-foreground">Loading file content...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Show error state if there was a problem
+    if (error) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <div className="max-w-md text-center">
+            <p className="text-destructive mb-2 font-medium">
+              Error loading file
+            </p>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle image files
+    if (
+      ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension || "")
+    ) {
+      const imageUrl = getWorkspaceContentUrl(file.path);
       return (
         <div className="flex h-full items-center justify-center">
           <motion.img
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            src={`${getAssetPath("/placeholder.svg?height=400&width=600")}`}
+            src={imageUrl}
             alt={file.name}
             className="max-h-full max-w-full rounded-md object-contain"
           />
@@ -41,53 +184,41 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
       );
     }
 
+    // Handle video files
     if (["mp4", "webm"].includes(extension || "")) {
+      const videoUrl = getWorkspaceContentUrl(file.path);
       return (
         <div className="flex h-full items-center justify-center">
-          <div className="bg-muted flex aspect-video w-full max-w-2xl items-center justify-center rounded-md">
-            <p className="text-muted-foreground">Video Preview Placeholder</p>
+          <div className="w-full max-w-2xl">
+            <video
+              className="h-auto w-full rounded-md"
+              controls
+              autoPlay={false}
+              src={videoUrl}
+            >
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       );
     }
 
+    // Handle PDF files
     if (["pdf"].includes(extension || "")) {
+      const pdfUrl = getWorkspaceContentUrl(file.path);
       return (
-        <div className="flex h-full flex-col items-center justify-center gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <FileIcon type="file" extension="pdf" className="h-24 w-24" />
-          </motion.div>
-          <p className="text-muted-foreground">PDF Preview Placeholder</p>
+        <div className="flex h-full items-center justify-center">
+          <iframe
+            src={pdfUrl}
+            className="h-full w-full rounded-md"
+            title={file.name}
+          />
         </div>
       );
     }
 
-    if (
-      [
-        "txt",
-        "md",
-        "js",
-        "jsx",
-        "ts",
-        "tsx",
-        "html",
-        "css",
-        "json",
-        "yaml",
-        "yml",
-        "py",
-        "java",
-        "c",
-        "cpp",
-        "rb",
-        "php",
-        "go",
-      ].includes(extension || "")
-    ) {
+    // Handle text and code files
+    if (isTextFile() && fileContent !== null) {
       // Map file extensions to language for syntax highlighting
       const getLanguage = () => {
         switch (extension) {
@@ -127,25 +258,9 @@ export function FilePreview({ file, onClose }: FilePreviewProps) {
       const language = getLanguage();
       const codeStyle = isDarkTheme ? vscDarkPlus : prism;
 
-      const sampleCode = `// This is a mock preview for ${file.name}
-                
-// In a real application, this would show the actual file content
-// For demonstration purposes, we're showing this placeholder text
-
-function example() {
-  console.log("Hello from ${file.name}!");
-  return "This is just a preview placeholder";
-}
-                
-// File metadata:
-// Created: ${new Date(file.createdAt).toLocaleString()}
-// Modified: ${new Date(file.modifiedAt).toLocaleString()}
-// ID: ${file.id}
-`;
-
       return (
         <div className="flex h-full flex-col">
-          <div className="bg-muted h-full overflow-auto rounded-md">
+          <div className="h-full overflow-auto rounded-md">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -162,7 +277,7 @@ function example() {
                   fontSize: "0.875rem",
                 }}
               >
-                {sampleCode}
+                {fileContent}
               </SyntaxHighlighter>
             </motion.div>
           </div>
@@ -183,6 +298,24 @@ function example() {
         <p className="text-muted-foreground">
           Preview not available for this file type
         </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownload}
+          disabled={isDownloading}
+        >
+          {isDownloading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Downloading...
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" />
+              Download file
+            </>
+          )}
+        </Button>
       </div>
     );
   };
@@ -213,9 +346,23 @@ function example() {
             <div className="text-muted-foreground text-sm">
               Last modified: {new Date(file.modifiedAt).toLocaleString()}
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Download
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </>
+              )}
             </Button>
           </div>
         </motion.div>

@@ -190,3 +190,38 @@ export async function copyWorkspaceItem(
 
   throw new Error(`Failed to copy workspace item: ${response.statusText}`);
 }
+
+export async function getWorkspaceContent(path: string): Promise<Response> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const queryParams = new URLSearchParams();
+  queryParams.append("path", path);
+
+  const response = await fetch(
+    `${url}/v1/workspace/content?${queryParams.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file content: ${response.statusText}`);
+  }
+
+  return response;
+}
+
+export function getWorkspaceContentUrl(path: string): string {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+  const queryParams = new URLSearchParams();
+  queryParams.append("path", path);
+
+  // Return URL with authentication token in the query string
+  return `${url}/v1/workspace/content?${queryParams.toString()}&token=${token}`;
+}

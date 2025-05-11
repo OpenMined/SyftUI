@@ -25,7 +25,18 @@ export default function FilesPage() {
   }, [refreshFileSystem]);
 
   return (
-    <div className="bg-background flex h-screen">
+    <div
+      className="bg-background flex h-screen"
+      onMouseDown={(e) => {
+        if (e.detail > 1) {
+          // Prevent double click from selecting text
+          // We use double clicks for file system navigation, so we want to prevent the default
+          // behavior of selecting text. Using `user-select: none` in CSS would prevent text
+          // selection altogether, which is not what we want.
+          e.preventDefault();
+        }
+      }}
+    >
       <FileManager />
     </div>
   );
