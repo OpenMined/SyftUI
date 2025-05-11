@@ -3,13 +3,26 @@ import { useConnectionStore } from "@/stores/useConnectionStore";
 export const logLevels: string[] = ["debug", "info", "warn", "error"];
 
 interface Log {
+  lineNumber: number;
   timestamp: string;
-  level: (typeof logLevels)[number];
   message: string;
 }
 
 interface LogsResponse {
   logs: Log[];
+  nextToken: number;
+  hasMore: boolean;
+}
+
+interface ParsedLog {
+  lineNumber: number;
+  timestamp: string;
+  level: (typeof logLevels)[number];
+  message: string;
+}
+
+interface ParsedLogResponse {
+  logs: ParsedLog[];
   nextToken: number;
   hasMore: boolean;
 }
@@ -20,14 +33,16 @@ interface LogsResponse {
  * @returns A promise that resolves to the logs response
  */
 export async function getLogs(
+  appName: string,
   startingToken: number,
   maxResults: number,
-): Promise<LogsResponse> {
+): Promise<ParsedLogResponse> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
 
   const params = new URLSearchParams();
+  params.append("appName", appName.toLowerCase());
   params.append("startingToken", startingToken.toString());
   params.append("maxResults", maxResults.toString());
 
@@ -41,6 +56,27 @@ export async function getLogs(
     throw new Error(`Failed to fetch logs: ${response.statusText}`);
   }
 
-  const data: LogsResponse = await response.json();
-  return data;
+  const { logs, nextToken, hasMore }: LogsResponse = await response.json();
+  return {
+    logs: logs.map((log) => parseLog(log)),
+    nextToken,
+    hasMore,
+  };
+}
+
+function parseLog({ lineNumber, timestamp, message }: Log): ParsedLog {
+  const level = message.match(/^.*?\[?(DEBUG|INFO|WARN|WARNING|ERROR)\]?/i);
+
+  // rest of the line is the message
+  message = message.slice(level?.[0].length || 0).trim();
+  // remove msg= from the message
+  message = message.replace(/^msg=/, "").trim();
+  // remove single / double quotes from the message
+  message = message.replace(/^['"]/, "").replace(/['"]$/, "").trim();
+  return {
+    lineNumber,
+    timestamp,
+    level: level?.[1]?.toLowerCase() ?? "info",
+    message,
+  };
 }

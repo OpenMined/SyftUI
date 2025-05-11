@@ -98,5 +98,6 @@ export async function getApp(appName: string): Promise<App> {
   }
 
   const data: App = await response.json();
+  data.ports = data.ports?.sort((a, b) => a - b) ?? [];
   return data;
 }

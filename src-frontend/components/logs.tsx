@@ -16,17 +16,36 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toolbar } from "@/components/ui/toolbar";
 import { cn } from "@/lib/utils";
 import { getLogs, logLevels, type LogsResponse } from "@/lib/api/logs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { listApps } from "@/lib/api/apps";
 
 export function Logs() {
   const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
-  const [nextToken, setNextToken] = useState<number>(0);
+  const [appName, setAppName] = useState("system");
+  const [nextToken, setNextToken] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
   const [filter, setFilter] = useState("");
   const [filterLevel, setFilterLevel] = useState<string | null>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
+  const [installedApps, setInstalledApps] = useState<string[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const logsRef = useRef(logs);
   const nextTokenRef = useRef(nextToken);
+
+  // Fetch installed apps
+  useEffect(() => {
+    const fetchApps = async () => {
+      const { apps } = await listApps();
+      setInstalledApps(apps.map((app) => app.name));
+    };
+    fetchApps();
+  }, [appName]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -48,7 +67,7 @@ export function Logs() {
         let localNextToken = nextTokenRef.current;
         let hasMore = true;
         while (hasMore) {
-          const response = await getLogs(localNextToken, 100);
+          const response = await getLogs(appName, localNextToken, 1000);
           accumulatedLogs = [...accumulatedLogs, ...response.logs];
           localNextToken = response.nextToken;
           hasMore = response.hasMore;
@@ -68,7 +87,7 @@ export function Logs() {
     // Then set up the interval for subsequent requests
     const interval = setInterval(fetchAllLogs, 3000);
     return () => clearInterval(interval);
-  }, [isPaused]); // Only depend on isPaused, use refs for other dependencies to avoid infinite loops
+  }, [appName, isPaused]);
 
   // Auto-scroll effect
   useEffect(() => {
@@ -112,6 +131,12 @@ export function Logs() {
     setLogs([]);
   };
 
+  const handleAppChange = (value: string) => {
+    setAppName(value);
+    setLogs([]);
+    setNextToken(1);
+  };
+
   const handleDownload = () => {
     const logText = logs
       .map(
@@ -123,7 +148,7 @@ export function Logs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `logs-${new Date().toISOString()}.txt`;
+    a.download = `SyftBoxDaemon-${appName}-${new Date().toISOString()}.log`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -137,6 +162,7 @@ export function Logs() {
       case "info":
         return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 hover:text-blue-900 hover:border-blue-300";
       case "warn":
+      case "warning":
         return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900 hover:border-yellow-300";
       case "error":
         return "bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900 hover:border-red-300";
@@ -203,6 +229,21 @@ export function Logs() {
             {level.toUpperCase()}
           </Badge>
         ))}
+        <div className="ml-2 flex items-start">
+          <Select value={appName} onValueChange={handleAppChange}>
+            <SelectTrigger className="h-8 select-none">
+              <SelectValue placeholder="Select app" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="system">System</SelectItem>
+              {installedApps.map((appName) => (
+                <SelectItem key={appName} value={appName}>
+                  {appName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
@@ -214,8 +255,8 @@ export function Logs() {
           ) : (
             <table className="table-auto border-separate border-spacing-1 text-start">
               <tbody>
-                {filteredLogs.map((log, index) => (
-                  <tr key={index}>
+                {filteredLogs.map((log) => (
+                  <tr key={`${appName}-${log.lineNumber}`}>
                     <td className="text-muted-foreground align-baseline text-nowrap">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </td>

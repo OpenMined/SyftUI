@@ -278,7 +278,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-muted-foreground">
-                          {app.ports.length > 0 ? app.ports.join(", ") : "-"}
+                          {app.ports?.length > 0 ? app.ports.join(", ") : "-"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
