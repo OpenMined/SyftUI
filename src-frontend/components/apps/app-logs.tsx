@@ -1,100 +1,151 @@
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { getLogs, type LogsResponse } from "@/lib/api/logs";
+import { Badge } from "@/components/ui/badge";
 
-export function AppLogs() {
-  // Mock logs
-  const logs = [
-    {
-      timestamp: "2025-05-09 18:42:12",
-      level: "INFO",
-      message: "Application started successfully",
-    },
-    {
-      timestamp: "2025-05-09 18:42:13",
-      level: "INFO",
-      message: "Connected to database",
-    },
-    {
-      timestamp: "2025-05-09 18:42:15",
-      level: "DEBUG",
-      message: "Processing request #1242",
-    },
-    {
-      timestamp: "2025-05-09 18:42:18",
-      level: "WARN",
-      message: "Slow query detected (324ms)",
-    },
-    {
-      timestamp: "2025-05-09 18:42:20",
-      level: "INFO",
-      message: "Request completed successfully",
-    },
-    {
-      timestamp: "2025-05-09 18:43:01",
-      level: "ERROR",
-      message: "Failed to connect to external API: timeout",
-    },
-    {
-      timestamp: "2025-05-09 18:43:05",
-      level: "INFO",
-      message: "Retrying connection...",
-    },
-    {
-      timestamp: "2025-05-09 18:43:08",
-      level: "INFO",
-      message: "Connection established",
-    },
-    {
-      timestamp: "2025-05-09 18:44:12",
-      level: "DEBUG",
-      message: "Cache hit ratio: 78%",
-    },
-    {
-      timestamp: "2025-05-09 18:45:22",
-      level: "INFO",
-      message: "Scheduled maintenance task running",
-    },
-    {
-      timestamp: "2025-05-09 18:46:30",
-      level: "DEBUG",
-      message: "Memory usage optimized",
-    },
-    {
-      timestamp: "2025-05-09 18:47:45",
-      level: "INFO",
-      message: "New client connection from 192.168.1.105",
-    },
-  ];
+export function AppLogs({ appName }: { appName: string }) {
+  const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
+  const [nextToken, setNextToken] = useState<number>(1);
+  const [isAutoScroll, setIsAutoScroll] = useState(true);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const logsRef = useRef(logs);
+  const nextTokenRef = useRef(nextToken);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    logsRef.current = logs;
+    nextTokenRef.current = nextToken;
+  }, [logs, nextToken]);
+
+  // Poll for new logs
+  useEffect(() => {
+    let isFetching = false;
+
+    const fetchAllLogs = async () => {
+      if (isFetching) return;
+      isFetching = true;
+      try {
+        let accumulatedLogs = [...logsRef.current];
+        let localNextToken = nextTokenRef.current;
+        let hasMore = true;
+        while (hasMore) {
+          const response = await getLogs(appName, localNextToken, 1000);
+          accumulatedLogs = [...accumulatedLogs, ...response.logs];
+          localNextToken = response.nextToken;
+          hasMore = response.hasMore;
+          setLogs([...accumulatedLogs]);
+          setNextToken(localNextToken);
+        }
+      } catch (error) {
+        console.error("Failed to fetch logs:", error);
+      } finally {
+        isFetching = false;
+      }
+    };
+
+    // Make the first request immediately
+    fetchAllLogs();
+
+    // Then set up the interval for subsequent requests
+    const interval = setInterval(fetchAllLogs, 3000);
+    return () => clearInterval(interval);
+  }, [appName]);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (isAutoScroll && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]",
+      );
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [logs, isAutoScroll]);
+
+  // set isAutoScroll to false when user scrolls up, and true when user scrolls to the bottom
+  useEffect(() => {
+    const scrollContainer = scrollAreaRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]",
+    );
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const isAtBottom =
+        scrollContainer.scrollHeight - scrollContainer.scrollTop ===
+        scrollContainer.clientHeight;
+      setIsAutoScroll(isAtBottom);
+    };
+
+    scrollContainer.addEventListener("scroll", handleScroll);
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleClear = () => {
+    setLogs([]);
+    setNextToken(1);
+  };
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case "debug":
+        return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200 hover:text-gray-900 hover:border-gray-300";
+      case "info":
+        return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 hover:text-blue-900 hover:border-blue-300";
+      case "warn":
+      case "warning":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900 hover:border-yellow-300";
+      case "error":
+        return "bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900 hover:border-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
 
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="px-2 text-sm font-medium">Application Logs</span>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={handleClear}>
           Clear Logs
         </Button>
       </div>
-      <ScrollArea className="bg-background flex-1 rounded-lg border p-4 font-mono text-sm">
-        {logs.map((log, index) => (
-          <div key={index} className="mb-1">
-            <span className="text-muted-foreground">{log.timestamp}</span>{" "}
-            <span
-              className={cn(
-                log.level === "ERROR"
-                  ? "text-red-400"
-                  : log.level === "WARN"
-                    ? "text-yellow-400"
-                    : log.level === "DEBUG"
-                      ? "text-blue-400"
-                      : "text-green-400",
-              )}
-            >
-              [{log.level}]
-            </span>{" "}
-            <span>{log.message}</span>
+      <ScrollArea
+        className="bg-background flex-1 rounded-lg border p-4 font-mono text-sm"
+        ref={scrollAreaRef}
+      >
+        {logs.length === 0 ? (
+          <div className="text-muted-foreground flex h-40 items-center justify-center">
+            No logs to display
           </div>
-        ))}
+        ) : (
+          <table className="table-auto border-separate border-spacing-1 text-start">
+            <tbody>
+              {logs.map((log) => (
+                <tr key={`${appName}-${log.lineNumber}`}>
+                  <td className="text-muted-foreground align-baseline text-nowrap">
+                    {new Date(log.timestamp).toLocaleTimeString()}
+                  </td>
+                  <td className="w-16 text-end align-baseline">
+                    <Badge
+                      className={cn(
+                        "cursor-pointer select-none",
+                        getLevelColor(log.level),
+                      )}
+                    >
+                      {log.level.toUpperCase()}
+                    </Badge>
+                  </td>
+                  <td className="align-baseline text-wrap whitespace-pre">
+                    {log.message}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </ScrollArea>
     </div>
   );

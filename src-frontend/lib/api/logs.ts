@@ -65,7 +65,7 @@ export async function getLogs(
 }
 
 function parseLog({ lineNumber, timestamp, message }: Log): ParsedLog {
-  const level = message.match(/^.*?\[?(DEBUG|INFO|WARN|WARNING|ERROR)\]?/i);
+  const level = message.match(/^.*?\[?(DEBUG|INFO|WARN|WARNING|ERROR)\]?:?/i);
 
   // rest of the line is the message
   message = message.slice(level?.[0].length || 0).trim();

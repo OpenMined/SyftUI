@@ -102,7 +102,12 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
     }, 2000);
   };
 
-  if (isLoading) {
+  const updateActiveTab = (tab: string) => {
+    setActiveTab(tab);
+    fetchApp();
+  };
+
+  if (!app && isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">Loading app...</p>
@@ -202,7 +207,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
 
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={updateActiveTab}
         className="flex flex-1 flex-col overflow-hidden"
       >
         <div className="bg-muted/40 border-b px-4">
@@ -249,6 +254,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
               appStatus={appStatus}
               isLoading={isLoading}
               fetchApp={fetchApp}
+              setActiveTab={updateActiveTab}
               handleStart={handleStart}
               openPath={openPath}
             />
@@ -258,7 +264,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
             value="logs"
             className="m-0 h-full data-[state=active]:flex-1"
           >
-            <AppLogs />
+            <AppLogs appName={appName} />
           </TabsContent>
 
           <TabsContent

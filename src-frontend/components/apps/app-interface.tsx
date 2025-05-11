@@ -7,6 +7,7 @@ interface AppInterfaceProps {
   appStatus: "running" | "stopped" | "restarting";
   isLoading: boolean;
   fetchApp: () => void;
+  setActiveTab: (tab: string) => void;
   handleStart: () => void;
   openPath: (path: string) => void;
 }
@@ -17,6 +18,7 @@ export function AppInterface({
   appStatus,
   isLoading,
   fetchApp,
+  setActiveTab,
   handleStart,
   openPath,
 }: AppInterfaceProps) {

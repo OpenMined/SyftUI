@@ -236,11 +236,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
         </div>
 
         <div className="h-full flex-1 overflow-auto px-4 py-2">
-          {isLoading ? (
-            <div className="flex h-40 items-center justify-center">
-              <p className="text-muted-foreground">Loading apps...</p>
-            </div>
-          ) : filteredApps.length > 0 ? (
+          {isLoading ? null : filteredApps.length > 0 ? (
             <div className="overflow-hidden rounded-lg border">
               <table className="w-full">
                 <thead className="bg-muted text-muted-foreground text-xs uppercase">
