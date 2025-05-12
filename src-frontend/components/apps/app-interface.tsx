@@ -49,10 +49,10 @@ export function AppInterface({
             </div>
           </div>
           <div className="flex flex-1 items-center justify-center">
-            <div className="bg-background flex h-full w-full items-center justify-center rounded-lg border">
+            <div className="bg-background flex h-full w-full items-center justify-center">
               <iframe
                 title={`${app.name}`}
-                className="h-full w-full border-0"
+                className="h-full w-full rounded-lg border"
                 src={appUrl}
                 sandbox="allow-scripts allow-same-origin"
               />

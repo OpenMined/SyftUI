@@ -76,8 +76,8 @@ export function AppFiles({ appPath }: { appPath: string }) {
           </Button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto">
-        <div className="bg-background overflow-hidden rounded-lg border">
+      <div className="flex rounded-lg border">
+        <div className="bg-background flex-1 rounded-lg">
           <div className="bg-muted/50 text-muted-foreground grid grid-cols-12 px-4 py-2 text-xs uppercase">
             <div className="col-span-6">Name</div>
             <div className="col-span-2">Size</div>

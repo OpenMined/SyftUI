@@ -1,14 +1,76 @@
 import { useConnectionStore } from "@/stores/useConnectionStore";
 
+interface cpuTimesStat {
+  user: number;
+  system: number;
+  idle: number;
+  nice: number;
+  iowait: number;
+  irq: number;
+  softirq: number;
+  steal: number;
+  guest: number;
+  guestNice: number;
+}
+
+interface MemoryInfoStat {
+  rss: number;
+  vms: number;
+  hwm: number;
+  data: number;
+  stack: number;
+  locked: number;
+  swap: number;
+}
+
+interface ConnectionStat {
+  fd: number;
+  family: number;
+  type: number;
+  localaddr: {
+    ip: string;
+    port: number;
+  };
+  remoteaddr: {
+    ip: string;
+    port: number;
+  };
+  status: string;
+  uids: number[] | null;
+  pid: number;
+}
+
+type AppStatus = "running" | "stopped";
+
+interface ProcessStats {
+  processName: string;
+  pid: number;
+  status: string[];
+  cmdline: string[];
+  cwd: string;
+  environ: string[];
+  exe: string;
+  gids: number[];
+  uids: number[];
+  nice: number;
+  username: string;
+  connections: ConnectionStat[];
+  cpuPercent: number;
+  cpuTimes: cpuTimesStat | null;
+  numThreads: number;
+  memoryPercent: number;
+  memoryInfo: MemoryInfoStat | null;
+  uptime: number;
+  children: ProcessStats[];
+}
+
 interface App {
   name: string;
   path: string;
-  status: string;
+  status: AppStatus;
   pid: number;
   ports: number[];
-  cpu: number;
-  memory: number;
-  uptime: number;
+  processStats?: ProcessStats;
 }
 
 interface AppInstallRequest {
@@ -82,22 +144,32 @@ export async function listApps(): Promise<AppListResponse> {
   return data;
 }
 
-export async function getApp(appName: string): Promise<App> {
+export async function getApp(
+  appName: string,
+  processStats: boolean = false,
+): Promise<App> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
 
-  const response = await fetch(`${url}/v1/apps/${appName}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const queryParams = new URLSearchParams();
+  if (processStats) {
+    queryParams.append("processStats", "true");
+  }
+
+  const response = await fetch(
+    `${url}/v1/apps/${appName}?${queryParams.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to get app: ${response.statusText}`);
   }
 
   const data: App = await response.json();
-  data.ports = data.ports?.sort((a, b) => a - b) ?? [];
   return data;
 }

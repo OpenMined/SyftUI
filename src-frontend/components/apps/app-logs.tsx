@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 import { getLogs, type LogsResponse } from "@/lib/api/logs";
 import { Badge } from "@/components/ui/badge";
 
@@ -91,14 +90,14 @@ export function AppLogs({ appName }: { appName: string }) {
   const getLevelColor = (level: string) => {
     switch (level) {
       case "debug":
-        return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200 hover:text-gray-900 hover:border-gray-300";
+        return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 hover:text-gray-800 hover:border-gray-200";
       case "info":
-        return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 hover:text-blue-900 hover:border-blue-300";
+        return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 hover:text-blue-800 hover:border-blue-200";
       case "warn":
       case "warning":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900 hover:border-yellow-300";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 hover:text-yellow-800 hover:border-yellow-200";
       case "error":
-        return "bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900 hover:border-red-300";
+        return "bg-red-100 text-red-800 border-red-200 hover:bg-red-100 hover:text-red-800 hover:border-red-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -129,12 +128,7 @@ export function AppLogs({ appName }: { appName: string }) {
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </td>
                   <td className="w-16 text-end align-baseline">
-                    <Badge
-                      className={cn(
-                        "cursor-pointer select-none",
-                        getLevelColor(log.level),
-                      )}
-                    >
+                    <Badge className={getLevelColor(log.level)}>
                       {log.level.toUpperCase()}
                     </Badge>
                   </td>
