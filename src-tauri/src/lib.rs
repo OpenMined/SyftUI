@@ -17,10 +17,16 @@ mod version;
 use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
 #[cfg(not(debug_assertions))]
+use std::process::Command;
+
+#[cfg(not(debug_assertions))]
 use tauri_plugin_shell::ShellExt;
 
 #[cfg(target_os = "macos")]
 use tauri::{image::Image, TitleBarStyle};
+
+#[cfg(target_os = "windows")]
+use std::path::Path;
 
 #[derive(Default)]
 struct AppState {
@@ -555,6 +561,20 @@ fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
     WebviewUrl::App(url.into())
 }
 
+#[cfg(target_os = "windows")]
+fn find_git_bash() -> Option<&'static str> {
+    let possible_paths = [
+        r"C:\Program Files\Git\git-bash.exe",
+        r"C:\Program Files (x86)\Git\git-bash.exe",
+    ];
+    for path in &possible_paths {
+        if Path::new(path).exists() {
+            return Some(path);
+        }
+    }
+    None
+}
+
 #[cfg(not(debug_assertions))]
 fn _setup_sidecars_for_release_builds(
     app: &AppHandle,
@@ -563,33 +583,53 @@ fn _setup_sidecars_for_release_builds(
     daemon_token: &str,
 ) {
     log::info!("Setting up sidecars for release build");
-    // Spawn the daemon sidecar with the generated connection args.
-    // We do this only in release builds, because in dev mode we run the sidecar
-    // externally with hot-reloading from the `just dev` command.
+
+    // Find the default system shell.
+    let mut command = std::env::var("SHELL").expect("SHELL environment variable is not set");
+
+    #[cfg(target_os = "windows")]
+    {
+        command = find_git_bash().expect(
+            "Failed to find git-bash.exe. Please install Git for Windows in standard locations to continue.",
+        );
+    }
+
+    let syftboxd_command: Command = app.shell().sidecar("syftboxd").unwrap().into();
+    let syftboxd_path = syftboxd_command.get_program();
+    let args = [
+        "-c",
+        &format!(
+            "{} daemon --http-addr {} --http-token {}",
+            syftboxd_path.to_str().unwrap(),
+            &format!("{}:{}", daemon_host, daemon_port),
+            &daemon_token
+        ),
+    ];
+
+    // Spawn the daemon sidecar with the generated args. Important: we use the default system shell
+    // so that the sidecar gets the correct environment variables.
     let (_rx, daemon_sidecar) = app
         .shell()
-        .sidecar("syftboxd")
-        .unwrap()
-        .args(&[
-            "daemon",
-            "--http-addr",
-            &format!("{}:{}", daemon_host, daemon_port),
-            "--http-token",
-            &daemon_token,
-        ])
+        .command(command)
+        .args(args)
         .spawn()
         .expect("Failed to spawn sidecar");
-    log::debug!("Daemon sidecar spawned with PID: {}", daemon_sidecar.pid());
+    log::info!("Daemon sidecar spawned with PID: {}", daemon_sidecar.pid());
 
     // Spawn the `process-wick` sidecar to kill all sidecars when the main app exits.
     // This prevents orphaned sidecars after the main app is closed.
-    app.shell()
+    let main_process_pid = std::process::id(); // Use parent process id as that is the group id of entire process tree
+    let (_, process_wick_sidecar) = app
+        .shell()
         .sidecar("process-wick")
         .unwrap()
-        .args(["--targets", &daemon_sidecar.pid().to_string()])
+        .args(["--targets", &main_process_pid.to_string()])
         .spawn()
         .expect("Failed to spawn sidecar");
-    log::debug!("Process wick sidecar spawned");
+    log::info!(
+        "Process wick sidecar spawned with PID: {}",
+        process_wick_sidecar.pid()
+    );
 }
 
 fn _setup_system_tray(app: &AppHandle) {
