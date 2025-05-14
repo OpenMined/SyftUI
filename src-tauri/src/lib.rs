@@ -542,7 +542,8 @@ fn _generate_daemon_client_args() -> (String, String, String) {
         log::debug!("Generating daemon client args for release mode");
         // Generate the daemon connection args.
         let daemon_host = std::env::var("DAEMON_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-        let daemon_port = _get_random_available_port();
+        // let daemon_port = _get_random_available_port();
+        let daemon_port = "7938".to_string();
         let daemon_token = _generate_secure_token();
         (daemon_host, daemon_port, daemon_token)
     }
