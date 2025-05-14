@@ -585,7 +585,7 @@ fn _setup_sidecars_for_release_builds(
     log::info!("Setting up sidecars for release build");
 
     // Find the default system shell.
-    let mut command = std::env::var("SHELL").expect("SHELL environment variable is not set");
+    let command = std::env::var("SHELL").expect("SHELL environment variable is not set");
 
     #[cfg(target_os = "windows")]
     {

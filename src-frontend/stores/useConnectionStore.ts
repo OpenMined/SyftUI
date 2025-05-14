@@ -7,14 +7,22 @@ import { z } from "zod";
 // Connection settings types and constants
 export interface ConnectionSettings {
   url: string;
+  email: string;
   token: string;
 }
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected";
 
+export type DatasiteStatus =
+  | "UNPROVISIONED"
+  | "PROVISIONING"
+  | "PROVISIONED"
+  | "ERROR";
+
 // Default values for connection settings
 export const DEFAULT_CONNECTION_SETTINGS: ConnectionSettings = {
   url: "",
+  email: "",
   token: "",
 };
 
@@ -43,7 +51,7 @@ interface ConnectionState {
   connect: () => Promise<{
     success: boolean;
     errors: ConnectionErrors;
-    hasConfig: boolean;
+    datasiteStatus: DatasiteStatus;
   }>;
   validateSettings: (settings: ConnectionSettings) => ConnectionErrors;
 }
@@ -91,7 +99,7 @@ export const useConnectionStore = create<ConnectionState>()(
 
         let errors = validateSettings(settings);
         let success = false;
-        let hasConfig = false;
+        let datasiteStatus: DatasiteStatus = "UNPROVISIONED";
 
         // Check if there are any errors
         if (Object.keys(errors).length === 0) {
@@ -114,7 +122,8 @@ export const useConnectionStore = create<ConnectionState>()(
               set({ status: "connected" });
               const responseData = await response.json();
               success = true;
-              hasConfig = responseData.hasConfig || false;
+              datasiteStatus = responseData.datasite.status;
+              set({ email: responseData.datasite.config?.email || "" });
             } else {
               set({ status: "disconnected" });
               switch (response.status) {
@@ -164,7 +173,7 @@ export const useConnectionStore = create<ConnectionState>()(
           }
         }
 
-        return { success, errors, hasConfig };
+        return { success, errors, datasiteStatus };
       },
     }),
     {

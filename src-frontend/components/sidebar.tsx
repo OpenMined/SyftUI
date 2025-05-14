@@ -10,8 +10,6 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  Settings,
-  User,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +19,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -33,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { ConnectionStatus } from "@/components/connection/connection-status";
 import { useRouter, usePathname } from "next/navigation";
 import { LogoComponent } from "./logo/logo";
-import { useFileSystemStore } from "@/stores/useFileSystemStore";
+import { useConnectionStore, useFileSystemStore } from "@/stores";
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -50,6 +47,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const { navigateTo } = useFileSystemStore.getState();
+  const { email } = useConnectionStore.getState();
+  const emailOrPlaceholder =
+    email && email.trim() !== "" ? email : "user@example.com";
 
   // Load favorites from localStorage on initial render
   useEffect(() => {
@@ -63,9 +63,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   useEffect(() => {
     saveFavorites(favorites);
   }, [favorites]);
-
-  // User email for "My datasite" path
-  const userEmail = "user@example.com";
 
   const getActiveItem = (pathname: string) => {
     if (pathname.startsWith("/diagnostic")) return "Diagnostic";
@@ -177,15 +174,15 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     // },
   ];
 
-  const handleProfileClick = () => {
-    router.push("/profile/");
-    closeSidebar();
-  };
+  // const handleProfileClick = () => {
+  //   router.push("/profile/");
+  //   closeSidebar();
+  // };
 
-  const handleSettingsClick = () => {
-    router.push("/settings/");
-    closeSidebar();
-  };
+  // const handleSettingsClick = () => {
+  //   router.push("/settings/");
+  //   closeSidebar();
+  // };
 
   const handleLogoutClick = () => {
     router.push("/");
@@ -330,16 +327,22 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           <DropdownMenuTrigger className="w-full">
             <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-md p-2 transition-colors">
               <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
-                U
+                {emailOrPlaceholder.charAt(0).toUpperCase()}
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium">User Name</p>
-                <p className="text-muted-foreground text-xs">{userEmail}</p>
+                <p className="text-sm font-medium">
+                  {emailOrPlaceholder.split("@")[0].charAt(0).toUpperCase() +
+                    emailOrPlaceholder.split("@")[0].slice(1)}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {emailOrPlaceholder}
+                </p>
               </div>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={handleProfileClick}>
+            {/* TODO: enable profile and settings once we implement them */}
+            {/* <DropdownMenuItem onClick={handleProfileClick}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
@@ -347,7 +350,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
             <DropdownMenuItem onClick={handleLogoutClick}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>

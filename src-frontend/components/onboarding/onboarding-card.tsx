@@ -49,6 +49,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         return;
       }
       updateSettings({ url: `http://${host}:${port}`, token });
+
       // Attempt connection
       const result = await connect();
 
@@ -57,7 +58,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         return;
       }
 
-      if (!result.hasConfig) {
+      if (["UNPROVISIONED", "ERROR"].includes(result.datasiteStatus)) {
         setStep("configure");
         return;
       }
