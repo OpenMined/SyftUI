@@ -141,6 +141,9 @@ export async function listApps(): Promise<AppListResponse> {
   }
 
   const data: AppListResponse = await response.json();
+  data.apps.forEach((app) => {
+    app.ports = app.ports?.sort((a, b) => a - b) || [];
+  });
   return data;
 }
 
@@ -171,5 +174,6 @@ export async function getApp(
   }
 
   const data: App = await response.json();
+  data.ports = data.ports?.sort((a, b) => a - b) || [];
   return data;
 }
