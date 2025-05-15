@@ -16,7 +16,7 @@ use tauri_plugin_updater::{Update, UpdaterExt};
 mod version;
 use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
-#[cfg(not(debug_assertions))]
+#[cfg(all(not(debug_assertions), not(target_os = "windows")))]
 use std::process::Command;
 
 #[cfg(not(debug_assertions))]

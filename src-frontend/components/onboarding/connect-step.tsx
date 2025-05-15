@@ -70,7 +70,7 @@ export function ConnectStep({
 
     // Error handling
     if (result.success) {
-      if (result.hasConfig) {
+      if (["PROVISIONING", "PROVISIONED"].includes(result.datasiteStatus)) {
         onComplete();
       } else {
         onNext();
