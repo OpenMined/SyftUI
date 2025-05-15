@@ -25,7 +25,7 @@ use tauri_plugin_shell::ShellExt;
 #[cfg(target_os = "macos")]
 use tauri::{image::Image, TitleBarStyle};
 
-#[cfg(target_os = "windows")]
+#[cfg(all(not(debug_assertions), target_os = "windows"))]
 use std::path::Path;
 
 #[derive(Default)]
@@ -101,9 +101,6 @@ pub fn run() {
                 daemon_host,
                 daemon_port
             );
-            let url = _generate_main_url(&daemon_host, &daemon_port, &daemon_token);
-            _setup_main_window(app.handle(), url);
-            _start_periodic_update_checks(app.handle());
 
             #[cfg(not(debug_assertions))]
             _setup_sidecars_for_release_builds(
@@ -112,6 +109,10 @@ pub fn run() {
                 &daemon_port,
                 &daemon_token,
             );
+
+            let url = _generate_main_url(&daemon_host, &daemon_port, &daemon_token);
+            _setup_main_window(app.handle(), url);
+            _start_periodic_update_checks(app.handle());
 
             _setup_system_tray(app.handle());
             log::info!("Application setup completed");
@@ -561,7 +562,7 @@ fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
     WebviewUrl::App(url.into())
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(all(not(debug_assertions), target_os = "windows"))]
 fn find_git_bash() -> Option<&'static str> {
     let possible_paths = [
         r"C:\Program Files\Git\bin\bash.exe",

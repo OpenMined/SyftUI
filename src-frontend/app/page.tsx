@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoComponent } from "@/components/logo/logo";
 import { FloatingConnectionStatus } from "@/components/floating-connection-status";
 import { OnboardingCard } from "@/components/onboarding";
+import { initializationService } from "@/lib/initialization";
 import { useConnectionStore } from "@/stores";
 
 export default function HomePage() {
@@ -18,6 +19,11 @@ export default function HomePage() {
       const params = new URLSearchParams(window.location.search);
       const nextUrl = params.get("next") || "/workspace";
       router.push(nextUrl);
+
+      // Run initialization once when the app starts
+      if (typeof window !== "undefined") {
+        initializationService.initialize().catch(console.error);
+      }
 
       if (didOnboard) {
         toast({

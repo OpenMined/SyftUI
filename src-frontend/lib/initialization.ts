@@ -1,9 +1,11 @@
 // lib/initialization.ts
-const FIRST_RUN_DONE_KEY = "syftui_first_run_done";
+import { useConnectionStore } from "@/stores/useConnectionStore";
+
+const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250516";
 
 /**
  * Initialization service for SyftUI application
- * Runs initialization tasks only once per app installation/clear storage
+ * Runs initialization tasks only once per app session
  */
 export const initializationService = {
   /**
@@ -60,14 +62,14 @@ export const initializationService = {
    */
   async setupSidebarFavorites(): Promise<void> {
     if (typeof window === "undefined") return;
+    const connectionStore = useConnectionStore.getState();
     const favorites = [
       { id: "dir-datasites", name: "Datasites", path: ["datasites"] },
-      // TODO: enable this once we have a way to get user's email
-      // {
-      //   id: "folder-9",
-      //   name: "My datasite",
-      //   path: ["datasites", "user@example.com"],
-      // },
+      {
+        id: "folder-9",
+        name: "My datasite",
+        path: ["datasites", connectionStore.email],
+      },
     ];
     localStorage.setItem("syftui-favorites", JSON.stringify(favorites));
   },

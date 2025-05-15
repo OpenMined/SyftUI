@@ -6,13 +6,10 @@ import { Grid, List } from "lucide-react";
 import { addToFavorites } from "@/lib/utils/favorites";
 import {
   FolderPlus,
-  Upload,
   Trash2,
   Scissors,
   Copy,
   Clipboard,
-  PauseCircle,
-  PlayCircle,
   RefreshCw,
   ArrowUpDown,
   Star,
@@ -63,8 +60,6 @@ export function FileActions() {
     setSortConfig,
     fileSystem,
     currentPath,
-    syncPaused,
-    setSyncDialogOpen,
     viewMode,
     setViewMode,
     showHiddenFiles,
@@ -154,30 +149,30 @@ export function FileActions() {
   };
 
   // Sync status button
-  const renderSyncStatusButton = () => {
-    return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setSyncDialogOpen(true)}
-        className="flex items-center gap-2"
-      >
-        {syncPaused ? (
-          <>
-            <PauseCircle className="h-4 w-4 text-yellow-500" />
-            <span className="hidden text-yellow-500 sm:inline">
-              Sync Paused
-            </span>
-          </>
-        ) : (
-          <>
-            <PlayCircle className="h-4 w-4 text-green-500" />
-            <span className="hidden text-green-500 sm:inline">Sync Active</span>
-          </>
-        )}
-      </Button>
-    );
-  };
+  // const renderSyncStatusButton = () => {
+  //   return (
+  //     <Button
+  //       variant="outline"
+  //       size="sm"
+  //       onClick={() => setSyncDialogOpen(true)}
+  //       className="flex items-center gap-2"
+  //     >
+  //       {syncPaused ? (
+  //         <>
+  //           <PauseCircle className="h-4 w-4 text-yellow-500" />
+  //           <span className="hidden text-yellow-500 sm:inline">
+  //             Sync Paused
+  //           </span>
+  //         </>
+  //       ) : (
+  //         <>
+  //           <PlayCircle className="h-4 w-4 text-green-500" />
+  //           <span className="hidden text-green-500 sm:inline">Sync Active</span>
+  //         </>
+  //       )}
+  //     </Button>
+  //   );
+  // };
 
   // State for tracking which menu is open
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -211,7 +206,7 @@ export function FileActions() {
   return (
     <>
       {/* Sync status button */}
-      {renderSyncStatusButton()}
+      {/* {renderSyncStatusButton()} */}
 
       {isCompactView ? (
         /* Compact Menu - Single dropdown with all options */
@@ -244,10 +239,10 @@ export function FileActions() {
                 <FolderPlus className="mr-2 h-4 w-4" />
                 New Folder
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Upload className="mr-2 h-4 w-4" />
                 Upload
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem
                 onClick={refreshFileSystem}
                 disabled={isRefreshing}
@@ -442,10 +437,10 @@ export function FileActions() {
                 <FolderPlus className="mr-2 h-4 w-4" />
                 New Folder
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Upload className="mr-2 h-4 w-4" />
                 Upload
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={refreshFileSystem}

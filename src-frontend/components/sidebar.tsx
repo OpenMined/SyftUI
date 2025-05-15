@@ -9,18 +9,11 @@ import {
   Star,
   ChevronDown,
   ChevronRight,
-  LogOut,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
@@ -184,10 +177,10 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   //   closeSidebar();
   // };
 
-  const handleLogoutClick = () => {
-    router.push("/");
-    closeSidebar();
-  };
+  // const handleLogoutClick = () => {
+  //   router.push("/");
+  //   closeSidebar();
+  // };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -323,7 +316,23 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         </div>
       </nav>
       <div className="border-border border-t p-4">
-        <DropdownMenu>
+        <div className="flex cursor-default items-center gap-3 rounded-md p-2 transition-colors select-none">
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
+            {emailOrPlaceholder.charAt(0).toUpperCase()}
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-medium">
+              {emailOrPlaceholder.split("@")[0].charAt(0).toUpperCase() +
+                emailOrPlaceholder.split("@")[0].slice(1)}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {emailOrPlaceholder}
+            </p>
+          </div>
+        </div>
+
+        {/* TODO enable dropdown menu once the options are implemented */}
+        {/* <DropdownMenu>
           <DropdownMenuTrigger className="w-full">
             <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-md p-2 transition-colors">
               <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
@@ -341,8 +350,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            {/* TODO: enable profile and settings once we implement them */}
-            {/* <DropdownMenuItem onClick={handleProfileClick}>
+            <DropdownMenuItem onClick={handleProfileClick}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
@@ -350,13 +358,13 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator /> */}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogoutClick}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
     </div>
   );

@@ -51,7 +51,25 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
       updateSettings({ url: `http://${host}:${port}`, token });
 
       // Attempt connection
-      const result = await connect();
+      const isDesktopBuild = window?.__TAURI__ !== undefined;
+      let result;
+
+      if (isDesktopBuild) {
+        // Desktop app should automatically pass the right connection details, but the daemon might not be running yet
+        // So we keep trying to connect until timeout
+        const TIMEOUT = 10000;
+        const startTime = Date.now();
+        while (Date.now() - startTime < TIMEOUT) {
+          result = await connect();
+          if (result.success) {
+            break;
+          }
+          // Wait for 500ms before trying again
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      } else {
+        result = await connect();
+      }
 
       if (!result.success) {
         setStep("connect");

@@ -64,13 +64,10 @@ function BackgroundContextMenuContent({
   setSortConfig,
   setViewMode,
   viewMode,
-  getCurrentDirectoryInfo,
   handleCreateFolder,
   handleCreateFile,
   isRefreshing,
   refreshFileSystem,
-  toggleSyncPause,
-  syncPaused,
   clipboard,
   pasteItems,
 }: BackgroundContextMenuContentProps) {
@@ -113,29 +110,29 @@ function BackgroundContextMenuContent({
   };
 
   // Handler for adding current directory to favorites
-  const handleAddToFavorites = () => {
-    // For root directory
-    if (currentPath.length === 0) {
-      addToFavorites({
-        id: "root", // Using "root" as ID for root directory
-        name: "Workspace",
-        type: "folder",
-        path: [],
-      });
-      return;
-    }
+  // const handleAddToFavorites = () => {
+  //   // For root directory
+  //   if (currentPath.length === 0) {
+  //     addToFavorites({
+  //       id: "root", // Using "root" as ID for root directory
+  //       name: "Workspace",
+  //       type: "folder",
+  //       path: [],
+  //     });
+  //     return;
+  //   }
 
-    // For non-root directories, we need to construct an item
-    const dirName = currentPath[currentPath.length - 1];
-    const dirPath = currentPath.slice(0, -1);
+  //   // For non-root directories, we need to construct an item
+  //   const dirName = currentPath[currentPath.length - 1];
+  //   const dirPath = currentPath.slice(0, -1);
 
-    addToFavorites({
-      id: `dir-${dirName}`, // Creating a pseudo-ID based on name
-      name: dirName,
-      type: "folder",
-      path: dirPath,
-    });
-  };
+  //   addToFavorites({
+  //     id: `dir-${dirName}`, // Creating a pseudo-ID based on name
+  //     name: dirName,
+  //     type: "folder",
+  //     path: dirPath,
+  //   });
+  // };
 
   return (
     <>
@@ -158,8 +155,9 @@ function BackgroundContextMenuContent({
           </ContextMenuSubContent>
         </ContextMenuSub>
 
-        <ContextMenuItem>Upload File</ContextMenuItem>
-        <ContextMenuItem>Download as ZIP</ContextMenuItem>
+        {/* TODO enable these */}
+        {/* <ContextMenuItem>Upload File</ContextMenuItem> */}
+        {/* <ContextMenuItem>Download as ZIP</ContextMenuItem> */}
         <ContextMenuItem
           onClick={pasteItems}
           disabled={!clipboard}
@@ -174,7 +172,7 @@ function BackgroundContextMenuContent({
         </ContextMenuItem>
         <ContextMenuSeparator />
 
-        <ContextMenuItem>Activity</ContextMenuItem>
+        {/* <ContextMenuItem>Activity</ContextMenuItem>
         <ContextMenuItem
           onClick={() => {
             const dirInfo = getCurrentDirectoryInfo();
@@ -182,18 +180,18 @@ function BackgroundContextMenuContent({
           }}
         >
           Permissions
-        </ContextMenuItem>
+        </ContextMenuItem> */}
         <ContextMenuItem onClick={refreshFileSystem} disabled={isRefreshing}>
           {isRefreshing ? "Refreshing..." : "Refresh"}
         </ContextMenuItem>
-        <ContextMenuItem onClick={toggleSyncPause}>
+        {/* <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
         </ContextMenuItem>
         <ContextMenuItem onClick={handleAddToFavorites}>
           <Star className="mr-2 h-4 w-4" />
           Add Current Folder to Favorites
         </ContextMenuItem>
-        <ContextMenuSeparator />
+        <ContextMenuSeparator /> */}
 
         {/* View mode submenu */}
         <ContextMenuSub>

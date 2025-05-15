@@ -56,7 +56,8 @@ export function FileToolbar({ onSearch }: FileToolbarProps) {
 
   // Collapsible search input
   const collapsibleSearch = (
-    <div className="relative flex items-center">
+    // TODO change hidden to flex when search is implemented
+    <div className="relative hidden items-center">
       {/* Search icon button (visible when collapsed) */}
       {!isSearchExpanded && (
         <Button

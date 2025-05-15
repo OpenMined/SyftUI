@@ -2,14 +2,12 @@
 
 import "./globals.css";
 import type React from "react";
-import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { useSidebarStore } from "@/stores";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { initializationService } from "@/lib/initialization";
 import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 
 const title = "SyftBox";
@@ -24,13 +22,6 @@ export default function RootLayout({
   const pathname = usePathname();
   const sidebarExcludedPaths = ["/", "/about/", "/updates/"];
   const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
-
-  useEffect(() => {
-    // Run initialization once when the app starts
-    if (typeof window !== "undefined") {
-      initializationService.initialize().catch(console.error);
-    }
-  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>

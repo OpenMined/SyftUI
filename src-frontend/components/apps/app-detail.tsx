@@ -3,9 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ChevronLeft,
-  Play,
-  Square,
-  RotateCcw,
   Trash2,
   Terminal,
   FileText,
@@ -15,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toolbar } from "@/components/ui/toolbar";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { getApp, type App } from "@/lib/api/apps";
 import { useConnectionStore } from "@/stores";
@@ -91,16 +88,16 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
     setAppStatus("running");
   };
 
-  const handleStop = () => {
-    setAppStatus("stopped");
-  };
+  // const handleStop = () => {
+  //   setAppStatus("stopped");
+  // };
 
-  const handleRestart = () => {
-    setAppStatus("restarting");
-    setTimeout(() => {
-      setAppStatus("running");
-    }, 2000);
-  };
+  // const handleRestart = () => {
+  //   setAppStatus("restarting");
+  //   setTimeout(() => {
+  //     setAppStatus("running");
+  //   }, 2000);
+  // };
 
   const updateActiveTab = (tab: string) => {
     setActiveTab(tab);
@@ -158,7 +155,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
         }
       >
         <div className="flex items-center">
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <Button
               variant="outline"
               size="sm"
@@ -191,7 +188,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
             </Button>
           </div>
 
-          <Separator orientation="vertical" className="mx-2 h-6" />
+          <Separator orientation="vertical" className="mx-2 h-6" /> */}
 
           <Button
             variant="destructive"

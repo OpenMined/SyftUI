@@ -217,7 +217,7 @@ function ProcessTree({ stats }: { stats: ProcessStats }) {
 
 export function AppStats({ appName }: { appName: string }) {
   const [app, setApp] = useState<App | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState(5000); // 5 seconds default
+  const [refreshInterval, setRefreshInterval] = useState(1000); // 1 second default
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

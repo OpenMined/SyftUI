@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  X,
-  Share2,
-  Download,
-  Trash2,
-  Edit,
-  Clock,
-  Lock,
-  Info,
-} from "lucide-react";
+import { X, Share2, Trash2, Edit, Clock, Lock, Info } from "lucide-react";
 import { FileIcon } from "@/components/workspace/file-icon";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -116,16 +107,16 @@ export function FileDetails({
 
       <div className="flex-1 overflow-auto">
         <Tabs defaultValue="details">
-          <TabsList className="w-full">
+          <TabsList className="hidden w-full">
             <TabsTrigger value="details" className="flex-1">
               Details
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex-1">
+            {/* <TabsTrigger value="activity" className="flex-1">
               Activity
-            </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex-1">
+            </TabsTrigger> */}
+            {/* <TabsTrigger value="permissions" className="flex-1">
               Permissions
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="details" className="space-y-6 p-4">
@@ -184,12 +175,8 @@ export function FileDetails({
                   <span className="text-muted-foreground">Type:</span>
                   <span>{fileType}</span>
 
-                  {item.size && (
-                    <>
-                      <span className="text-muted-foreground">Size:</span>
-                      <span>{formatFileSize(item.size)}</span>
-                    </>
-                  )}
+                  <span className="text-muted-foreground">Size:</span>
+                  <span>{formatFileSize(item.size)}</span>
 
                   <span className="text-muted-foreground">Location:</span>
                   <span className="truncate">
@@ -236,7 +223,7 @@ export function FileDetails({
               )}
             </div>
           </TabsContent>
-
+          {/* 
           <TabsContent value="activity" className="p-4">
             <div className="space-y-4">
               <p className="text-muted-foreground text-sm">
@@ -271,7 +258,7 @@ export function FileDetails({
                 </div>
               </div>
             </div>
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="permissions" className="p-4">
             <div className="space-y-4">
@@ -337,10 +324,10 @@ export function FileDetails({
               <Edit className="mr-2 h-4 w-4" />
               Rename
             </Button>
-            <Button variant="outline" size="sm" className="flex-1">
+            {/* <Button variant="outline" size="sm" className="flex-1">
               <Download className="mr-2 h-4 w-4" />
               Download
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
               size="sm"
