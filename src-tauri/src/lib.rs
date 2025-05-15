@@ -564,8 +564,8 @@ fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
 #[cfg(target_os = "windows")]
 fn find_git_bash() -> Option<&'static str> {
     let possible_paths = [
-        r"C:\Program Files\Git\git-bash.exe",
-        r"C:\Program Files (x86)\Git\git-bash.exe",
+        r"C:\Program Files\Git\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\bin\bash.exe",
     ];
     for path in &possible_paths {
         if Path::new(path).exists() {
@@ -575,32 +575,55 @@ fn find_git_bash() -> Option<&'static str> {
     None
 }
 
-#[cfg(not(debug_assertions))]
+#[cfg(all(not(debug_assertions), target_os = "windows"))]
 fn _setup_sidecars_for_release_builds(
     app: &AppHandle,
     daemon_host: &str,
     daemon_port: &str,
     daemon_token: &str,
 ) {
-    log::info!("Setting up sidecars for release build");
-
-    // Find the default system shell.
-    let command = std::env::var("SHELL").expect("SHELL environment variable is not set");
-
-    #[cfg(target_os = "windows")]
-    {
-        command = find_git_bash().expect(
-            "Failed to find git-bash.exe. Please install Git for Windows in standard locations to continue.",
-        );
-    }
-
-    let syftboxd_command: Command = app.shell().sidecar("syftboxd").unwrap().into();
-    let syftboxd_path = syftboxd_command.get_program();
+    log::info!("Setting up sidecars");
+    let command = find_git_bash().expect(
+        "Failed to find git-bash.exe. Please install Git for Windows in standard locations to continue.",
+    ).to_string();
     let args = [
+        "-l",
+        "-c",
+        &format!(
+            "./syftboxd.exe daemon --http-addr {} --http-token {}",
+            &format!("{}:{}", daemon_host, daemon_port),
+            &daemon_token
+        ),
+    ];
+    // Spawn the daemon sidecar with the generated args.
+    // TODO bundle git bash (or equivalent like cygwin, mingw, etc) with the app
+    let (_rx, daemon_sidecar) = app
+        .shell()
+        .command(command)
+        .args(args)
+        .spawn()
+        .expect("Failed to spawn sidecar");
+    log::info!("Daemon sidecar spawned with PID: {}", daemon_sidecar.pid());
+}
+
+#[cfg(all(not(debug_assertions), not(target_os = "windows")))]
+fn _setup_sidecars_for_release_builds(
+    app: &AppHandle,
+    daemon_host: &str,
+    daemon_port: &str,
+    daemon_token: &str,
+) {
+    log::info!("Setting up sidecars");
+
+    let command = std::env::var("SHELL").expect("SHELL environment variable is not set");
+    let syftboxd_command: Command = app.shell().sidecar("syftboxd").unwrap().into();
+    let syftboxd_path = syftboxd_command.get_program().to_str().unwrap().to_string();
+    let args = [
+        "-l",
         "-c",
         &format!(
             "{} daemon --http-addr {} --http-token {}",
-            syftboxd_path.to_str().unwrap(),
+            syftboxd_path,
             &format!("{}:{}", daemon_host, daemon_port),
             &daemon_token
         ),
