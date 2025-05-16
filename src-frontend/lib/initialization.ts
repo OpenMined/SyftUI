@@ -62,15 +62,17 @@ export const initializationService = {
    */
   async setupSidebarFavorites(): Promise<void> {
     if (typeof window === "undefined") return;
-    const connectionStore = useConnectionStore.getState();
+    const { datasite } = useConnectionStore.getState();
     const favorites = [
       { id: "dir-datasites", name: "Datasites", path: ["datasites"] },
-      {
-        id: "folder-9",
-        name: "My datasite",
-        path: ["datasites", connectionStore.email],
-      },
     ];
+    if (datasite?.email) {
+      favorites.push({
+        id: "dir-my-datasite",
+        name: "My datasite",
+        path: ["datasites", datasite?.email],
+      });
+    }
     localStorage.setItem("syftui-favorites", JSON.stringify(favorites));
   },
 };

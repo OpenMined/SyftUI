@@ -7,7 +7,6 @@ import { z } from "zod";
 // Connection settings types and constants
 export interface ConnectionSettings {
   url: string;
-  email: string;
   token: string;
 }
 
@@ -19,10 +18,12 @@ export type DatasiteStatus =
   | "PROVISIONED"
   | "ERROR";
 
+export const isConfigValid = (status: DatasiteStatus | undefined) =>
+  status && ["PROVISIONING", "PROVISIONED"].includes(status);
+
 // Default values for connection settings
 export const DEFAULT_CONNECTION_SETTINGS: ConnectionSettings = {
   url: "",
-  email: "",
   token: "",
 };
 
@@ -43,15 +44,21 @@ export interface ConnectionErrors {
   token?: string;
 }
 
+export interface DatasiteInfo {
+  status: DatasiteStatus;
+  error: string | null;
+  email: string | null;
+}
+
 interface ConnectionState {
   settings: ConnectionSettings;
   status: ConnectionStatus;
+  datasite: DatasiteInfo | null;
   updateSettings: (newSettings: Partial<ConnectionSettings>) => void;
   setStatus: (status: ConnectionStatus) => void;
   connect: () => Promise<{
     success: boolean;
     errors: ConnectionErrors;
-    datasiteStatus: DatasiteStatus;
   }>;
   validateSettings: (settings: ConnectionSettings) => ConnectionErrors;
 }
@@ -62,6 +69,7 @@ export const useConnectionStore = create<ConnectionState>()(
     (set, get) => ({
       settings: DEFAULT_CONNECTION_SETTINGS,
       status: "disconnected",
+      datasite: null,
 
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -99,7 +107,6 @@ export const useConnectionStore = create<ConnectionState>()(
 
         let errors = validateSettings(settings);
         let success = false;
-        let datasiteStatus: DatasiteStatus = "UNPROVISIONED";
 
         // Check if there are any errors
         if (Object.keys(errors).length === 0) {
@@ -122,8 +129,13 @@ export const useConnectionStore = create<ConnectionState>()(
               set({ status: "connected" });
               const responseData = await response.json();
               success = true;
-              datasiteStatus = responseData.datasite.status;
-              set({ email: responseData.datasite.config?.email || "" });
+              set({
+                datasite: {
+                  status: responseData.datasite.status,
+                  error: responseData.datasite.error || null,
+                  email: responseData.datasite.config?.email || null,
+                },
+              });
             } else {
               set({ status: "disconnected" });
               switch (response.status) {
@@ -173,7 +185,7 @@ export const useConnectionStore = create<ConnectionState>()(
           }
         }
 
-        return { success, errors, datasiteStatus };
+        return { success, errors };
       },
     }),
     {

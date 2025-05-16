@@ -29,6 +29,8 @@ interface SidebarProps {
   closeSidebar: () => void;
 }
 
+const EMAIL_PLACEHOLDER = "user@example.com";
+
 export function Sidebar({ closeSidebar }: SidebarProps) {
   const [favorites, setFavorites] = useState<
     { id: string; name: string; path: string[] }[]
@@ -39,10 +41,9 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const { navigateTo } = useFileSystemStore.getState();
-  const { email } = useConnectionStore.getState();
-  const emailOrPlaceholder =
-    email && email.trim() !== "" ? email : "user@example.com";
+  const { navigateTo } = useFileSystemStore();
+  const { datasite } = useConnectionStore();
+  const [email, setEmail] = useState<string>(EMAIL_PLACEHOLDER);
 
   // Load favorites from localStorage on initial render
   useEffect(() => {
@@ -51,6 +52,10 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       setFavorites(savedFavorites);
     }
   }, []);
+
+  useEffect(() => {
+    setEmail(datasite?.email ?? EMAIL_PLACEHOLDER);
+  }, [datasite?.email]);
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
@@ -318,16 +323,14 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       <div className="border-border border-t p-4">
         <div className="flex cursor-default items-center gap-3 rounded-md p-2 transition-colors select-none">
           <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
-            {emailOrPlaceholder.charAt(0).toUpperCase()}
+            {email.charAt(0).toUpperCase()}
           </div>
           <div className="text-left">
             <p className="text-sm font-medium">
-              {emailOrPlaceholder.split("@")[0].charAt(0).toUpperCase() +
-                emailOrPlaceholder.split("@")[0].slice(1)}
+              {email.split("@")[0].charAt(0).toUpperCase() +
+                email.split("@")[0].slice(1)}
             </p>
-            <p className="text-muted-foreground text-xs">
-              {emailOrPlaceholder}
-            </p>
+            <p className="text-muted-foreground text-xs">{email}</p>
           </div>
         </div>
 

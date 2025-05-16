@@ -25,6 +25,7 @@ import {
   connectionFormSchema,
   useConnectionStore,
 } from "@/stores";
+import { isConfigValid } from "@/stores/useConnectionStore";
 
 interface ConnectStepProps {
   onComplete: () => void;
@@ -40,7 +41,8 @@ export function ConnectStep({
   setIsLoading,
 }: ConnectStepProps) {
   const [showToken, setShowToken] = useState(false);
-  const { updateSettings, status, connect, settings } = useConnectionStore();
+  const { updateSettings, status, datasite, connect, settings } =
+    useConnectionStore();
 
   const form = useForm<ConnectionFormValues>({
     resolver: zodResolver(connectionFormSchema),
@@ -70,7 +72,7 @@ export function ConnectStep({
 
     // Error handling
     if (result.success) {
-      if (["PROVISIONING", "PROVISIONED"].includes(result.datasiteStatus)) {
+      if (isConfigValid(datasite?.status)) {
         onComplete();
       } else {
         onNext();
