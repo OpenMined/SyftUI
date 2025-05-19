@@ -251,6 +251,7 @@ fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
     log::info!("Setting up main window");
     let win_builder = WebviewWindowBuilder::new(app, "main", url)
         .title("")
+        .disable_drag_drop_handler()
         .focused(true)
         .maximized(true)
         .min_inner_size(800.0, 600.0)

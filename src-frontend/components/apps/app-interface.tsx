@@ -54,7 +54,7 @@ export function AppInterface({
                 title={`${app.name}`}
                 className="h-full w-full rounded-lg border"
                 src={appUrl}
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts allow-same-origin allow-modals allow-forms"
               />
             </div>
           </div>

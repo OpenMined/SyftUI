@@ -1,7 +1,7 @@
 // lib/initialization.ts
 import { useConnectionStore } from "@/stores/useConnectionStore";
 
-const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250516";
+const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250519";
 
 /**
  * Initialization service for SyftUI application
