@@ -29,7 +29,7 @@ type ConfigFormValues = z.infer<typeof configFormSchema>;
 export function OnboardingCard({ onComplete }: OnboardingCardProps) {
   const [step, setStep] = useState<Step>("initialize");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { updateSettings, connect } = useConnectionStore();
+  const { datasite, updateSettings, connect } = useConnectionStore();
   const { host, port, token } = useHashParams();
 
   const configForm = useForm<ConfigFormValues>({
@@ -76,7 +76,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         return;
       }
 
-      if (["UNPROVISIONED", "ERROR"].includes(result.datasiteStatus)) {
+      if (["UNPROVISIONED", "ERROR"].includes(datasite?.status || "")) {
         setStep("configure");
         return;
       }
@@ -84,7 +84,15 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
       onComplete();
     };
     attemptConnection();
-  }, [host, port, token, updateSettings, connect, onComplete]);
+  }, [
+    connect,
+    datasite?.status,
+    host,
+    onComplete,
+    port,
+    token,
+    updateSettings,
+  ]);
 
   const handleNext = () => {
     setStep(
