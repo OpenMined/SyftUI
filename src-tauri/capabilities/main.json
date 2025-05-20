@@ -6,6 +6,7 @@
   "permissions": [
     "dialog:default",
     "dialog:allow-open",
+    "process:allow-exit",
     {
       "identifier": "opener:allow-open-path",
       "allow": [
