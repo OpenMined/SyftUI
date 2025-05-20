@@ -360,7 +360,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator /> */}
-            {window?.__TAURI__ !== undefined ? (
+            {typeof window !== "undefined" && window.__TAURI__ !== undefined ? (
               <DropdownMenuItem onClick={handleExitClick}>
                 <Power className="mr-2 h-4 w-4" />
                 <span>Exit</span>

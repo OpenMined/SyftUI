@@ -481,6 +481,7 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
                 update.version
             );
             let mut downloaded_chunks: u64 = 0;
+            let mut last_shown_percent: i32 = -1; // Track last shown percentage
             if let Err(e) = update
                 .download_and_install(
                     |chunk_length, content_length| {
@@ -488,16 +489,24 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
                         let percent = (downloaded_chunks as f64
                             / content_length.unwrap_or(downloaded_chunks) as f64)
                             * 100.0;
-                        log::debug!("Update download progress: {:.1}%", percent);
-                        _show_update_window(
-                            &app,
-                            UpdateWindowType::Downloading,
-                            update.version.clone(),
-                            update.current_version.clone(),
-                            "".to_string(),
-                            "".to_string(),
-                            percent as usize,
-                        );
+
+                        // Casting to i32 to convert to integer percentage so that
+                        // we update the progress bar on 1% increments
+                        let current_percent = percent as i32;
+
+                        if current_percent > last_shown_percent {
+                            log::debug!("Update download progress: {:.1}%", percent);
+                            _show_update_window(
+                                &app,
+                                UpdateWindowType::Downloading,
+                                update.version.clone(),
+                                update.current_version.clone(),
+                                "".to_string(),
+                                "".to_string(),
+                                current_percent as usize,
+                            );
+                            last_shown_percent = current_percent;
+                        }
                     },
                     || {},
                 )
