@@ -189,6 +189,9 @@ dev:
             "--prefix-colors", "red,yellow,green",
             '"just dev-daemon"', '"just dev-frontend"', '"just dev-desktop"'
         ], env=env, check=True)
+    except KeyboardInterrupt:
+        print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
+        sys.exit(0)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -204,20 +207,20 @@ dev-daemon:
     http_addr = f"{os.environ.get('DAEMON_HOST', 'localhost')}:{os.environ.get('DAEMON_PORT', '7938')}"
     http_token = f"{os.environ.get('DAEMON_TOKEN', 'SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS')}"
 
-    air_path = shutil.which("air")
-    if not Path(air_path).exists():
-        print(f"{{ _red }}Air not found at {air_path}.{{ _nc }}")
-        print(f"{{ _yellow }}Please install Air using:{{ _nc }}")
-        print(f"{{ _yellow }}go install github.com/cosmtrek/air@latest{{ _nc }}")
+    wgo_path = shutil.which("wgo")
+    if not Path(wgo_path).exists():
+        print(f"{{ _red }}wgo not found at {wgo_path}.{{ _nc }}")
+        print(f"{{ _yellow }}Please run `just setup`{{ _nc }}")
         sys.exit(1)
 
-    exec_path_unix = "tmp/main" + (".exe" if os.name == "nt" else "")
-    exec_path_with_os_sep = str(Path(exec_path_unix))  # uses backslash separator on windows
-    air_cmd = f'air -build.cmd "just build-client-target && mv .out/syftbox_client_`go env GOOS`_`go env GOARCH` {exec_path_unix}" -build.bin "{exec_path_with_os_sep}" -- daemon --http-addr {http_addr} --http-token {http_token} --http-swagger'
+    wgo_cmd = f'just run-client-reload daemon --http-addr {http_addr} --http-token {http_token} --http-swagger'
 
     try:
-        cmd = ["sh", "-c", air_cmd]
+        cmd = ["sh", "-c", wgo_cmd]
         subprocess.run(cmd, cwd="src-daemon", check=True)
+    except KeyboardInterrupt:
+        print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
+        sys.exit(0)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -230,6 +233,9 @@ dev-desktop:
 
     try:
         subprocess.run(["bunx", "@tauri-apps/cli", "dev"], check=True)
+    except KeyboardInterrupt:
+        print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
+        sys.exit(0)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -242,6 +248,9 @@ dev-frontend:
 
     try:
         subprocess.run(["bun", "run", "--cwd", "src-frontend", "dev"], check=True)
+    except KeyboardInterrupt:
+        print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
+        sys.exit(0)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -259,6 +268,9 @@ package TARGET_TRIPLE="":
         subprocess.run(["just", "package-daemon", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "update-version", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "package-desktop", "{{ TARGET_TRIPLE }}"], check=True)
+    except KeyboardInterrupt:
+        print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
+        sys.exit(0)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -738,8 +750,8 @@ setup skip_prerequisites="no":
     else:
         subprocess.run([bunx_exec, 'husky'], check=True)
 
-    # TODO: Install the daemon's toolchain
-    # subprocess.run(['just', '--justfile', 'src-daemon/justfile', 'setup-toolchain'], check=True)
+    # Install the syftbox toolchain
+    subprocess.run(['just', '--justfile', 'src-daemon/justfile', 'setup-toolchain'], check=True)
 
     print(f"\n{{ _green }}Setup complete!{{ _nc }}")
     print(f"You can now run {{ _red }}just dev{{ _nc }} to start the frontend, server, and desktop app — all at once with hot-reloading.")
