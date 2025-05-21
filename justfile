@@ -542,6 +542,123 @@ generate-release-json version upload="no":
             run_command(f"gh release delete-asset -y {version} {sig_file['name']}")
             print(f"{{ _green }}Deleted {sig_file['name']} from the release.{{ _nc }}")
 
+# Update binaries
+[group('utils')]
+update-binaries:
+    #!/usr/bin/env python
+    import os
+    import shutil
+    import subprocess
+    import tarfile
+    import tempfile
+    import zipfile
+    from pathlib import Path
+
+    try:
+        from tqdm import tqdm
+    except ImportError:
+        # Install dependencies if not already installed
+        subprocess.run(['pip', 'install', 'tqdm'], check=True)
+
+    try:
+        import requests
+    except ImportError:
+        # Install dependencies if not already installed
+        subprocess.run(['pip', 'install', 'requests'], check=True)
+
+    def download_with_progress(url: str, dst: Path) -> bool:
+        """Download a file with a progress bar."""
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            
+            # Get total file size
+            total_size = int(response.headers.get('content-length', 0))
+            
+            # Create progress bar
+            with open(dst, 'wb') as f, tqdm(
+                desc=dst.name,
+                total=total_size,
+                unit='iB',
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as pbar:
+                for data in response.iter_content(chunk_size=1024):
+                    size = f.write(data)
+                    pbar.update(size)
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"{{ _red }}Error downloading {url}: {str(e)}{{ _nc }}")
+            return False
+        except IOError as e:
+            print(f"{{ _red }}Error writing to {dst}: {str(e)}{{ _nc }}")
+            return False
+
+    def extract_compressed_file(src: Path, dst: Path, flatten: bool = True):
+        if src.suffix == '.zip':
+            with zipfile.ZipFile(src, 'r') as zip_ref:
+                zip_ref.extractall(dst)
+        elif src.suffixes == ['.tar', '.gz']:
+            with tarfile.open(src, 'r:gz') as tar_ref:
+                paths = [m.path for m in tar_ref if m.isfile()]
+                tar_ref.extractall(dst)
+
+                if flatten:
+                    # flatten the extracted paths
+                    for path in paths:
+                        os.rename(dst / path, dst / path.split('/')[-1])
+
+    ASSET_NAMES = [
+        "uv-aarch64-apple-darwin.tar.gz",
+        "uv-x86_64-apple-darwin.tar.gz",
+        "uv-x86_64-pc-windows-msvc.zip",
+        "uv-x86_64-unknown-linux-gnu.tar.gz"
+    ]
+
+    # Update uv binaries
+    UV_ASSETS_BASE_URL = "https://github.com/astral-sh/uv/releases/latest/download"
+    success = True
+
+    print(f"{{ _cyan }}Downloading uv binaries...{{ _nc }}")
+    temp_dir = Path("src-tauri/tmp")
+
+    for asset_name in ASSET_NAMES:
+        target_triple = asset_name.rstrip(".zip").rstrip(".tar.gz").lstrip("uv-")
+        extension = ".exe" if target_triple == "x86_64-pc-windows-msvc" else ""
+
+        asset_url = f"{UV_ASSETS_BASE_URL}/{asset_name}"
+
+        # download the asset
+        download_dst = temp_dir / asset_name
+        download_dst.parent.mkdir(parents=True, exist_ok=True)
+
+        print(f"Downloading {asset_name} to {download_dst}...")
+
+        if not download_with_progress(asset_url, download_dst):
+            success = False
+            break
+
+        # extract the asset
+        print(f"Extracting {asset_name} to {temp_dir}...")
+        extract_compressed_file(download_dst, temp_dir, flatten=True)
+
+        # move the files, appending target triple to the filename
+        final_dst = Path("src-tauri/binaries")
+        final_dst.mkdir(parents=True, exist_ok=True)
+
+        os.rename(temp_dir / f"uv{extension}", final_dst / f"uv-{target_triple}{extension}")
+        os.rename(temp_dir / f"uvx{extension}", final_dst / f"uvx-{target_triple}{extension}")
+
+    shutil.rmtree(temp_dir)
+
+    if not success:
+        print(f"{{ _red }}Failed to update binaries. Please check the errors above.{{ _nc }}")
+        sys.exit(1)
+
+    print(f"{{ _green }}Successfully updated all binaries!{{ _nc }}")
+
+    # TODO: Update process-wick binaries
+
 # Update version numbers
 [group('utils')]
 update-version TARGET_TRIPLE="":
