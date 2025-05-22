@@ -17,7 +17,10 @@ mod version;
 use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
 #[cfg(not(debug_assertions))]
-use tauri_plugin_shell::ShellExt;
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+
+#[cfg(not(debug_assertions))]
+use tauri_plugin_shell::{process::CommandEvent, ShellExt};
 
 #[cfg(target_os = "macos")]
 use tauri::{image::Image, TitleBarStyle};
@@ -576,9 +579,8 @@ fn _setup_sidecars_for_release_builds(
 ) {
     log::info!("Setting up sidecars");
 
-    // Spawn the daemon sidecar with the generated args. Important: we use the default system shell
-    // so that the sidecar gets the correct environment variables.
-    let (_rx, daemon_sidecar) = app
+    // Spawn the daemon sidecar with the generated args.
+    let (mut rx, daemon_sidecar) = app
         .shell()
         .sidecar("syftboxd")
         .unwrap()
@@ -589,6 +591,15 @@ fn _setup_sidecars_for_release_builds(
             "--http-token",
             &daemon_token,
         ])
+        // Set the SYFTBOX_DESKTOP_BINARIES_PATH environment variable to the directory
+        // of the current executable. In syftbox daemon, syftbox apps are run using the
+        // system's default shell (bash, zsh, fish, sh, git-bash.exe, etc).
+        // We source the appropriate shell rc/init files to initialize the environment.
+        // After the setup, we append the current executable's directory (via
+        // $SYFTBOX_DESKTOP_BINARIES_PATH) to the end of the PATH variable.
+        // This ensures bundled executables (like `uv`) are available to the shell,
+        // but with the lowest precedence — so if the user already has `uv` installed,
+        // their version will take priority.
         .env(
             "SYFTBOX_DESKTOP_BINARIES_PATH",
             std::env::current_exe()
@@ -601,6 +612,29 @@ fn _setup_sidecars_for_release_builds(
         .spawn()
         .expect("Failed to spawn sidecar");
     log::info!("Daemon sidecar spawned with PID: {}", daemon_sidecar.pid());
+
+    // Listen for the daemon sidecar to exit and kill the main app if it does.
+    let app_handle = app.app_handle().clone();
+    tauri::async_runtime::spawn(async move {
+        #[allow(clippy::collapsible_match)]
+        while let Some(event) = rx.recv().await {
+            if let CommandEvent::Terminated(payload) = event {
+                let code = payload.code.unwrap_or(1);
+                if code == 0 {
+                    log::warn!("Daemon sidecar exited with code: {}", code);
+                } else {
+                    log::error!("Daemon sidecar exited with code: {}", code);
+                    app_handle
+                        .dialog()
+                        .message("SyftBox daemon crashed unexpectedly. Please check the logs for more information.")
+                        .kind(MessageDialogKind::Error)
+                        .title("Error")
+                        .blocking_show();
+                }
+                app_handle.exit(code);
+            }
+        }
+    });
 
     // Spawn the `process-wick` sidecar to kill all sidecars when the main app exits.
     // This prevents orphaned sidecars after the main app is closed.
