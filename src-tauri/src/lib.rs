@@ -1,26 +1,24 @@
 use dirs::home_dir;
 use serde::Serialize;
-use std::time::Duration;
-use std::{sync::Mutex, thread};
-use tauri::Theme;
+use std::{sync::Mutex, thread, time::Duration};
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
-    Manager, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Emitter, Manager, Theme, WebviewUrl, WebviewWindowBuilder,
 };
-use tauri::{AppHandle, Emitter};
-use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_autostart::ManagerExt;
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
 mod version;
 use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 
 #[cfg(not(debug_assertions))]
-use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
-
-#[cfg(not(debug_assertions))]
-use tauri_plugin_shell::{process::CommandEvent, ShellExt};
+use {
+    command_group::CommandGroup,
+    std::process::Command as StdCommand,
+    tauri_plugin_dialog::{DialogExt, MessageDialogKind},
+    tauri_plugin_shell::ShellExt,
+};
 
 #[cfg(target_os = "macos")]
 use tauri::{image::Image, TitleBarStyle};
@@ -580,7 +578,7 @@ fn _setup_sidecars_for_release_builds(
     log::info!("Setting up sidecars");
 
     // Spawn the daemon sidecar with the generated args.
-    let (mut rx, daemon_sidecar) = app
+    let mut sidecar_cmd: StdCommand = app
         .shell()
         .sidecar("syftboxd")
         .unwrap()
@@ -609,41 +607,49 @@ fn _setup_sidecars_for_release_builds(
                 .to_str()
                 .unwrap(),
         )
-        .spawn()
-        .expect("Failed to spawn sidecar");
-    log::info!("Daemon sidecar spawned with PID: {}", daemon_sidecar.pid());
+        .into();
+
+    // Important to use group_spawn() here so the entire process tree can be killed when the daemon sidecar exits.
+    // This helps prevent orphaned SyftBox apps (launched using run.sh) after SyftBox daemon exits.
+    let mut daemon_sidecar = sidecar_cmd.group_spawn().expect("Failed to spawn sidecar");
+    let daemon_group_id = daemon_sidecar.id();
+    log::info!("Daemon sidecar spawned with Group ID: {}", daemon_group_id);
 
     // Listen for the daemon sidecar to exit and kill the main app if it does.
     let app_handle = app.app_handle().clone();
     tauri::async_runtime::spawn(async move {
-        #[allow(clippy::collapsible_match)]
-        while let Some(event) = rx.recv().await {
-            if let CommandEvent::Terminated(payload) = event {
-                let code = payload.code.unwrap_or(1);
-                if code == 0 {
-                    log::warn!("Daemon sidecar exited with code: {}", code);
-                } else {
-                    log::error!("Daemon sidecar exited with code: {}", code);
-                    app_handle
-                        .dialog()
-                        .message("SyftBox daemon crashed unexpectedly. Please check the logs for more information.")
-                        .kind(MessageDialogKind::Error)
-                        .title("Error")
-                        .blocking_show();
-                }
-                app_handle.exit(code);
-            }
-        }
+        let exit_code = daemon_sidecar
+            .wait()
+            .ok()
+            .and_then(|status| status.code())
+            .unwrap_or_else(|| {
+                log::warn!("Daemon sidecar exited without a status code");
+                1
+            });
+
+        log::error!(
+            "Daemon sidecar exited unexpectedly with code: {}",
+            exit_code
+        );
+        app_handle
+            .dialog()
+            .message(
+                "SyftBox daemon exited unexpectedly. Please check the logs for more information.",
+            )
+            .kind(MessageDialogKind::Error)
+            .title("Error")
+            .blocking_show();
+
+        app_handle.exit(exit_code);
     });
 
     // Spawn the `process-wick` sidecar to kill all sidecars when the main app exits.
     // This prevents orphaned sidecars after the main app is closed.
-    let main_process_pid = std::process::id(); // Use parent process id as that is the group id of entire process tree
     let (_, process_wick_sidecar) = app
         .shell()
         .sidecar("process-wick")
         .unwrap()
-        .args(["--targets", &main_process_pid.to_string()])
+        .args(["--targets", &daemon_group_id.to_string()])
         .spawn()
         .expect("Failed to spawn sidecar");
     log::info!(
