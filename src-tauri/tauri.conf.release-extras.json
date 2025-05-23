@@ -1,9 +1,9 @@
 {
   "bundle": {
     "externalBin": [
-      "./binaries/process-wick",
-      "./binaries/uv",
-      "./binaries/uvx",
+      "./target/binaries/process-wick",
+      "./target/binaries/uv",
+      "./target/binaries/uvx",
       "./target/binaries/syftboxd"
     ]
   }

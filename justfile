@@ -266,6 +266,7 @@ package TARGET_TRIPLE="":
     try:
         subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
         subprocess.run(["just", "package-daemon", "{{ TARGET_TRIPLE }}"], check=True)
+        subprocess.run(["just", "update-binaries", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "update-version", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "package-desktop", "{{ TARGET_TRIPLE }}"], check=True)
     except KeyboardInterrupt:
@@ -544,48 +545,68 @@ generate-release-json version upload="no":
 
 # Update binaries
 [group('utils')]
-update-binaries:
+update-binaries TARGET_TRIPLE="":
     #!/usr/bin/env python
+    from dataclasses import dataclass
+    from pathlib import Path
     import os
-    import shutil
     import subprocess
+    import shutil
+    import sys
     import tarfile
     import tempfile
     import zipfile
-    from pathlib import Path
 
-    try:
-        from tqdm import tqdm
-    except ImportError:
-        # Install dependencies if not already installed
-        subprocess.run(['pip', 'install', 'tqdm'], check=True)
-
+    # Try importing optional dependencies
     try:
         import requests
+        from tqdm import tqdm
     except ImportError:
-        # Install dependencies if not already installed
-        subprocess.run(['pip', 'install', 'requests'], check=True)
+        print("{{ _yellow }}Installing required dependencies...{{ _nc }}")
+        try:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', 'requests', 'tqdm'], check=True)
+            print("{{ _green }}Required dependencies installed.{{ _nc }}")
+        except subprocess.CalledProcessError as e:
+            print(f"{{ _red }}Failed to install dependencies: {e}{{ _nc }}")
+        finally:
+            sys.exit(1)
 
-    def download_with_progress(url: str, dst: Path) -> bool:
-        """Download a file with a progress bar."""
+    @dataclass
+    class Asset:
+        url: str
+        target_triple: str
+        binary_names: list[str]
+
+        @property
+        def name(self) -> str:
+            return self.url.split("/")[-1]
+
+    def download_file(url: str, dst: Path, show_progress: bool = True) -> bool:
+        """Download a file with optional progress bar"""
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
         try:
             response = requests.get(url, stream=True)
-            response.raise_for_status()  # Raise an exception for bad status codes
-            
+            response.raise_for_status()
+
             # Get total file size
             total_size = int(response.headers.get('content-length', 0))
-            
-            # Create progress bar
-            with open(dst, 'wb') as f, tqdm(
-                desc=dst.name,
-                total=total_size,
-                unit='iB',
-                unit_scale=True,
-                unit_divisor=1024,
-            ) as pbar:
-                for data in response.iter_content(chunk_size=1024):
-                    size = f.write(data)
-                    pbar.update(size)
+
+            if show_progress:
+                with open(dst, 'wb') as f, tqdm(
+                    desc=dst.name,
+                    total=total_size,
+                    unit='iB',
+                    unit_scale=True,
+                    unit_divisor=1024,
+                ) as pbar:
+                    for data in response.iter_content(chunk_size=8192):
+                        size = f.write(data)
+                        pbar.update(size)
+            else:
+                with open(dst, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
             return True
         except requests.exceptions.RequestException as e:
             print(f"{{ _red }}Error downloading {url}: {str(e)}{{ _nc }}")
@@ -594,70 +615,150 @@ update-binaries:
             print(f"{{ _red }}Error writing to {dst}: {str(e)}{{ _nc }}")
             return False
 
-    def extract_compressed_file(src: Path, dst: Path, flatten: bool = True):
-        if src.suffix == '.zip':
-            with zipfile.ZipFile(src, 'r') as zip_ref:
-                zip_ref.extractall(dst)
-        elif src.suffixes == ['.tar', '.gz']:
-            with tarfile.open(src, 'r:gz') as tar_ref:
-                paths = [m.path for m in tar_ref if m.isfile()]
-                tar_ref.extractall(dst)
+    def extract_archive(archive_path: Path, destination: Path) -> bool:
+        """Extract an archive file"""
+        try:
+            destination.mkdir(parents=True, exist_ok=True)
 
-                if flatten:
-                    # flatten the extracted paths
-                    for path in paths:
-                        os.rename(dst / path, dst / path.split('/')[-1])
+            if archive_path.suffix == ".zip":
+                with zipfile.ZipFile(archive_path, 'r') as zf:
+                    zf.extractall(destination)
+            else:
+                with tarfile.open(archive_path, 'r:gz') as tf:
+                    tf.extractall(destination)
+            return True
+        except (zipfile.BadZipFile, tarfile.TarError) as e:
+            print(f"{{ _red }}Extraction failed: {e}{{ _nc }}")
+            return False
+        except IOError as e:
+            print(f"{{ _red }}IO error during extraction: {e}{{ _nc }}")
+            return False
 
-    ASSET_NAMES = [
-        "uv-aarch64-apple-darwin.tar.gz",
-        "uv-x86_64-apple-darwin.tar.gz",
-        "uv-x86_64-pc-windows-msvc.zip",
-        "uv-x86_64-unknown-linux-gnu.tar.gz"
-    ]
+    def process_binary(binary_name: str, temp_path: Path, target_triple: str) -> bool:
+        """Process a single binary: find it in the temp path and move it to the target directory"""
+        try:
+            # Find the binary (might be in subdirectories)
+            binary_files = list(temp_path.rglob(f"*{binary_name}"))
+            if not binary_files:
+                print(f"{{ _red }}Binary '{binary_name}' not found after extraction{{ _nc }}")
+                return False
 
-    # Update uv binaries
-    UV_ASSETS_BASE_URL = "https://github.com/astral-sh/uv/releases/latest/download"
-    success = True
+            source_file = binary_files[0]
+            final_name = source_file.name
+            if target_triple not in source_file.stem:
+                # target triple is not in the filename, so we need to add it
+                final_name = f"{source_file.stem}-{target_triple}{source_file.suffix}"
 
-    print(f"{{ _cyan }}Downloading uv binaries...{{ _nc }}")
-    temp_dir = Path("src-tauri/tmp")
+            final_path = Path("src-tauri/target/binaries") / final_name
 
-    for asset_name in ASSET_NAMES:
-        target_triple = asset_name.rstrip(".zip").rstrip(".tar.gz").lstrip("uv-")
-        extension = ".exe" if target_triple == "x86_64-pc-windows-msvc" else ""
+            try:
+                final_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(source_file, final_path)
+            except Exception as e:
+                print(f"{{ _red }}Error moving file: {e}{{ _nc }}")
+                return False
+            
+            # Make executable on Unix-like systems
+            if os.name != 'nt':
+                os.chmod(final_path, 0o755)
+            return True
+        except Exception as e:
+            print(f"{{ _red }}Error processing binary: {e}{{ _nc }}")
+            return False
 
-        asset_url = f"{UV_ASSETS_BASE_URL}/{asset_name}"
+    def process_asset(asset: Asset) -> bool:
+        """Process a single asset: download, extract if needed, and move to final location"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            download_path = temp_path / asset.name
 
-        # download the asset
-        download_dst = temp_dir / asset_name
-        download_dst.parent.mkdir(parents=True, exist_ok=True)
+            if not download_file(asset.url, download_path):
+                return False
 
-        print(f"Downloading {asset_name} to {download_dst}...")
+            # extract the asset
+            if asset.name.endswith((".tar.gz", ".zip")):
+                if not extract_archive(download_path, temp_path):
+                    return False
 
-        if not download_with_progress(asset_url, download_dst):
-            success = False
-            break
+            # move each binary from the extracted directory to the target directory
+            for binary_name in asset.binary_names:
+                if not process_binary(binary_name, temp_path, asset.target_triple):
+                    return False
 
-        # extract the asset
-        print(f"Extracting {asset_name} to {temp_dir}...")
-        extract_compressed_file(download_dst, temp_dir, flatten=True)
+            return True
 
-        # move the files, appending target triple to the filename
-        final_dst = Path("src-tauri/binaries")
-        final_dst.mkdir(parents=True, exist_ok=True)
+    def main():
+        print("{{ _green }}Downloading binaries...{{ _nc }}")
+        selected_target_triple = "{{ TARGET_TRIPLE }}"
+        if not selected_target_triple:
+            # Get target triple
+            rustc_output = subprocess.run(['rustc', '-Vv'], capture_output=True, text=True).stdout
+            for line in rustc_output.splitlines():
+                if 'host:' in line:
+                    selected_target_triple = line.split('host:')[1].strip()
+                    break
 
-        os.rename(temp_dir / f"uv{extension}", final_dst / f"uv-{target_triple}{extension}")
-        os.rename(temp_dir / f"uvx{extension}", final_dst / f"uvx-{target_triple}{extension}")
+        if not selected_target_triple:
+            print("{{ _red }}Failed to determine the target triple. Please check the Rust installation.{{ _nc }}")
+            sys.exit(1)
 
-    shutil.rmtree(temp_dir)
 
-    if not success:
-        print(f"{{ _red }}Failed to update binaries. Please check the errors above.{{ _nc }}")
-        sys.exit(1)
+        UV_ASSETS_BASE_URL = "https://github.com/astral-sh/uv/releases/latest/download"
+        PROCESS_WICK_ASSETS_BASE_URL = "https://github.com/itstauq/process-wick/releases/latest/download"
 
-    print(f"{{ _green }}Successfully updated all binaries!{{ _nc }}")
+        all_assets = [
+            Asset(
+                url=f"{UV_ASSETS_BASE_URL}/uv-aarch64-apple-darwin.tar.gz",
+                target_triple="aarch64-apple-darwin",
+                binary_names=["uv", "uvx"]
+            ),
+            Asset(
+                url=f"{UV_ASSETS_BASE_URL}/uv-x86_64-apple-darwin.tar.gz",
+                target_triple="x86_64-apple-darwin",
+                binary_names=["uv", "uvx"]
+            ),
+            Asset(
+                url=f"{UV_ASSETS_BASE_URL}/uv-x86_64-pc-windows-msvc.zip",
+                target_triple="x86_64-pc-windows-msvc",
+                binary_names=["uv.exe", "uvx.exe"]
+            ),
+            Asset(
+                url=f"{UV_ASSETS_BASE_URL}/uv-x86_64-unknown-linux-gnu.tar.gz",
+                target_triple="x86_64-unknown-linux-gnu",
+                binary_names=["uv", "uvx"]
+            ),
 
-    # TODO: Update process-wick binaries
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-aarch64-apple-darwin",
+                target_triple="aarch64-apple-darwin",
+                binary_names=["process-wick-aarch64-apple-darwin"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-apple-darwin",
+                target_triple="x86_64-apple-darwin",
+                binary_names=["process-wick-x86_64-apple-darwin"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-pc-windows-msvc.exe",
+                target_triple="x86_64-pc-windows-msvc",
+                binary_names=["process-wick-x86_64-pc-windows-msvc.exe"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-unknown-linux-gnu",
+                target_triple="x86_64-unknown-linux-gnu",
+                binary_names=["process-wick-x86_64-unknown-linux-gnu"]
+            ),
+        ]
+
+        assets_to_download = [asset for asset in all_assets if asset.target_triple == selected_target_triple]
+
+        for asset in assets_to_download:
+            result = process_asset(asset)
+            if not result:
+                print(f"{{ _red }}Failed to download {asset.url}.{{ _nc }}")
+                sys.exit(1)
+
+    main()
 
 # Update version numbers
 [group('utils')]
