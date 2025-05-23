@@ -208,7 +208,7 @@ dev-daemon:
     http_token = f"{os.environ.get('DAEMON_TOKEN', 'SYFTBOX_DEV_DUMMY_TOKEN_32_CHARS')}"
 
     wgo_path = shutil.which("wgo")
-    if not Path(wgo_path).exists():
+    if wgo_path is None:
         print(f"{{ _red }}wgo not found at {wgo_path}.{{ _nc }}")
         print(f"{{ _yellow }}Please run `just setup`{{ _nc }}")
         sys.exit(1)

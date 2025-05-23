@@ -43,7 +43,7 @@ export function AnalyticsProvider({
 }) {
   // If we want to replace Aptabase in the future, we'd modify this component
   return (
-    <AptabaseProvider appKey={appKey} options={{ appVersion: "0.1.12" }}>
+    <AptabaseProvider appKey={appKey} options={{ appVersion: "0.1.13" }}>
       <AnalyticsConsumer>{children}</AnalyticsConsumer>
     </AptabaseProvider>
   );
