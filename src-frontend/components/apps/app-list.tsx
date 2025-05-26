@@ -105,6 +105,14 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     if (savedFavorites.length > 0) {
       setFavorites(savedFavorites);
     }
+
+    // Set up interval to refresh apps every 5 seconds
+    const refreshInterval = setInterval(() => {
+      loadApps();
+    }, 5000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const loadApps = async () => {

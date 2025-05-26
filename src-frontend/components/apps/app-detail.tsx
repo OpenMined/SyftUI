@@ -29,9 +29,9 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
   const [appUrl, setAppUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [appStatus, setAppStatus] = useState<
-    "running" | "stopped" | "restarting"
-  >("running");
+  // const [appStatus, setAppStatus] = useState<
+  //   "running" | "stopped" | "restarting"
+  // >("running");
   const [activeTab, setActiveTab] = useState("interface");
   const {
     settings: { url: daemonUrl },
@@ -137,17 +137,17 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
             <div
               className={cn(
                 "ml-2 h-2 w-2 rounded-full",
-                appStatus === "running"
+                app.status === "running"
                   ? "bg-green-500"
-                  : appStatus === "stopped"
+                  : app.status === "stopped"
                     ? "bg-red-500"
                     : "bg-yellow-500",
               )}
             />
             <span className="text-muted-foreground text-sm">
-              {appStatus === "running"
+              {app.status === "running"
                 ? "Running"
-                : appStatus === "stopped"
+                : app.status === "stopped"
                   ? "Stopped"
                   : "Restarting..."}
             </span>
@@ -248,7 +248,7 @@ export function AppDetail({ appName, onUninstall, onBack }: AppDetailProps) {
             <AppInterface
               app={app}
               appUrl={appUrl}
-              appStatus={appStatus}
+              appStatus={app.status}
               isLoading={isLoading}
               fetchApp={fetchApp}
               setActiveTab={updateActiveTab}
