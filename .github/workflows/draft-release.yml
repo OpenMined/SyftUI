@@ -72,6 +72,9 @@ jobs:
           targets: ${{ matrix.args }}
           components: rust-src, rustfmt, clippy
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

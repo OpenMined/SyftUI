@@ -546,30 +546,24 @@ generate-release-json version upload="no":
 # Update binaries
 [group('utils')]
 update-binaries TARGET_TRIPLE="":
-    #!/usr/bin/env python
-    from dataclasses import dataclass
-    from pathlib import Path
+    #!/usr/bin/env -S uv run --script
+    # /// script
+    # requires-python = ">=3.12"
+    # dependencies = ["requests", "tqdm"]
+    # ///
+
     import os
+    import requests
     import subprocess
     import shutil
     import sys
     import tarfile
     import tempfile
     import zipfile
+    from dataclasses import dataclass
+    from pathlib import Path
+    from tqdm import tqdm
 
-    # Try importing optional dependencies
-    try:
-        import requests
-        from tqdm import tqdm
-    except ImportError:
-        print("{{ _yellow }}Installing required dependencies...{{ _nc }}")
-        try:
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'requests', 'tqdm'], check=True)
-            print("{{ _green }}Required dependencies installed.{{ _nc }}")
-        except subprocess.CalledProcessError as e:
-            print(f"{{ _red }}Failed to install dependencies: {e}{{ _nc }}")
-        finally:
-            sys.exit(1)
 
     @dataclass
     class Asset:
