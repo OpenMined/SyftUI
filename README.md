@@ -5,7 +5,7 @@ A slick user interface for [SyftBox](https://www.github.com/OpenMined/syft) — 
 SyftUI comes in two flavors:
 
 1. 🖥️ **Desktop App** – All-in-one bundle, just download and run!
-2. 🌐 **Web App** – Lightweight and handy, works with any SyftBox client (local or remote).
+2. 🌐 **Web App** – Lightweight and handy, connects with any SyftBox daemon (local or remote).
 
 ## 🚀 Installation
 
@@ -14,16 +14,20 @@ SyftUI comes in two flavors:
 The easiest, most powerful way to run SyftUI.
 
 - Download the app for your OS.
+  - [Windows](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-pc-windows-msvc.msi)
+  - [Linux](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-unknown-linux-gnu.AppImage)
+  - [Mac (Apple Silicon)](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-aarch64-apple-darwin.dmg)
+  - [Mac (Intel)](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-apple-darwin.dmg)
 - Open it.
 - That’s it. 🎉
 
-The SyftBox client is already bundled — no extra setup needed!
+The SyftBox daemon is already bundled — no extra setup needed!
 
 ### 🌐 Web App (For the Adventurous)
 
 Perfect for headless setups or low-resource environments.
 
-- Make sure a SyftBox client is running (either locally or remotely).
+- Make sure a SyftBox daemon is running (either locally or remotely) — instructions [here](https://github.com/openmined/syftbox/).
 - Launch the frontend by visiting [this link](https://syftboxstage.openmined.org/datasites/tauquir@openmined.org/syftui).
 - Enter the **Client URL** and **Token** (you’ll find them in your SyftBox client logs).
 
@@ -61,21 +65,17 @@ just dev-frontend
 
 ### 🖥️ Desktop App
 
-#### 🍎 macOS
-
-**Output directory:** `./src-tauri/target/release/bundle/dmg`
+To build and package the desktop app for your current operating system, run:
 
 ```bash
 just package
 ```
 
-#### 🐧 Linux
+Depending on your OS, this command will generate the appropriate installer:
 
-Coming soon... 🛠️
-
-#### 🪟 Windows
-
-Coming soon... 🛠️
+* **Windows**: `.msi` package
+* **Linux**: `.AppImage`, `.deb`, and `.rpm` packages
+* **macOS**: `.dmg` package
 
 ### 🌐 Web App
 
