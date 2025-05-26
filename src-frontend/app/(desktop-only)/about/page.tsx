@@ -20,7 +20,6 @@ export default function MacbookInfo() {
         r: theme === "dark" ? 23 : 250,
         g: theme === "dark" ? 23 : 250,
         b: theme === "dark" ? 23 : 250,
-        isDark: theme === "dark",
       });
     }
   }, [theme]);

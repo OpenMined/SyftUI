@@ -82,6 +82,7 @@ pub fn run() {
         ))
         .invoke_handler(tauri::generate_handler![
             update_about_window_titlebar_color,
+            update_theme,
             update_window_response
         ])
         .setup(|app| {
@@ -247,6 +248,7 @@ fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
     log::info!("Setting up main window");
     let win_builder = WebviewWindowBuilder::new(app, "main", url)
         .title("")
+        .hidden_title(true)
         .disable_drag_drop_handler()
         .focused(true)
         .maximized(true)
@@ -423,23 +425,27 @@ fn _show_update_window(
 }
 
 #[tauri::command]
-fn update_about_window_titlebar_color(app: AppHandle, is_dark: bool, r: f64, g: f64, b: f64) {
+fn update_theme(app: AppHandle, is_dark: bool) {
+    for (_, window) in app.webview_windows() {
+        if let Err(e) = window.set_theme(if is_dark {
+            Some(Theme::Dark)
+        } else {
+            Some(Theme::Light)
+        }) {
+            log::error!("Error setting theme: {}", e);
+        }
+    }
+}
+
+#[tauri::command]
+fn update_about_window_titlebar_color(app: AppHandle, r: f64, g: f64, b: f64) {
     let _about_window = app.get_webview_window("about").unwrap();
     log::debug!(
-        "Updating about window titlebar color: is_dark: {}, r: {}, g: {}, b: {}",
-        is_dark,
+        "Updating about window titlebar color: r: {}, g: {}, b: {}",
         r,
         g,
         b
     );
-
-    if let Err(e) = _about_window.set_theme(if is_dark {
-        Some(Theme::Dark)
-    } else {
-        Some(Theme::Light)
-    }) {
-        log::error!("Error setting theme: {}", e);
-    }
 
     // set background color only when building for macOS
     #[cfg(target_os = "macos")]
