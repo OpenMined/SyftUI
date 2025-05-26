@@ -61,7 +61,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         const startTime = Date.now();
         while (Date.now() - startTime < TIMEOUT) {
           result = await connect();
-          if (result.success) {
+          if (result.success && datasite?.status !== undefined) {
             break;
           }
           // Wait for 500ms before trying again
@@ -76,7 +76,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         return;
       }
 
-      if (["UNPROVISIONED", "ERROR"].includes(datasite?.status || "")) {
+      if (["UNPROVISIONED", "ERROR", undefined].includes(datasite?.status)) {
         setStep("configure");
         return;
       }
