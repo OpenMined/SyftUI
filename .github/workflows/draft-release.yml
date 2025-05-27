@@ -20,7 +20,7 @@ jobs:
             args: "x86_64-apple-darwin"
           - runs-on: windows-latest
             args: "x86_64-pc-windows-msvc"
-          - runs-on: ubuntu-latest
+          - runs-on: ubuntu-22.04
             args: "x86_64-unknown-linux-gnu"
     runs-on: ${{ matrix.runs-on }}
     env:
@@ -49,16 +49,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-              build-essential \
-              curl \
-              wget \
-              file \
-              libxdo-dev \
-              libssl-dev \
-              libayatana-appindicator3-dev \
-              librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup just cli
         uses: extractions/setup-just@v2
