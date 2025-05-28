@@ -30,6 +30,7 @@ struct AppState {
 
 struct PendingUpdate {
     pending_update: Mutex<Option<Update>>,
+    pending_update_window_state: Mutex<Option<UpdateWindowState>>,
 }
 
 pub fn run() {
@@ -83,13 +84,15 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             update_about_window_titlebar_color,
             update_theme,
-            update_window_response
+            update_window_response,
+            get_window_state,
         ])
         .setup(|app| {
             log::info!("Setting up application");
             app.manage(Mutex::new(AppState::default()));
             app.manage(PendingUpdate {
                 pending_update: Mutex::new(None),
+                pending_update_window_state: Mutex::new(None),
             });
 
             let (daemon_host, daemon_port, daemon_token) = _generate_daemon_client_args();
@@ -323,19 +326,6 @@ enum UpdateWindowType {
     Failed,
 }
 
-impl UpdateWindowType {
-    fn as_str(&self) -> &'static str {
-        match self {
-            UpdateWindowType::Checking => "checking",
-            UpdateWindowType::None => "none",
-            UpdateWindowType::Available => "available",
-            UpdateWindowType::Downloading => "downloading",
-            UpdateWindowType::Error => "error",
-            UpdateWindowType::Failed => "failed",
-        }
-    }
-}
-
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct UpdateWindowState {
@@ -356,48 +346,39 @@ fn _show_update_window(
     error: String,
     progress: usize,
 ) {
-    let error = urlencoding::encode(&error).into_owned();
-    let release_notes = urlencoding::encode(&release_notes).into_owned();
+    // Create the window state
+    let window_state = UpdateWindowState {
+        update_window_type: update_window_type.clone(),
+        version: version.clone(),
+        current_version: current_version.clone(),
+        release_notes: release_notes.clone(),
+        error: error.clone(),
+        progress,
+    };
+
+    // Save the window state
+    let pending_update = app.state::<PendingUpdate>();
+    *pending_update.pending_update_window_state.lock().unwrap() = Some(window_state.clone());
 
     if let Some(window) = app.get_webview_window("updates") {
         // Window already exists, so we update the state by emitting events
-        app.emit_to(
-            "updates",
-            "update-window-state",
-            UpdateWindowState {
-                update_window_type,
-                version,
-                current_version,
-                release_notes,
-                error,
-                progress,
-            },
-        )
-        .unwrap();
+        app.emit_to("updates", "update-window-state", window_state)
+            .unwrap();
         window.show().unwrap();
         window.set_focus().unwrap();
     } else {
-        let _update_window = WebviewWindowBuilder::new(
-            app,
-            "updates",
-            WebviewUrl::App(format!(
-                "updates/?type={}&version={}&current_version={}&release_notes={}&error={}&progress={}",
-                update_window_type.as_str(),
-                version,
-                current_version,
-                release_notes,
-                error,
-                progress
-            )
-            .into()
-            )
-        )
-        .title("Updates")
-        .inner_size(800.0, 600.0)
-        .focused(true)
-        .decorations(false)
-        .build()
-        .unwrap();
+        // We'll just create the "updates" window here. Since we can't be certain when the frontend will
+        // be ready to receive `emit_to` events, we don't emit the initial state from the backend right away.
+        // Instead, the frontend is responsible for invoking the `get_window_state` command once it's mounted
+        // and ready.
+        let _update_window =
+            WebviewWindowBuilder::new(app, "updates", WebviewUrl::App("updates".into()))
+                .title("Updates")
+                .inner_size(800.0, 600.0)
+                .focused(true)
+                .decorations(false)
+                .build()
+                .unwrap();
 
         // Add rounded corners for macOS
         #[cfg(target_os = "macos")]
@@ -538,6 +519,21 @@ async fn update_window_response(app: AppHandle, install_update: bool) -> Result<
         }
     }
     Ok(())
+}
+
+#[tauri::command]
+fn get_window_state(app: AppHandle) -> UpdateWindowState {
+    let pending_update = app.state::<PendingUpdate>();
+    let update_window_state = pending_update.pending_update_window_state.lock().unwrap();
+
+    update_window_state.clone().unwrap_or(UpdateWindowState {
+        update_window_type: UpdateWindowType::Checking,
+        version: "".to_string(),
+        current_version: app.package_info().version.to_string(),
+        release_notes: "".to_string(),
+        error: "".to_string(),
+        progress: 0,
+    })
 }
 
 fn _generate_daemon_client_args() -> (String, String, String) {

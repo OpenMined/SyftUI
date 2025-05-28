@@ -16,12 +16,6 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { BackgroundGradients } from "@/components/logo/background-gradients";
 import { IconGhost } from "@/components/logo/icon-ghost";
-import {
-  parseAsString,
-  parseAsStringEnum,
-  parseAsInteger,
-  useQueryState,
-} from "nuqs";
 
 enum Type {
   checking = "checking",
@@ -41,22 +35,17 @@ type UpdateWindowState = {
   progress: number;
 };
 
+const initialState: UpdateWindowState = {
+  updateWindowType: Type.checking,
+  version: "",
+  currentVersion: "",
+  releaseNotes: "",
+  error: "",
+  progress: 0,
+};
+
 export default function UpdatePage() {
-  const [type, setType] = useQueryState(
-    "type",
-    parseAsStringEnum<Type>(Object.values(Type)),
-  );
-  const [version, setVersion] = useQueryState("version", parseAsString);
-  const [currentVersion, setCurrentVersion] = useQueryState(
-    "current_version",
-    parseAsString,
-  );
-  const [releaseNotes, setReleaseNotes] = useQueryState(
-    "release_notes",
-    parseAsString,
-  );
-  const [error, setError] = useQueryState("error", parseAsString);
-  const [progress, setProgress] = useQueryState("progress", parseAsInteger);
+  const [state, setState] = useState<UpdateWindowState>(initialState);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   const { openPath } =
@@ -67,17 +56,20 @@ export default function UpdatePage() {
   useEffect(() => {
     const updateWindowStateListener = async () => {
       if (typeof window !== "undefined") {
+        // Get initial state
+        const initialState =
+          await window.__TAURI__.core.invoke<UpdateWindowState>(
+            "get_window_state",
+          );
+        setState(initialState);
+
+        // Listen for further state updates
         const appWebview =
           window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
         const unlisten = await appWebview.listen<UpdateWindowState>(
           "update-window-state",
           (event) => {
-            setType(event.payload.updateWindowType);
-            setVersion(event.payload.version);
-            setCurrentVersion(event.payload.currentVersion);
-            setReleaseNotes(event.payload.releaseNotes);
-            setError(event.payload.error);
-            setProgress(event.payload.progress);
+            setState(event.payload);
           },
         );
 
@@ -88,25 +80,18 @@ export default function UpdatePage() {
     };
 
     updateWindowStateListener();
-  }, [
-    setType,
-    setVersion,
-    setCurrentVersion,
-    setReleaseNotes,
-    setError,
-    setProgress,
-  ]);
+  }, []);
 
   useEffect(() => {
-    if (type === "downloading") {
-      setAnimatedProgress(progress);
+    if (state.updateWindowType === "downloading") {
+      setAnimatedProgress(state.progress);
     } else {
       setAnimatedProgress(0);
     }
-  }, [progress, type]);
+  }, [state.progress, state.updateWindowType]);
 
   const onUpdate = () => {
-    setType("downloading");
+    setState((prev) => ({ ...prev, updateWindowType: Type.downloading }));
     window.__TAURI__.core.invoke("update_window_response", {
       installUpdate: true,
     });
@@ -177,14 +162,16 @@ export default function UpdatePage() {
           <div className="flex items-center text-sm text-white/90">
             <div className="flex flex-col">
               <span>Current Version</span>
-              <span className="font-mono font-bold">{currentVersion}</span>
+              <span className="font-mono font-bold">
+                {state.currentVersion}
+              </span>
             </div>
-            {type === "available" && (
+            {state.updateWindowType === "available" && (
               <>
                 <ArrowRight className="mx-4 text-white/50" />
                 <div className="flex flex-col">
                   <span>New Version</span>
-                  <span className="font-mono font-bold">{version}</span>
+                  <span className="font-mono font-bold">{state.version}</span>
                 </div>
               </>
             )}
@@ -205,13 +192,13 @@ export default function UpdatePage() {
           ></div>
           <AnimatePresence mode="wait">
             <motion.div
-              key={type}
+              key={state.updateWindowType}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {type === "available" && (
+              {state.updateWindowType === "available" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                     <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -221,13 +208,13 @@ export default function UpdatePage() {
                       Update Available
                     </h3>
                     <p className="text-muted-foreground">
-                      SyftBox {version} is ready to install
+                      SyftBox {state.version} is ready to install
                     </p>
                   </div>
                 </div>
               )}
 
-              {type === "none" && (
+              {state.updateWindowType === "none" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                     <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -237,13 +224,13 @@ export default function UpdatePage() {
                       You&apos;re Up To Date
                     </h3>
                     <p className="text-muted-foreground">
-                      SyftBox {currentVersion} is the latest version
+                      SyftBox {state.currentVersion} is the latest version
                     </p>
                   </div>
                 </div>
               )}
 
-              {type === "error" && (
+              {state.updateWindowType === "error" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                     <X className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -259,7 +246,7 @@ export default function UpdatePage() {
                 </div>
               )}
 
-              {type === "downloading" && (
+              {state.updateWindowType === "downloading" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                     <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -269,13 +256,13 @@ export default function UpdatePage() {
                       Downloading Update
                     </h3>
                     <p className="text-muted-foreground">
-                      SyftBox {version} is being downloaded
+                      SyftBox {state.version} is being downloaded
                     </p>
                   </div>
                 </div>
               )}
 
-              {type === "failed" && (
+              {state.updateWindowType === "failed" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                     <X className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -291,7 +278,7 @@ export default function UpdatePage() {
                 </div>
               )}
 
-              {type === "checking" && (
+              {state.updateWindowType === "checking" && (
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                     <RefreshCcw className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -313,21 +300,21 @@ export default function UpdatePage() {
         <div
           className={cn(
             "flex-1 overflow-y-auto p-6",
-            type === "downloading"
+            state.updateWindowType === "downloading"
               ? "flex flex-col items-center justify-center"
               : "",
           )}
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={type}
+              key={state.updateWindowType}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              {type === "available" && releaseNotes && (
+              {state.updateWindowType === "available" && state.releaseNotes && (
                 <div className="prose prose-sm dark:prose-invert max-w-none select-auto">
                   <Markdown
                     remarkPlugins={[remarkGfm]}
@@ -346,28 +333,28 @@ export default function UpdatePage() {
                       ),
                     }}
                   >
-                    {decodeURIComponent(releaseNotes)}
+                    {state.releaseNotes}
                   </Markdown>
                 </div>
               )}
 
-              {type === "error" && error && (
+              {state.updateWindowType === "error" && state.error && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
                   <p className="break-words text-red-800 dark:text-red-300">
-                    {decodeURIComponent(error)}
+                    {state.error}
                   </p>
                 </div>
               )}
 
-              {type === "failed" && error && (
+              {state.updateWindowType === "failed" && state.error && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
                   <p className="break-words text-red-800 dark:text-red-300">
-                    {decodeURIComponent(error)}
+                    {state.error}
                   </p>
                 </div>
               )}
 
-              {type === "downloading" && (
+              {state.updateWindowType === "downloading" && (
                 <div className="mx-auto w-full max-w-md text-center">
                   <div className="relative w-full pt-1">
                     <div className="flex h-2 overflow-hidden rounded-full bg-blue-200 dark:bg-blue-900/30">
@@ -380,7 +367,7 @@ export default function UpdatePage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground mt-4">
-                    Downloading SyftBox {version}... {animatedProgress}%
+                    Downloading SyftBox {state.version}... {animatedProgress}%
                   </p>
                   <div className="mt-6 flex justify-center">
                     <motion.div
@@ -397,7 +384,7 @@ export default function UpdatePage() {
                 </div>
               )}
 
-              {type === "none" && (
+              {state.updateWindowType === "none" && (
                 <div className="overflow-hidden py-6 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
@@ -416,12 +403,13 @@ export default function UpdatePage() {
                     You&apos;re all set!
                   </h3>
                   <p className="text-muted-foreground mt-2">
-                    SyftBox {currentVersion} is the latest version available.
+                    SyftBox {state.currentVersion} is the latest version
+                    available.
                   </p>
                 </div>
               )}
 
-              {type === "checking" && (
+              {state.updateWindowType === "checking" && (
                 <div className="overflow-hidden py-6 text-center">
                   <motion.div
                     animate={{ rotate: 360 }}
@@ -453,7 +441,7 @@ export default function UpdatePage() {
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={type}
+              key={state.updateWindowType}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
@@ -461,7 +449,7 @@ export default function UpdatePage() {
               data-tauri-drag-region
               className="flex w-full justify-end gap-3"
             >
-              {type === "available" && (
+              {state.updateWindowType === "available" && (
                 <>
                   <Button variant="outline" onClick={onLater}>
                     Remind Me Later
@@ -470,17 +458,19 @@ export default function UpdatePage() {
                 </>
               )}
 
-              {(type === "none" || type === "error" || type === "failed") && (
+              {(state.updateWindowType === "none" ||
+                state.updateWindowType === "error" ||
+                state.updateWindowType === "failed") && (
                 <Button onClick={closeHandler}>Close</Button>
               )}
 
-              {type === "downloading" && (
+              {state.updateWindowType === "downloading" && (
                 <Button disabled className="cursor-not-allowed opacity-50">
                   Downloading...
                 </Button>
               )}
 
-              {type === "checking" && (
+              {state.updateWindowType === "checking" && (
                 <Button disabled className="cursor-not-allowed opacity-50">
                   Checking...
                 </Button>
