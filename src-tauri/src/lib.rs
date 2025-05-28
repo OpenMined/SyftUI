@@ -578,6 +578,17 @@ fn _setup_sidecars_for_release_builds(
 ) {
     log::info!("Setting up sidecars");
 
+    // TODO (hack): if daemon_port is already in use, we wait for 10 seconds
+    // in case we are still in the clean up process from the previous run.
+    for i in 0..10 {
+        if _is_port_in_use(daemon_port) {
+            log::info!("Port is in use, waiting for 1 second ({} / 10)", i + 1);
+            thread::sleep(Duration::from_secs(1));
+        } else {
+            break;
+        }
+    }
+
     // Spawn the daemon sidecar with the generated args.
     let mut sidecar_cmd: StdCommand = app
         .shell()
@@ -766,6 +777,33 @@ fn _setup_system_tray(app: &AppHandle) {
             log::warn!("Unhandled menu item: {:?}", event.id);
         }
     });
+}
+
+#[cfg(not(debug_assertions))]
+fn _is_port_in_use(port: &str) -> bool {
+    log::debug!("Checking if port {} is in use", port);
+    use std::net::TcpListener;
+
+    // Try to parse the port string to a number
+    let port_num = match port.parse::<u16>() {
+        Ok(num) => num,
+        Err(e) => {
+            log::error!("Failed to parse port number: {}", e);
+            return false;
+        }
+    };
+
+    // Try to bind to the port
+    match TcpListener::bind(format!("127.0.0.1:{}", port_num)) {
+        Ok(_) => {
+            log::debug!("Port {} is available", port);
+            false
+        }
+        Err(e) => {
+            log::debug!("Port {} is in use: {}", port, e);
+            true
+        }
+    }
 }
 
 #[cfg(not(debug_assertions))]
