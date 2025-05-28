@@ -16,7 +16,7 @@ use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
 use {
     command_group::CommandGroup,
     std::process::Command as StdCommand,
-    tauri_plugin_dialog::{DialogExt, MessageDialogKind},
+    tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind},
     tauri_plugin_shell::ShellExt,
 };
 
@@ -108,6 +108,7 @@ pub fn run() {
                 &daemon_host,
                 &daemon_port,
                 &daemon_token,
+                _is_app_updated(app.handle()),
             );
 
             let url = _generate_main_url(&daemon_host, &daemon_port, &daemon_token);
@@ -372,7 +373,7 @@ fn _show_update_window(
         // Instead, the frontend is responsible for invoking the `get_window_state` command once it's mounted
         // and ready.
         let _update_window =
-            WebviewWindowBuilder::new(app, "updates", WebviewUrl::App("updates".into()))
+            WebviewWindowBuilder::new(app, "updates", WebviewUrl::App("updates/".into()))
                 .title("Updates")
                 .inner_size(800.0, 600.0)
                 .focused(true)
@@ -570,22 +571,75 @@ fn _generate_main_url(host: &str, port: &str, token: &str) -> WebviewUrl {
 }
 
 #[cfg(not(debug_assertions))]
+fn _is_app_updated(app: &AppHandle) -> bool {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app directory");
+    std::fs::create_dir_all(&app_data_dir).unwrap();
+    let path = app_data_dir.join("desktop_version.txt");
+    let path_clone = path.clone();
+
+    let previous_version = std::fs::read_to_string(&path).unwrap_or_else(|_| "0.0.0".to_string());
+    let current_version = app.package_info().version.to_string();
+    let result = previous_version != current_version;
+    if result {
+        std::fs::write(&path, current_version.clone()).unwrap_or_else(|_| {
+            log::error!(
+                "Failed to write version information to {}",
+                path_clone.to_str().unwrap()
+            )
+        });
+    }
+    log::debug!("Is updated: {}", result);
+    result
+}
+
+#[cfg(not(debug_assertions))]
 fn _setup_sidecars_for_release_builds(
     app: &AppHandle,
     daemon_host: &str,
     daemon_port: &str,
     daemon_token: &str,
+    is_app_updated: bool,
 ) {
     log::info!("Setting up sidecars");
 
-    // TODO (hack): if daemon_port is already in use, we wait for 10 seconds
-    // in case we are still in the clean up process from the previous run.
-    for i in 0..10 {
-        if _is_port_in_use(daemon_port) {
-            log::info!("Port is in use, waiting for 1 second ({} / 10)", i + 1);
+    if is_app_updated && _is_port_in_use(daemon_port) {
+        log::info!("App was just updated and port is still in use, silently waiting for clean up");
+        for i in 0..10 {
             thread::sleep(Duration::from_secs(1));
+            if !_is_port_in_use(daemon_port) {
+                break;
+            }
+            log::debug!("Port is in use, waiting for 1 second ({} / 10)", i + 1);
+        }
+    }
+
+    while _is_port_in_use(daemon_port) {
+        if is_app_updated {
+            log::info!("Port is still in use after waiting, showing dialog");
         } else {
-            break;
+            log::info!("Port is in use, showing dialog");
+        }
+        let quit_selected = app.dialog()
+            .message(format!(
+                "Syftbox daemon port {} is already in use. Please close the app that is using it and try again.",
+                daemon_port
+            ))
+            .kind(MessageDialogKind::Error)
+            .title("SyftBox daemon port in use")
+            .buttons(MessageDialogButtons::OkCancelCustom(
+                "Quit".to_string(),
+                "Try Again".to_string(),
+            ))
+            .blocking_show();
+        if quit_selected {
+            log::debug!("User chose to quit, exiting");
+            app.exit(0);
+            return;
+        } else {
+            log::debug!("User chose to try again, continuing");
         }
     }
 
@@ -782,7 +836,7 @@ fn _setup_system_tray(app: &AppHandle) {
 #[cfg(not(debug_assertions))]
 fn _is_port_in_use(port: &str) -> bool {
     log::debug!("Checking if port {} is in use", port);
-    use std::net::TcpListener;
+    use std::net::TcpStream;
 
     // Try to parse the port string to a number
     let port_num = match port.parse::<u16>() {
@@ -793,15 +847,23 @@ fn _is_port_in_use(port: &str) -> bool {
         }
     };
 
-    // Try to bind to the port
-    match TcpListener::bind(format!("127.0.0.1:{}", port_num)) {
+    // Try to connect to the port
+    match TcpStream::connect(format!("127.0.0.1:{}", port_num)) {
         Ok(_) => {
-            log::debug!("Port {} is available", port);
-            false
+            log::debug!("Port {} is in use (connection successful)", port);
+            true
         }
         Err(e) => {
-            log::debug!("Port {} is in use: {}", port, e);
-            true
+            // If we get "Connection refused", it means nothing is listening on that port
+            if e.kind() == std::io::ErrorKind::ConnectionRefused {
+                log::debug!("Port {} is available (connection refused)", port);
+                false
+            } else {
+                // For other errors, we'll assume the port is in use
+                // This handles cases like "Address already in use" or other system-specific errors
+                log::debug!("Port {} appears to be in use (error: {})", port, e);
+                true
+            }
         }
     }
 }
