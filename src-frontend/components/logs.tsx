@@ -275,9 +275,7 @@ export function Logs() {
                         {log.level.toUpperCase()}
                       </Badge>
                     </td>
-                    <td className="align-baseline text-wrap whitespace-pre">
-                      {log.message}
-                    </td>
+                    <td className="align-baseline text-wrap">{log.message}</td>
                   </tr>
                 ))}
               </tbody>
