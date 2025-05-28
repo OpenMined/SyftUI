@@ -777,33 +777,34 @@ update-version TARGET_TRIPLE="":
         sys.exit(1)
 
     # Get versions
-    with open('src-frontend/package.json') as f:
-        frontend_version = json.load(f)['version']
-
-    with open('src-tauri/tauri.conf.json') as f:
-        desktop_version = json.load(f)['version']
+    desktop_version = json.loads(Path('src-tauri/tauri.conf.json').read_text())['version']
+    desktop_hash = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()
+    desktop_build = subprocess.run(['git', '--no-pager', 'log', '-1', '--format=%cI'], capture_output=True, text=True).stdout.strip()
 
     # Find and get daemon version
     daemon_path = next(Path('src-tauri/target/binaries').glob(f'syftboxd-{target_triple}*'))
     daemon_output = subprocess.run([str(daemon_path), '--version'], capture_output=True, text=True).stdout
     daemon_version = re.search(r'version ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
+    daemon_hash = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=Path('src-daemon'), capture_output=True, text=True).stdout.strip()
+    daemon_build = subprocess.run(['git', '--no-pager', 'log', '-1', '--format=%cI'], cwd=Path('src-daemon'), capture_output=True, text=True).stdout.strip()
 
-    # Get commit hash
-    commit_hash = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True, text=True).stdout.strip()
-
-    print(f"{{ _green }}Frontend version:{{ _nc }} {frontend_version}")
     print(f"{{ _green }}Desktop version:{{ _nc }} {desktop_version}")
+    print(f"{{ _green }}Desktop hash:{{ _nc }} {desktop_hash}")
+    print(f"{{ _green }}Desktop build:{{ _nc }} {desktop_build}")
     print(f"{{ _green }}Daemon version:{{ _nc }} {daemon_version}")
-    print(f"{{ _green }}Commit hash:{{ _nc }} {commit_hash}")
+    print(f"{{ _green }}Daemon hash:{{ _nc }} {daemon_hash}")
+    print(f"{{ _green }}Daemon build:{{ _nc }} {daemon_build}")
 
     # Update version.rs
     version_file = Path('src-tauri/src/version.rs')
     content = version_file.read_text()
 
     content = re.sub(r'(pub const DESKTOP_VERSION: &str = ).*', f'\\1"{desktop_version}";', content)
-    content = re.sub(r'(pub const FRONTEND_VERSION: &str = ).*', f'\\1"{frontend_version}";', content)
+    content = re.sub(r'(pub const DESKTOP_HASH: &str = ).*', f'\\1"{desktop_hash}";', content)
+    content = re.sub(r'(pub const DESKTOP_BUILD: &str = ).*', f'\\1"{desktop_build}";', content)
     content = re.sub(r'(pub const DAEMON_VERSION: &str = ).*', f'\\1"{daemon_version}";', content)
-    content = re.sub(r'(pub const COMMIT_HASH: &str = ).*', f'\\1"{commit_hash}";', content)
+    content = re.sub(r'(pub const DAEMON_HASH: &str = ).*', f'\\1"{daemon_hash}";', content)
+    content = re.sub(r'(pub const DAEMON_BUILD: &str = ).*', f'\\1"{daemon_build}";', content)
 
     version_file.write_text(content)
 

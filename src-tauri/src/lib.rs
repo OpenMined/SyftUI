@@ -10,7 +10,9 @@ use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
 mod version;
-use version::{COMMIT_HASH, DAEMON_VERSION, DESKTOP_VERSION, FRONTEND_VERSION};
+use version::{
+    DAEMON_BUILD, DAEMON_HASH, DAEMON_VERSION, DESKTOP_BUILD, DESKTOP_HASH, DESKTOP_VERSION,
+};
 
 #[cfg(not(debug_assertions))]
 use {
@@ -293,13 +295,15 @@ fn _show_about_window(app: &AppHandle) {
         window.set_focus().unwrap();
         log::debug!("Reused existing about window");
     } else {
+        let desktop_build = urlencoding::encode(DESKTOP_BUILD);
+        let daemon_build = urlencoding::encode(DAEMON_BUILD);
         let url = format!(
-            "about/#desktop_version={}&frontend_version={}&daemon_version={}&commit_hash={}",
-            DESKTOP_VERSION, FRONTEND_VERSION, DAEMON_VERSION, COMMIT_HASH
+            "about/#desktop_version={}&desktop_hash={}&desktop_build={}&daemon_version={}&daemon_hash={}&daemon_build={}",
+            DESKTOP_VERSION, DESKTOP_HASH, desktop_build, DAEMON_VERSION, DAEMON_HASH, daemon_build
         );
         let _about_window = WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url.into()))
             .title("About SyftBox")
-            .inner_size(280.0, 450.0)
+            .inner_size(280.0, 500.0)
             .focused(true)
             .maximizable(false)
             .minimizable(false)

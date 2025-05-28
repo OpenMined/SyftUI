@@ -2,13 +2,20 @@
 
 import { Icon } from "@/components/logo/icon";
 import useHashParams from "@/hooks/use-hash-params";
+import { timeAgo } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
 export default function MacbookInfo() {
   const { theme } = useTheme();
-  const { desktop_version, frontend_version, daemon_version, commit_hash } =
-    useHashParams();
+  const {
+    desktop_version,
+    desktop_hash,
+    desktop_build,
+    daemon_version,
+    daemon_hash,
+    daemon_build,
+  } = useHashParams();
   const { openPath } =
     typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
       ? window.__TAURI__.opener
@@ -56,16 +63,26 @@ export default function MacbookInfo() {
 
         <div className="mb-3 grid grid-cols-2 gap-y-0.5 text-left text-xs">
           <div className="text-primary/95 pr-2 text-right">Desktop</div>
-          <div className="text-muted-foreground/95">{desktop_version}</div>
+          <div className="text-muted-foreground/95">v{desktop_version}</div>
 
-          <div className="text-primary/95 pr-2 text-right">Frontend</div>
-          <div className="text-muted-foreground/95">{frontend_version}</div>
+          <div className="text-primary/95 pr-2 text-right"></div>
+          <div className="text-muted-foreground/95">{desktop_hash}</div>
+
+          <div className="text-primary/95 pr-2 text-right"></div>
+          <div className="text-muted-foreground/95">
+            {timeAgo(desktop_build)}
+          </div>
 
           <div className="text-primary/95 pr-2 text-right">Daemon</div>
-          <div className="text-muted-foreground/95">{daemon_version}</div>
+          <div className="text-muted-foreground/95">v{daemon_version}</div>
 
-          <div className="text-primary/95 pr-2 text-right">Commit hash</div>
-          <div className="text-muted-foreground/95">{commit_hash}</div>
+          <div className="text-primary/95 pr-2 text-right"></div>
+          <div className="text-muted-foreground/95">{daemon_hash}</div>
+
+          <div className="text-primary/95 pr-2 text-right"></div>
+          <div className="text-muted-foreground/95">
+            {timeAgo(daemon_build)}
+          </div>
         </div>
 
         {/* More Info Button */}
