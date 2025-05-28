@@ -1028,7 +1028,9 @@ export const useFileSystemStore = create<FileSystemState>(
 
         // Filter out hidden files if showHiddenFiles is false
         if (!showHiddenFiles) {
-          return items.filter((item) => !item.name.startsWith("."));
+          return items.filter(
+            (item) => item.name !== "Icon\r" && !item.name.startsWith("."),
+          );
         }
 
         return items;
