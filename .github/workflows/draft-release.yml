@@ -129,37 +129,25 @@ jobs:
           Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi -Destination artifacts\SyftBox-${{ matrix.args }}.msi
           Move-Item -Path src-tauri\target\${{ matrix.args }}\release\bundle\msi\*.msi.sig -Destination artifacts\SyftBox-${{ matrix.args }}.msi.sig
 
-      # - name: Build frontend (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     just package-frontend yes
-
-      # - name: Build daemon (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     just package-daemon ${{ matrix.args }}
-
-      # - name: Update binaries (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     just update-binaries ${{ matrix.args }}
-
-      # - name: Update version (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     just update-version ${{ matrix.args }}
-
-      - name: Debug Environment
+      - name: Build frontend (Linux)
+        if: runner.os == 'Linux'
         run: |
-          echo "Current PATH: $PATH"
-          rustup show
-          go version
-          ls -la
-          node -v
-          npm -v
-          npx -v
-          npx @tauri-apps/cli --version
-          npx @tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json
+          just package-frontend yes
+
+      - name: Build daemon (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          just package-daemon ${{ matrix.args }}
+
+      - name: Update binaries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          just update-binaries ${{ matrix.args }}
+
+      - name: Update version (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          just update-version ${{ matrix.args }}
 
       - name: Build app (Linux)
         if: runner.os == 'Linux'

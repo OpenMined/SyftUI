@@ -232,7 +232,7 @@ dev-desktop:
     import sys
 
     try:
-        subprocess.run(["bunx", "@tauri-apps/cli", "dev"], check=True)
+        subprocess.run(["bun", "--cwd", "src-frontend", "tauri", "dev"], check=True)
     except KeyboardInterrupt:
         print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
         sys.exit(0)
@@ -350,7 +350,7 @@ package-desktop TARGET_TRIPLE="":
         sys.exit(1)
 
     try:
-        cmd = ["bunx", "@tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json"]
+        cmd = ["bun", "--cwd", "src-frontend", "tauri", "build", "--config", "src-tauri/tauri.conf.release-extras.json"]
         if env.get('GITHUB_CI') == '1':
             env['CI'] = 'false'
             env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
