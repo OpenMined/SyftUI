@@ -96,9 +96,9 @@ jobs:
             ~/.cargo/bin
             target
             src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
+          key: ${{ matrix.runs-on }}-cargo-${{ hashFiles('**/Cargo.lock', '**/Cargo.toml') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ matrix.runs-on }}-cargo-
 
       - name: Install Project dependencies
         run: bun install --cwd src-frontend
