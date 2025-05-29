@@ -14,12 +14,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - runs-on: macos-latest
-            args: "aarch64-apple-darwin"
-          - runs-on: macos-latest
-            args: "x86_64-apple-darwin"
-          - runs-on: windows-latest
-            args: "x86_64-pc-windows-msvc"
+          # - runs-on: macos-latest
+          #   args: "aarch64-apple-darwin"
+          # - runs-on: macos-latest
+          #   args: "x86_64-apple-darwin"
+          # - runs-on: windows-latest
+          #   args: "x86_64-pc-windows-msvc"
           - runs-on: ubuntu-22.04
             args: "x86_64-unknown-linux-gnu"
     runs-on: ${{ matrix.runs-on }}
