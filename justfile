@@ -264,7 +264,7 @@ package TARGET_TRIPLE="":
     import sys
 
     try:
-        subprocess.run(["just", "package-frontend", "desktop_build=yes"], check=True)
+        subprocess.run(["just", "package-frontend", "yes"], check=True)
         subprocess.run(["just", "package-daemon", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "update-binaries", "{{ TARGET_TRIPLE }}"], check=True)
         subprocess.run(["just", "update-version", "{{ TARGET_TRIPLE }}"], check=True)
