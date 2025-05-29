@@ -350,7 +350,7 @@ package-desktop TARGET_TRIPLE="":
         sys.exit(1)
 
     try:
-        cmd = ['bunx', '@tauri-apps/cli', 'dev', '--config', 'src-tauri/tauri.conf.release-extras.json']
+        cmd = ["bunx", "@tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json"]
         if env.get('GITHUB_CI') == '1':
             env['CI'] = 'false'
             env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
