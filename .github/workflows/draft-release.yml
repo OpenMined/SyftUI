@@ -154,8 +154,9 @@ jobs:
           go version
           ls -la
           ls -la src-tauri/target/binaries/
-          bunx @tauri-apps/cli --version
-          bunx @tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json
+          bunx
+          npx @tauri-apps/cli --version
+          npx @tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json
 
       - name: Build app (Linux)
         if: runner.os == 'Linux'
