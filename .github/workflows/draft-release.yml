@@ -101,7 +101,9 @@ jobs:
             ${{ matrix.runs-on }}-cargo-
 
       - name: Install Project dependencies
-        run: bun install --cwd src-frontend
+        run: |
+          corepack enable
+          bun install --cwd src-frontend
 
       - name: Build app (macOS)
         if: runner.os == 'macOS'
@@ -155,6 +157,10 @@ jobs:
           ls -la
           node -v
           npm -v
+          bun -v
+          bunx -v
+          bunx @tauri-apps/cli --version
+          bunx @tauri-apps/cli build --config src-tauri/tauri.conf.release-extras.json
 
       - name: Build app (Linux)
         if: runner.os == 'Linux'
