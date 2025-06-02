@@ -1,6 +1,10 @@
 //! Utility functions and helpers
 
 use log;
+use tauri::{
+    menu::{CheckMenuItem, Menu, MenuItem},
+    tray::TrayIconBuilder,
+};
 use tauri::{AppHandle, Manager, WebviewUrl};
 use tauri_plugin_autostart::ManagerExt;
 
@@ -14,11 +18,7 @@ use {
 };
 
 #[cfg(target_os = "macos")]
-use tauri::{
-    image::Image,
-    menu::{CheckMenuItem, Menu, MenuItem},
-    tray::TrayIconBuilder,
-};
+use tauri::image::Image;
 
 pub fn _generate_daemon_client_args() -> (String, String, String) {
     #[cfg(debug_assertions)]

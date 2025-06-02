@@ -29,12 +29,12 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
     #[cfg(target_os = "macos")]
     let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
 
-    let window = win_builder.build().unwrap();
+    let _window = win_builder.build().unwrap();
     log::debug!("Main window created successfully");
 
     #[cfg(target_os = "macos")]
     {
-        let ns_window = window.ns_window().unwrap() as id;
+        let ns_window = _window.ns_window().unwrap() as id;
         unsafe {
             let bg_color = NSColor::colorWithRed_green_blue_alpha_(
                 nil,
@@ -62,14 +62,17 @@ pub fn _show_about_window(app: &AppHandle) {
             "about/#desktop_version={}&desktop_hash={}&desktop_build={}&daemon_version={}&daemon_hash={}&daemon_build={}",
             DESKTOP_VERSION, DESKTOP_HASH, desktop_build_encoded, DAEMON_VERSION, DAEMON_HASH, daemon_build_encoded
         );
+
         let mut about_win_builder =
-            WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url_str.into()))
-                .title("About SyftBox")
-                .inner_size(280.0, 500.0)
-                .focused(true)
-                .maximizable(false)
-                .minimizable(false)
-                .resizable(false);
+            WebviewWindowBuilder::new(app, "about", WebviewUrl::App(url_str.into()));
+
+        about_win_builder = about_win_builder
+            .title("About SyftBox")
+            .inner_size(280.0, 500.0)
+            .focused(true)
+            .maximizable(false)
+            .minimizable(false)
+            .resizable(false);
 
         #[cfg(target_os = "macos")]
         {
