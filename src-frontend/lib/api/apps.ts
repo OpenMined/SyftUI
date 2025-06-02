@@ -64,12 +64,23 @@ interface ProcessStats {
   children: ProcessStats[];
 }
 
+interface AppInfo {
+  id: string;
+  name: string;
+  path: string;
+  source: string;
+  sourceURI: string;
+  installedOn: string;
+}
+
 interface App {
+  id: string;
   name: string;
   path: string;
   status: AppStatus;
   pid: number;
   ports: number[];
+  info: AppInfo;
   processStats?: ProcessStats;
 }
 
@@ -107,12 +118,12 @@ export async function installApp(request: AppInstallRequest): Promise<void> {
   }
 }
 
-export async function uninstallApp(appName: string): Promise<void> {
+export async function uninstallApp(appId: string): Promise<void> {
   const {
     settings: { url, token },
   } = useConnectionStore.getState();
 
-  const response = await fetch(`${url}/v1/apps/${appName}`, {
+  const response = await fetch(`${url}/v1/apps/${appId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -148,7 +159,7 @@ export async function listApps(): Promise<AppListResponse> {
 }
 
 export async function getApp(
-  appName: string,
+  appId: string,
   processStats: boolean = false,
 ): Promise<App> {
   const {
@@ -160,8 +171,9 @@ export async function getApp(
     queryParams.append("processStats", "true");
   }
 
+  console.log(`${url}/v1/apps/${appId}?${queryParams.toString()}`);
   const response = await fetch(
-    `${url}/v1/apps/${appName}?${queryParams.toString()}`,
+    `${url}/v1/apps/${appId}?${queryParams.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -176,4 +188,38 @@ export async function getApp(
   const data: App = await response.json();
   data.ports = data.ports?.sort((a, b) => a - b) || [];
   return data;
+}
+
+export async function startApp(appId: string): Promise<void> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/apps/${appId}/start`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to start app: ${response.statusText}`);
+  }
+}
+
+export async function stopApp(appId: string): Promise<void> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/apps/${appId}/stop`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to stop app: ${response.statusText}`);
+  }
 }

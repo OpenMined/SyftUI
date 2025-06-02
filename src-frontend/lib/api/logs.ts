@@ -33,7 +33,7 @@ interface ParsedLogResponse {
  * @returns A promise that resolves to the logs response
  */
 export async function getLogs(
-  appName: string,
+  appId: string,
   startingToken: number,
   maxResults: number,
 ): Promise<ParsedLogResponse> {
@@ -42,7 +42,7 @@ export async function getLogs(
   } = useConnectionStore.getState();
 
   const params = new URLSearchParams();
-  params.append("appName", appName.toLowerCase());
+  params.append("appId", appId);
   params.append("startingToken", startingToken.toString());
   params.append("maxResults", maxResults.toString());
 

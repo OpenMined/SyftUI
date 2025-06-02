@@ -9,9 +9,10 @@ import { uninstallApp } from "@/lib/api/apps";
 
 export default function AppsPage() {
   const router = useRouter();
-  const [selectedApp] = useQueryState("name");
+  const [selectedApp] = useQueryState("id");
 
-  const handleUninstallApp = async (appName: string): Promise<boolean> => {
+  const handleUninstallApp = async (appId: string): Promise<boolean> => {
+    const appName = appId.split(".").pop();
     try {
       toast({
         icon: "🗑️",
@@ -19,7 +20,7 @@ export default function AppsPage() {
         description: `Uninstalling ${appName}...`,
       });
 
-      await uninstallApp(appName);
+      await uninstallApp(appId);
 
       toast({
         icon: "🗑️",
@@ -41,13 +42,13 @@ export default function AppsPage() {
 
   return selectedApp ? (
     <AppDetail
-      appName={selectedApp}
+      appId={selectedApp}
       onUninstall={() => handleUninstallApp(selectedApp)}
       onBack={() => router.push("/apps")}
     />
   ) : (
     <AppList
-      onSelectApp={(appName) => router.push(`/apps?name=${appName}`)}
+      onSelectApp={(appId) => router.push(`/apps?id=${appId}`)}
       onUninstall={handleUninstallApp}
     />
   );

@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getLogs, type LogsResponse } from "@/lib/api/logs";
 import { Badge } from "@/components/ui/badge";
 
-export function AppLogs({ appName }: { appName: string }) {
+export function AppLogs({ appId }: { appId: string }) {
   const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
   const [nextToken, setNextToken] = useState<number>(1);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
@@ -30,7 +30,7 @@ export function AppLogs({ appName }: { appName: string }) {
         let localNextToken = nextTokenRef.current;
         let hasMore = true;
         while (hasMore) {
-          const response = await getLogs(appName, localNextToken, 1000);
+          const response = await getLogs(appId, localNextToken, 1000);
           accumulatedLogs = [...accumulatedLogs, ...response.logs];
           localNextToken = response.nextToken;
           hasMore = response.hasMore;
@@ -50,7 +50,7 @@ export function AppLogs({ appName }: { appName: string }) {
     // Then set up the interval for subsequent requests
     const interval = setInterval(fetchAllLogs, 3000);
     return () => clearInterval(interval);
-  }, [appName]);
+  }, [appId]);
 
   // Auto-scroll effect
   useEffect(() => {
@@ -123,7 +123,7 @@ export function AppLogs({ appName }: { appName: string }) {
           <table className="table-auto border-separate border-spacing-1 text-start">
             <tbody>
               {logs.map((log) => (
-                <tr key={`${appName}-${log.lineNumber}`}>
+                <tr key={`${appId}-${log.lineNumber}`}>
                   <td className="text-muted-foreground align-baseline text-nowrap">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </td>

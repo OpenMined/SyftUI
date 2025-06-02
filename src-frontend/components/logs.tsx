@@ -27,7 +27,7 @@ import { listApps } from "@/lib/api/apps";
 
 export function Logs() {
   const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
-  const [appName, setAppName] = useState("system");
+  const [appId, setAppId] = useState("system");
   const [nextToken, setNextToken] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
   const [filter, setFilter] = useState("");
@@ -42,10 +42,10 @@ export function Logs() {
   useEffect(() => {
     const fetchApps = async () => {
       const { apps } = await listApps();
-      setInstalledApps(apps.map((app) => app.name));
+      setInstalledApps(apps.map((app) => app.id));
     };
     fetchApps();
-  }, [appName]);
+  }, [appId]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -67,7 +67,7 @@ export function Logs() {
         let localNextToken = nextTokenRef.current;
         let hasMore = true;
         while (hasMore) {
-          const response = await getLogs(appName, localNextToken, 1000);
+          const response = await getLogs(appId, localNextToken, 1000);
           accumulatedLogs = [...accumulatedLogs, ...response.logs];
           localNextToken = response.nextToken;
           hasMore = response.hasMore;
@@ -87,7 +87,7 @@ export function Logs() {
     // Then set up the interval for subsequent requests
     const interval = setInterval(fetchAllLogs, 3000);
     return () => clearInterval(interval);
-  }, [appName, isPaused]);
+  }, [appId, isPaused]);
 
   // Auto-scroll effect
   useEffect(() => {
@@ -132,7 +132,7 @@ export function Logs() {
   };
 
   const handleAppChange = (value: string) => {
-    setAppName(value);
+    setAppId(value);
     setLogs([]);
     setNextToken(1);
   };
@@ -148,7 +148,7 @@ export function Logs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `SyftBoxDaemon-${appName}-${new Date().toISOString()}.log`;
+    a.download = `SyftBoxDaemon-${appId}-${new Date().toISOString()}.log`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -230,15 +230,15 @@ export function Logs() {
           </Badge>
         ))}
         <div className="ml-2 flex items-start">
-          <Select value={appName} onValueChange={handleAppChange}>
+          <Select value={appId} onValueChange={handleAppChange}>
             <SelectTrigger className="h-8 select-none">
               <SelectValue placeholder="Select app" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="system">System</SelectItem>
-              {installedApps.map((appName) => (
-                <SelectItem key={appName} value={appName}>
-                  {appName}
+              {installedApps.map((appId) => (
+                <SelectItem key={appId} value={appId}>
+                  {appId.split(".").pop()}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -256,7 +256,7 @@ export function Logs() {
             <table className="table-auto border-separate border-spacing-1 text-start">
               <tbody>
                 {filteredLogs.map((log) => (
-                  <tr key={`${appName}-${log.lineNumber}`}>
+                  <tr key={`${appId}-${log.lineNumber}`}>
                     <td className="text-muted-foreground align-baseline text-nowrap">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </td>

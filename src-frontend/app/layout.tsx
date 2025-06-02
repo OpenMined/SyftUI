@@ -64,7 +64,7 @@ export default function RootLayout({
         <title>{title}</title>
         <meta name="description" content={description} />
       </head>
-      <body>
+      <body className="fixed h-screen w-screen overflow-hidden">
         <AnalyticsProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY}>
           <PageViewTracker path={pathname} />
           <ThemeProvider

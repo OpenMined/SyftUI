@@ -215,7 +215,7 @@ function ProcessTree({ stats }: { stats: ProcessStats }) {
   );
 }
 
-export function AppStats({ appName }: { appName: string }) {
+export function AppStats({ appId }: { appId: string }) {
   const [app, setApp] = useState<App | null>(null);
   const [refreshInterval, setRefreshInterval] = useState(1000); // 1 second default
   const [isLoading, setIsLoading] = useState(true);
@@ -224,7 +224,7 @@ export function AppStats({ appName }: { appName: string }) {
   const fetchStats = useCallback(async () => {
     try {
       setError(null);
-      const data = await getApp(appName, true); // Request process stats
+      const data = await getApp(appId, true); // Request process stats
       setApp(data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -234,7 +234,7 @@ export function AppStats({ appName }: { appName: string }) {
     } finally {
       setIsLoading(false);
     }
-  }, [appName]);
+  }, [appId]);
 
   useEffect(() => {
     fetchStats();

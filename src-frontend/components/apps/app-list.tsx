@@ -74,8 +74,8 @@ const installFormSchema = z
 type InstallFormValues = z.infer<typeof installFormSchema>;
 
 interface AppListProps {
-  onSelectApp: (appName: string) => void;
-  onUninstall: (appName: string) => Promise<boolean>;
+  onSelectApp: (appId: string) => void;
+  onUninstall: (appId: string) => Promise<boolean>;
 }
 
 export function AppList({ onSelectApp, onUninstall }: AppListProps) {
@@ -163,16 +163,16 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     }
   };
 
-  const handleUninstallApp = async (appName: string) => {
-    const uninstalled = await onUninstall(appName);
+  const handleUninstallApp = async (appId: string) => {
+    const uninstalled = await onUninstall(appId);
     if (uninstalled) await loadApps();
   };
 
-  const toggleFavorite = (appName: string) => {
+  const toggleFavorite = (appId: string) => {
     setFavorites((prev) => {
-      const newFavorites = prev.includes(appName)
-        ? prev.filter((name) => name !== appName)
-        : [...prev, appName];
+      const newFavorites = prev.includes(appId)
+        ? prev.filter((id) => id !== appId)
+        : [...prev, appId];
       saveFavoritesToLocalStorage(newFavorites);
       return newFavorites;
     });
@@ -186,17 +186,18 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     );
 
   // Filter apps based on search query
-  const filteredApps = apps.filter((app) => {
-    const matchesSearch = app.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      activeTab === "running" ? app.status === "running" : true;
-
-    const matchesFavorites =
-      activeTab === "favorites" ? favorites.includes(app.name) : true;
-    return matchesSearch && matchesStatus && matchesFavorites;
-  });
+  const filteredApps = apps
+    .filter((app) => {
+      const matchesSearch = app.info.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        activeTab === "running" ? app.status === "running" : true;
+      const matchesFavorites =
+        activeTab === "favorites" ? favorites.includes(app.info.id) : true;
+      return matchesSearch && matchesStatus && matchesFavorites;
+    })
+    .sort((a, b) => a.info.name.localeCompare(b.info.name));
 
   return (
     <div className="flex h-full flex-col">
@@ -257,16 +258,16 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredApps.map((app, index) => (
+                  {filteredApps.map((app) => (
                     <tr
-                      key={index}
+                      key={app.info.id}
                       className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() => onSelectApp(app.name)}
+                      onClick={() => onSelectApp(app.info.id)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <AppIcon name={app.name} />
-                          <span className="font-medium">{app.name}</span>
+                          <AppIcon name={app.info.name} />
+                          <span className="font-medium">{app.info.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -278,7 +279,9 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-muted-foreground">{app.pid}</span>
+                        <span className="text-muted-foreground">
+                          {app?.pid > 0 ? app.pid : "-"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-muted-foreground">
@@ -293,13 +296,13 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                             className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleFavorite(app.name);
+                              toggleFavorite(app.info.id);
                             }}
                           >
                             <Star
                               className={cn(
                                 "h-4 w-4",
-                                favorites.includes(app.name) &&
+                                favorites.includes(app.info.id) &&
                                   "fill-current text-yellow-500",
                               )}
                             />
@@ -321,7 +324,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                                 className="text-red-500 focus:text-red-500"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleUninstallApp(app.name);
+                                  handleUninstallApp(app.info.id);
                                 }}
                               >
                                 <Trash2 className="h-4 w-4" />
