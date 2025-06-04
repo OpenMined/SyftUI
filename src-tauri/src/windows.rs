@@ -4,7 +4,10 @@ use crate::state::{PendingUpdate, UpdateWindowState, UpdateWindowType};
 use crate::version::{
     DAEMON_BUILD, DAEMON_HASH, DAEMON_VERSION, DESKTOP_BUILD, DESKTOP_HASH, DESKTOP_VERSION,
 };
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    webview::{DownloadEvent, WebviewWindowBuilder},
+    AppHandle, Emitter, Manager, WebviewUrl,
+};
 
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
@@ -25,6 +28,25 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
         .maximized(true)
         .min_inner_size(800.0, 600.0)
         .inner_size(1200.0, 720.0);
+
+    // Set up download handler
+    let win_builder = win_builder.on_download(|_webview, event| {
+        match event {
+            DownloadEvent::Requested { url, destination } => {
+                let dst = dirs::download_dir()
+                    .expect("Failed to get download directory")
+                    .join(destination.clone());
+                log::info!("downloading {} to {:?}", url, dst);
+                *destination = dst.into();
+            }
+            DownloadEvent::Finished { url, path, success } => {
+                log::info!("downloaded {} to {:?}, success: {}", url, path, success);
+            }
+            _ => (),
+        }
+        // let the download start
+        true
+    });
 
     #[cfg(target_os = "macos")]
     let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
