@@ -109,11 +109,9 @@ pub fn _show_update_window(
         .lock()
         .unwrap() = Some(window_state.clone());
 
-    if let Some(window) = app.get_webview_window("updates") {
+    if let Some(_window) = app.get_webview_window("updates") {
         app.emit_to("updates", "update-window-state", window_state)
             .unwrap();
-        window.show().unwrap();
-        window.set_focus().unwrap();
     } else {
         let _update_window =
             WebviewWindowBuilder::new(app, "updates", WebviewUrl::App("updates/".into()))
