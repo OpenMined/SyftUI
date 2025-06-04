@@ -228,6 +228,8 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
+          set -xv
+
           # Make the script executable
           chmod +x ./scripts/generate-release-notes.sh
 

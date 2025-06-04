@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -xv
 
 # Get the latest tag
 v=$(git tag --list | sort -V | tail -n 1)
