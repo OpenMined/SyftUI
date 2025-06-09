@@ -103,7 +103,7 @@ jobs:
         run: |
           corepack enable
           bun install --cwd src-frontend
-          cargo install tauri-cli --version "^2.0.0" --locked
+          cargo install tauri-cli --version "^2.0.0" --locked --force
 
       - name: Build app (macOS)
         if: runner.os == 'macOS'
