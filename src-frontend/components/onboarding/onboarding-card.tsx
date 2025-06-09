@@ -36,7 +36,7 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
     resolver: zodResolver(configFormSchema),
     defaultValues: {
       dataDir: "~/SyftBox",
-      serverUrl: "https://syftboxdev.openmined.org",
+      serverUrl: "https://syftbox.net",
       email: "",
       token: "",
     },
