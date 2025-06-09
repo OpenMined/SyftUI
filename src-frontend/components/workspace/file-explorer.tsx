@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
 import type { FileSystemItem, ClipboardItem } from "@/lib/types";
 import { FileIcon } from "@/components/workspace/file-icon";
@@ -380,6 +386,8 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
     selectedItems.includes(item.path) ? "bg-accent" : "hover:bg-muted",
     dropTarget === item.id && "ring-2 ring-primary",
     viewMode === "list" && "justify-start gap-3",
+    document.activeElement?.id === `file-item-${item.id}` &&
+      "ring-2 ring-primary animate-pulse",
   );
 
   const contentClasses = cn(
@@ -405,6 +413,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <motion.div
+          id={`file-item-${item.id}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
@@ -574,6 +583,14 @@ const RenameDialog = React.memo(
 // Set display name for the RenameDialog component
 RenameDialog.displayName = "RenameDialog";
 
+// State interface for keyboard navigation
+interface SearchState {
+  prefix: string;
+  timeout: NodeJS.Timeout | null;
+  lastKeyTime: number | null;
+  items: FileSystemItem[];
+}
+
 export function FileExplorer({
   items,
   selectedItems: externalSelectedItems,
@@ -618,8 +635,6 @@ export function FileExplorer({
   const navigateTo = onNavigate || fsNavigateTo;
   const setPreviewFile = externalSetPreviewFile || fsSetPreviewFile;
 
-  // Empty unused block since we're already destructuring these values above
-
   // Group all state variables together for better readability
   const [renameItem, setRenameItem] = useState<FileSystemItem | null>(null);
   const [newName, setNewName] = useState("");
@@ -627,7 +642,20 @@ export function FileExplorer({
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [shareItem, setShareItem] = useState<FileSystemItem | null>(null);
 
+  // Create a ref to maintain search state between renders
+  const searchStateRef = useRef<SearchState>({
+    prefix: "",
+    timeout: null,
+    lastKeyTime: null,
+    items: [],
+  });
+
   const isMobile = useIsMobile();
+
+  // Update items in search state when they change
+  useEffect(() => {
+    searchStateRef.current.items = items;
+  }, [items]);
 
   const handleItemDoubleClick = useCallback(
     (item: FileSystemItem) => {
@@ -643,6 +671,147 @@ export function FileExplorer({
       }
     },
     [navigateTo, currentPath, setPreviewFile],
+  );
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const TIMEOUT_DURATION = 1000;
+    const state = searchStateRef.current; // Capture ref value
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement) {
+        return;
+      }
+
+      // Ignore if any modifier keys are pressed (Ctrl, Alt, Meta, Shift)
+      if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
+        return;
+      }
+
+      // Handle Enter key to open selected item
+      if (e.key === "Enter" && selectedItems.length === 1) {
+        const selectedItem = items.find(
+          (item) => item.path === selectedItems[0],
+        );
+        if (selectedItem) {
+          handleItemDoubleClick(selectedItem);
+        }
+        return;
+      }
+
+      // Handle alphanumeric keys for search
+      if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
+        e.preventDefault();
+
+        const now = Date.now();
+
+        // Only reset if we have a previous key press and it's been too long
+        if (
+          state.lastKeyTime !== null &&
+          now - state.lastKeyTime > TIMEOUT_DURATION
+        ) {
+          state.prefix = "";
+        }
+
+        // Clear existing timeout
+        if (state.timeout) {
+          clearTimeout(state.timeout);
+          state.timeout = null;
+        }
+
+        // Add the new key to the prefix
+        state.prefix += e.key.toLowerCase();
+        state.lastKeyTime = now;
+
+        // Find the first item that matches the current prefix
+        const match = state.items.find((item) =>
+          item.name.toLowerCase().startsWith(state.prefix),
+        );
+
+        if (match) {
+          setSelectedItems([match.path]);
+          requestAnimationFrame(() => {
+            const element = document.getElementById(`file-item-${match.id}`);
+            if (element) {
+              element.focus();
+              element.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+              });
+            }
+          });
+        }
+
+        // Set new timeout to clear the prefix
+        state.timeout = setTimeout(() => {
+          state.prefix = "";
+          state.timeout = null;
+          state.lastKeyTime = null;
+        }, TIMEOUT_DURATION);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      if (state.timeout) {
+        // Use captured state
+        clearTimeout(state.timeout);
+        state.timeout = null;
+      }
+    };
+  }, [setSelectedItems, selectedItems, items, handleItemDoubleClick]);
+
+  // Apply sorting to items based on sort configuration - memoized to prevent unnecessary re-sorting
+  const sortedItems = useMemo(
+    () =>
+      [...items].sort((a, b) => {
+        // Always show folders before files regardless of sort option
+        if (a.type === "folder" && b.type === "file") return -1;
+        if (a.type === "file" && b.type === "folder") return 1;
+
+        // If both are the same type (folder or file), then sort by the selected criteria
+        let compareResult = 0;
+
+        switch (sortConfig.sortBy) {
+          case "name":
+            compareResult = a.name.localeCompare(b.name, undefined, {
+              sensitivity: "base",
+            });
+            break;
+          case "date":
+            compareResult =
+              new Date(a.modifiedAt).getTime() -
+              new Date(b.modifiedAt).getTime();
+            break;
+          case "size":
+            compareResult = (a.size || 0) - (b.size || 0);
+            break;
+          case "type":
+            // For files, compare by extension
+            if (a.type === "file" && b.type === "file") {
+              const aExt = a.name.split(".").pop() || "";
+              const bExt = b.name.split(".").pop() || "";
+              compareResult = aExt.localeCompare(bExt);
+              // If same extension, sort by name
+              if (compareResult === 0) {
+                compareResult = a.name.localeCompare(b.name);
+              }
+            } else {
+              // For folders, sort by name
+              compareResult = a.name.localeCompare(b.name);
+            }
+            break;
+          default:
+            compareResult = a.name.localeCompare(b.name);
+        }
+
+        // Apply sorting direction
+        return sortConfig.direction === "asc" ? compareResult : -compareResult;
+      }),
+    [items, sortConfig],
   );
 
   const handleItemClick = useCallback(
@@ -813,56 +982,6 @@ export function FileExplorer({
       // We just need to make sure we don't prevent the default context menu from showing
     }
   }, []);
-
-  // Apply sorting to items based on sort configuration - memoized to prevent unnecessary re-sorting
-  const sortedItems = useMemo(
-    () =>
-      [...items].sort((a, b) => {
-        // Always show folders before files regardless of sort option
-        if (a.type === "folder" && b.type === "file") return -1;
-        if (a.type === "file" && b.type === "folder") return 1;
-
-        // If both are the same type (folder or file), then sort by the selected criteria
-        let compareResult = 0;
-
-        switch (sortConfig.sortBy) {
-          case "name":
-            compareResult = a.name.localeCompare(b.name, undefined, {
-              sensitivity: "base",
-            });
-            break;
-          case "date":
-            compareResult =
-              new Date(a.modifiedAt).getTime() -
-              new Date(b.modifiedAt).getTime();
-            break;
-          case "size":
-            compareResult = (a.size || 0) - (b.size || 0);
-            break;
-          case "type":
-            // For files, compare by extension
-            if (a.type === "file" && b.type === "file") {
-              const aExt = a.name.split(".").pop() || "";
-              const bExt = b.name.split(".").pop() || "";
-              compareResult = aExt.localeCompare(bExt);
-              // If same extension, sort by name
-              if (compareResult === 0) {
-                compareResult = a.name.localeCompare(b.name);
-              }
-            } else {
-              // For folders, sort by name
-              compareResult = a.name.localeCompare(b.name);
-            }
-            break;
-          default:
-            compareResult = a.name.localeCompare(b.name);
-        }
-
-        // Apply sorting direction
-        return sortConfig.direction === "asc" ? compareResult : -compareResult;
-      }),
-    [items, sortConfig],
-  );
 
   // Extract empty state UI into a component for reuse
   const renderEmptyState = useCallback(
