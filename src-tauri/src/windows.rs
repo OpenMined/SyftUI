@@ -37,7 +37,7 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
                     .expect("Failed to get download directory")
                     .join(destination.clone());
                 log::info!("downloading {} to {:?}", url, dst);
-                *destination = dst.into();
+                *destination = dst;
             }
             DownloadEvent::Finished { url, path, success } => {
                 log::info!("downloaded {} to {:?}, success: {}", url, path, success);

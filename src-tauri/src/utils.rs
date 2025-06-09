@@ -1,6 +1,5 @@
 //! Utility functions and helpers
 
-use log;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
@@ -272,12 +271,10 @@ pub fn _setup_system_tray(app: &AppHandle) {
                 } else {
                     log::debug!("Autostart disabled");
                 }
+            } else if let Err(e) = manager.enable() {
+                log::error!("Failed to enable autostart: {}", e);
             } else {
-                if let Err(e) = manager.enable() {
-                    log::error!("Failed to enable autostart: {}", e);
-                } else {
-                    log::debug!("Autostart enabled");
-                }
+                log::debug!("Autostart enabled");
             }
         }
         "check_for_updates" => {

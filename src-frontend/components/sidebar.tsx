@@ -34,7 +34,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { LogoComponent } from "./logo/logo";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
 import { BugReportDialog } from "./diagnostic/bug-report-dialog";
-import { AnimatePresence, motion } from "framer-motion";
+import { ShineBorder } from "@/components/magicui/shine-border";
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -358,23 +358,14 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
             className="relative m-4"
             onClick={handleBugReportOpen}
           >
+            {!hasOpenedBugReport && (
+              <ShineBorder
+                shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+                borderWidth={2}
+                duration={7}
+              />
+            )}
             <Bug className="h-4 w-4" />
-            <AnimatePresence>
-              {!hasOpenedBugReport && (
-                <motion.div
-                  initial={{ scale: 1 }}
-                  animate={{
-                    scale: [1.5, 1, 1.5],
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"
-                />
-              )}
-            </AnimatePresence>
             Report Bug
           </Button>
         }
