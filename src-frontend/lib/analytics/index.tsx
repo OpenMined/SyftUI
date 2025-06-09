@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { AptabaseProvider, useAptabase } from "@aptabase/react";
+import { APP_VERSION } from "@/lib/version";
 
 // Define standard event categories
 export type EventCategory =
@@ -43,7 +44,7 @@ export function AnalyticsProvider({
 }) {
   // If we want to replace Aptabase in the future, we'd modify this component
   return (
-    <AptabaseProvider appKey={appKey} options={{ appVersion: "0.1.18" }}>
+    <AptabaseProvider appKey={appKey} options={{ appVersion: APP_VERSION }}>
       <AnalyticsConsumer>{children}</AnalyticsConsumer>
     </AptabaseProvider>
   );

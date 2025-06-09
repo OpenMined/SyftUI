@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { downloadLogs } from "@/lib/api/logs";
 import { submitBugReport } from "@/lib/api/bug-report";
+import { APP_VERSION } from "@/lib/version";
 
 interface BugReportDialogProps {
   trigger: React.ReactNode;
@@ -77,7 +78,7 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
       await submitBugReport({
         title,
         description,
-        version: "0.0.18",
+        version: APP_VERSION,
         os,
         arch,
         logs: logsBlob,

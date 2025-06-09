@@ -50,7 +50,7 @@ export async function submitBugReport(
     });
   }
 
-  const response = await fetch("http://localhost:8080/services/report-bug", {
+  const response = await fetch("https://syftbox.net/services/report-bug", {
     method: "POST",
     headers: {
       // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
