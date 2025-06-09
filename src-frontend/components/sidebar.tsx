@@ -34,6 +34,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { LogoComponent } from "./logo/logo";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
 import { BugReportDialog } from "./diagnostic/bug-report-dialog";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -48,6 +49,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
   });
+  const [hasOpenedBugReport, setHasOpenedBugReport] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
@@ -71,6 +73,12 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   useEffect(() => {
     saveFavorites(favorites);
   }, [favorites]);
+
+  // Load bug report dialog state from localStorage on initial render
+  useEffect(() => {
+    const hasOpened = localStorage.getItem("hasOpenedBugReport");
+    setHasOpenedBugReport(hasOpened === "true");
+  }, []);
 
   const getActiveItem = (pathname: string) => {
     if (pathname.startsWith("/diagnostic")) return "Diagnostic";
@@ -240,6 +248,11 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     setFavorites((prev) => prev.filter((fav) => fav.id !== id));
   };
 
+  const handleBugReportOpen = () => {
+    setHasOpenedBugReport(true);
+    localStorage.setItem("hasOpenedBugReport", "true");
+  };
+
   return (
     <div className="bg-card border-border flex h-full w-full flex-col border-r">
       <div className="mx-4 flex items-center justify-between gap-2 pt-4">
@@ -339,8 +352,29 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
 
       <BugReportDialog
         trigger={
-          <Button variant="destructive" size="sm" className="m-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="relative m-4"
+            onClick={handleBugReportOpen}
+          >
             <Bug className="h-4 w-4" />
+            <AnimatePresence>
+              {!hasOpenedBugReport && (
+                <motion.div
+                  initial={{ scale: 1 }}
+                  animate={{
+                    scale: [1.5, 1, 1.5],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"
+                />
+              )}
+            </AnimatePresence>
             Report Bug
           </Button>
         }

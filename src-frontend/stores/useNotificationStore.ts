@@ -26,14 +26,14 @@ interface NotificationState {
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [
-    {
-      id: "1",
-      title: "Welcome to SyftBox",
-      message: "Your files are now syncing",
-      type: "info",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-      read: false,
-    },
+    // {
+    //   id: "1",
+    //   title: "Welcome to SyftBox",
+    //   message: "Your files are now syncing",
+    //   type: "info",
+    //   timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    //   read: false,
+    // },
     // {
     //   id: "2",
     //   title: "Sync Complete",

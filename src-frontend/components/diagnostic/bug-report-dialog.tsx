@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { downloadLogs } from "@/lib/api/logs";
+import { submitBugReport } from "@/lib/api/bug-report";
 
 interface BugReportDialogProps {
   trigger: React.ReactNode;
@@ -25,7 +26,7 @@ interface BugReportDialogProps {
 export function BugReportDialog({ trigger }: BugReportDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [shareLogs, setShareLogs] = useState(false);
+  const [shareLogs, setShareLogs] = useState(true);
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +54,7 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
     setIsSubmitting(true);
 
     try {
-      let logsBlob: Blob | null = null;
+      let logsBlob: Blob | undefined;
       if (shareLogs) {
         try {
           logsBlob = await downloadLogs();
@@ -68,19 +69,20 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
         }
       }
 
-      // Create form data to include bug report, logs, and screenshots
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      if (logsBlob) {
-        formData.append("logs", logsBlob, "syftbox-logs.zip");
-      }
-      screenshots.forEach((screenshot, index) => {
-        formData.append(`screenshot-${index}`, screenshot);
-      });
+      // Get OS and architecture info
+      const os = navigator.platform;
+      const arch = navigator.userAgent.includes("x86_64") ? "amd64" : "arm64";
 
-      // TODO: Implement actual bug report submission
-      // await submitBugReport(formData);
+      // Submit the bug report
+      await submitBugReport({
+        title,
+        description,
+        version: "0.0.18",
+        os,
+        arch,
+        logs: logsBlob,
+        screenshots: screenshots.length > 0 ? screenshots : undefined,
+      });
 
       // Success! Show toast, close the dialog and reset the form
       toast({
@@ -103,7 +105,8 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
       toast({
         icon: "❌",
         title: "Failed to submit bug report",
-        description: "Please try again later.",
+        description:
+          error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
       });
     } finally {
