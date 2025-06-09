@@ -80,3 +80,25 @@ function parseLog({ lineNumber, timestamp, message }: Log): ParsedLog {
     message,
   };
 }
+
+/**
+ * Download logs as a zip file
+ * @returns A promise that resolves to the logs zip file as a Blob
+ */
+export async function downloadLogs(): Promise<Blob> {
+  const {
+    settings: { url, token },
+  } = useConnectionStore.getState();
+
+  const response = await fetch(`${url}/v1/logs/download`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download logs: ${response.statusText}`);
+  }
+
+  return response.blob();
+}

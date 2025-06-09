@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   Power,
+  Bug,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
@@ -32,6 +33,7 @@ import { ConnectionStatus } from "@/components/connection/connection-status";
 import { useRouter, usePathname } from "next/navigation";
 import { LogoComponent } from "./logo/logo";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
+import { BugReportDialog } from "./diagnostic/bug-report-dialog";
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -334,6 +336,16 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           </Collapsible>
         </div>
       </nav>
+
+      <BugReportDialog
+        trigger={
+          <Button variant="destructive" size="sm" className="m-4">
+            <Bug className="h-4 w-4" />
+            Report Bug
+          </Button>
+        }
+      />
+
       <div className="border-border border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full">
