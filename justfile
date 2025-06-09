@@ -232,7 +232,7 @@ dev-desktop:
     import sys
 
     try:
-        subprocess.run(["cargo", "tauri", "dev"], check=True)
+        subprocess.run(["tauri", "dev"], check=True)
     except KeyboardInterrupt:
         print(f"{{ _yellow }}Keyboard interrupt.{{ _nc }}")
         sys.exit(0)
@@ -350,7 +350,7 @@ package-desktop TARGET_TRIPLE="":
         sys.exit(1)
 
     try:
-        cmd = ["cargo", "tauri", "build", "--config", "src-tauri/tauri.conf.release-extras.json"]
+        cmd = ["tauri", "build", "--config", "src-tauri/tauri.conf.release-extras.json"]
         if env.get('GITHUB_CI') == '1':
             env['CI'] = 'false'
             env['TAURI_BUNDLER_DMG_IGNORE_CI'] = 'true'
@@ -963,8 +963,8 @@ setup skip_prerequisites="no":
     else:
         subprocess.run([bunx_exec, 'husky'], check=True)
 
-    # Install tauri-cli
-    subprocess.run(['cargo', 'install', 'tauri-cli', '--version', '^2.0.0', '--locked'], check=True)
+    # Install tauri cli
+    subprocess.run(['bun', 'install', '--global', '@tauri-apps/cli@latest'], check=True)
 
     # Install the syftbox toolchain
     subprocess.run(['just', '--justfile', 'src-daemon/justfile', 'setup-toolchain'], check=True)
