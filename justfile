@@ -651,7 +651,7 @@ update-binaries TARGET_TRIPLE="":
             except Exception as e:
                 print(f"{{ _red }}Error moving file: {e}{{ _nc }}")
                 return False
-            
+
             # Make executable on Unix-like systems
             if os.name != 'nt':
                 os.chmod(final_path, 0o755)

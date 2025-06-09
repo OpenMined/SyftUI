@@ -355,7 +355,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
           <Button
             variant="outline"
             size="sm"
-            className="relative m-4"
+            className="relative m-4 cursor-pointer"
             onClick={handleBugReportOpen}
           >
             {!hasOpenedBugReport && (
