@@ -186,34 +186,16 @@
   }
 }
 
-/*
-  ---break---
-*/
-
-@theme inline {
-  --animate-shine: shine var(--duration) infinite linear;
-  @keyframes shine {
-    0% {
-      background-position: 0% 0%;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    to {
-      background-position: 0% 0%;
-    }
-  }
+.pulsate-border {
+  box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.7);
+  animation: border-pulse 1s infinite;
 }
 
-/*
-  ---break---
-*/
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+@keyframes border-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.7);
   }
-  body {
-    @apply bg-background text-foreground;
+  100% {
+    box-shadow: 0 0 0 16px hsl(var(--destructive) / 0);
   }
 }

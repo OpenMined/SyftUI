@@ -34,7 +34,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { LogoComponent } from "./logo/logo";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
 import { BugReportDialog } from "./diagnostic/bug-report-dialog";
-import { ShineBorder } from "@/components/magicui/shine-border";
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -49,7 +48,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
   });
-  const [hasOpenedBugReport, setHasOpenedBugReport] = useState<boolean>(true);
+  const [hasOpenedBugReport, setHasOpenedBugReport] = useState<boolean>(false);
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
@@ -353,18 +352,14 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       <BugReportDialog
         trigger={
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
-            className="relative m-4 cursor-pointer"
+            className={cn(
+              "relative z-10 m-4 cursor-pointer",
+              !hasOpenedBugReport && "pulsate-border",
+            )}
             onClick={handleBugReportOpen}
           >
-            {!hasOpenedBugReport && (
-              <ShineBorder
-                shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
-                borderWidth={2}
-                duration={7}
-              />
-            )}
             <Bug className="h-4 w-4" />
             Report Bug
           </Button>
