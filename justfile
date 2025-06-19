@@ -449,6 +449,44 @@ deploy-frontend-to-stage:
 
 # -------------------------------------------------- UTILITY COMMANDS -------------------------------------------------
 
+[group('utils')]
+bump-version level="patch":
+    #!/usr/bin/env python
+    import subprocess
+    import sys
+    import json
+
+    level = "{{ level }}"
+    valid_levels = ["major", "minor", "patch"]
+    
+    if level not in valid_levels:
+        print(f"Error: Invalid level. Use 'major', 'minor', or 'patch'.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        # Get the current and new version using bump-my-version
+        result = subprocess.run([
+            "uvx", "bump-my-version", "show",
+            "--format", "json",
+            "--increment", level
+        ], capture_output=True, text=True, check=True)
+        
+        version_info = json.loads(result.stdout)
+        current_version = version_info["current_version"]
+        new_version = version_info["new_version"]
+        
+        print(f"Bumping version from {current_version} to {new_version}")
+        
+        # Bump version
+        subprocess.run(["uvx", "bump-my-version", "bump", level], check=True)
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error running bump-my-version: {e}", file=sys.stderr)
+        sys.exit(e.returncode)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing version info: {e}", file=sys.stderr)
+        sys.exit(1)
+
 # Generate and upload release.json
 [group('utils')]
 generate-release-json version upload="no":

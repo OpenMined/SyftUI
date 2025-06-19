@@ -3,10 +3,15 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Semantic version of the release (e.g. v0.1.0)"
+      bump_type:
+        description: "Version bump type"
         required: true
-        type: string
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   build:
@@ -105,6 +110,14 @@ jobs:
           bun install --cwd src-frontend
           bun install --global @tauri-apps/cli@latest
 
+      - name: Bump the Version
+        id: bump_version
+        run: |
+          # Clear all tags to remove traces of old and unsuccessful runs
+          git tag --list | xargs git tag --delete
+          just bump-version ${{ inputs.bump_type }}
+          echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+
       - name: Build app (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -157,14 +170,14 @@ jobs:
 
       - name: Push changes to the repo
         run: |
-          # Create a new tag for the release
-          git tag ${{ inputs.version }}
-
           # Set a new remote URL using HTTPS with the github token
           git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
 
+          # Push the current branch to the remote repo
+          git push origin
+
           # Push the tag to the remote repo
-          git push origin ${{ inputs.version }}
+          git push origin ${{ steps.bump_version.outputs.version }}
 
       # - name: Deploy frontend to syftbox-stage
       #   run: just deploy-frontend-to-stage
@@ -172,8 +185,8 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ inputs.version }}
-          name: ${{ inputs.version }}
+          tag: ${{ steps.bump_version.outputs.version }}
+          name: ${{ steps.bump_version.outputs.version }}
           draft: true
           allowUpdates: true
           omitBodyDuringUpdate: true
@@ -237,4 +250,4 @@ jobs:
   #         ./scripts/generate-release-notes.sh > release_notes.md
 
   #         # Update the release with the generated notes
-  #         gh release edit ${{ inputs.version }} --notes-file release_notes.md
+  #         gh release edit ${{ steps.bump_version.outputs.version }} --notes-file release_notes.md
