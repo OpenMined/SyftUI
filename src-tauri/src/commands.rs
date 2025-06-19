@@ -1,9 +1,12 @@
 //! Tauri command handlers
 
 use crate::state::{AppState, PendingUpdate, UpdateWindowState, UpdateWindowType};
-use crate::windows::_show_update_window;
+use crate::windows::{
+    _show_update_window, MACOS_TRAFFIC_LIGHTS_INSET_X, MACOS_TRAFFIC_LIGHTS_INSET_Y,
+};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager, Theme};
+use tauri_plugin_decorum::WebviewWindowExt;
 
 #[tauri::command]
 pub fn update_theme(app: AppHandle, is_dark: bool) {
@@ -15,6 +18,14 @@ pub fn update_theme(app: AppHandle, is_dark: bool) {
         }) {
             log::error!("Error setting theme: {}", e);
         }
+    }
+    // set traffic lights inset as they get reset when the theme changes
+    #[cfg(target_os = "macos")]
+    {
+        let window = app.get_webview_window("main").unwrap();
+        window
+            .set_traffic_lights_inset(MACOS_TRAFFIC_LIGHTS_INSET_X, MACOS_TRAFFIC_LIGHTS_INSET_Y)
+            .unwrap();
     }
 }
 

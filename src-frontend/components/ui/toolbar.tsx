@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
 import { Input } from "@/components/ui/input";
 import { ReactNode } from "react";
-import { useSidebarStore } from "@/stores";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface ToolbarProps {
   title?: string | ReactNode;
@@ -24,7 +24,14 @@ interface ToolbarProps {
   searchPlaceholder?: string;
 }
 
-export function Toolbar({
+// Wrapper component to safely use sidebar context
+function ToolbarWithSidebar(props: ToolbarProps) {
+  const sidebarContext = useSidebar();
+  return <ToolbarInternal {...props} sidebarContext={sidebarContext} />;
+}
+
+// Internal component that handles both sidebar context and props
+function ToolbarInternal({
   title,
   icon,
   children,
@@ -37,21 +44,25 @@ export function Toolbar({
   searchInput,
   onSearch,
   searchPlaceholder = "Search...",
-}: ToolbarProps) {
-  // Use the sidebar context if available, otherwise use props
-  const sidebarContext = useSidebarStore();
-
+  sidebarContext,
+}: ToolbarProps & {
+  sidebarContext?: {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    toggleSidebar: () => void;
+  };
+}) {
   // Use the props or context values, with props taking precedence if provided
   const sidebarOpen =
     propSidebarOpen !== undefined
       ? propSidebarOpen
-      : sidebarContext.sidebarOpen;
-  const setSidebarOpen = propSetSidebarOpen || sidebarContext.setSidebarOpen;
+      : (sidebarContext?.open ?? false);
+  const setSidebarOpen = propSetSidebarOpen || sidebarContext?.setOpen;
 
   // Hamburger menu click handler
   const handleSidebarToggle = () => {
-    // First try context toggle, then props
-    if (sidebarContext && sidebarContext.toggleSidebar) {
+    // First try shadcn/ui sidebar toggle, then props
+    if (sidebarContext?.toggleSidebar) {
       sidebarContext.toggleSidebar();
     } else if (setSidebarOpen) {
       setSidebarOpen(!sidebarOpen);
@@ -111,4 +122,14 @@ export function Toolbar({
       </div>
     </div>
   );
+}
+
+// Main export that tries to use sidebar context, falls back to props-only version
+export function Toolbar(props: ToolbarProps) {
+  try {
+    return <ToolbarWithSidebar {...props} />;
+  } catch {
+    // If sidebar context is not available, use props-only version
+    return <ToolbarInternal {...props} />;
+  }
 }

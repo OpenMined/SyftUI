@@ -9,7 +9,6 @@ export {
   // Hooks
   useConnectionStore,
 } from "./useConnectionStore";
-export { useSidebarStore } from "./useSidebarStore";
 export {
   useFileSystemStore,
   initializeFileSystemStore,

@@ -1,47 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Database,
-  FolderHeart,
-  AppWindow,
-  ScrollText,
-  Star,
-  ChevronDown,
-  ChevronRight,
-  X,
-  LogOut,
-  Power,
-  Bug,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+import { BugReportDialog } from "@/components/diagnostic/bug-report-dialog";
+import { ConnectionStatus } from "@/components/connection/connection-status";
+import { LogoComponent } from "@/components/logo/logo";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ConnectionStatus } from "@/components/connection/connection-status";
-import { useRouter, usePathname } from "next/navigation";
-import { LogoComponent } from "./logo/logo";
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
-import { BugReportDialog } from "./diagnostic/bug-report-dialog";
-
-interface SidebarProps {
-  closeSidebar: () => void;
-}
+import {
+  AppWindow,
+  Bug,
+  ChevronDown,
+  ChevronRight,
+  Database,
+  FolderHeart,
+  LogOut,
+  Power,
+  ScrollText,
+  Star,
+  X,
+} from "lucide-react";
 
 const EMAIL_PLACEHOLDER = "user@example.com";
 
-export function Sidebar({ closeSidebar }: SidebarProps) {
+export function AppSidebar() {
   const [favorites, setFavorites] = useState<
     { id: string; name: string; path: string[] }[]
   >([]);
@@ -148,7 +154,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
         setActiveItem("Workspace");
         navigateTo([]);
         router.push("/workspace/");
-        closeSidebar();
       },
     },
     {
@@ -157,7 +162,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("Apps");
         router.push("/apps/");
-        closeSidebar();
       },
     },
     // {
@@ -175,7 +179,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       action: () => {
         setActiveItem("Logs");
         router.push("/logs/");
-        closeSidebar();
       },
     },
     // {
@@ -201,7 +204,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
 
   const handleLogoutClick = () => {
     router.push("/");
-    closeSidebar();
   };
 
   const handleExitClick = async () => {
@@ -253,43 +255,32 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   };
 
   return (
-    <div className="bg-card border-border flex h-full w-full flex-col border-r">
-      <div className="mx-4 flex items-center justify-between gap-2 pt-4">
+    <>
+      <SidebarHeader className="border-border mx-4 flex items-center justify-between gap-2 border-b px-0 py-4 pt-12">
         <LogoComponent className="h-16" />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={closeSidebar}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="border-border mx-4 flex items-center justify-between border-b pt-2 pb-4">
-        <ConnectionStatus />
-      </div>
-      <nav className="flex-1 overflow-auto p-2">
-        <ul className="mb-4 space-y-1">
-          {mainNavItems.map((item, index) => (
-            <li key={index}>
-              <Button
-                variant="ghost"
-                size="small"
-                onClick={item.action}
-                className={cn(
-                  "flex w-full items-center justify-start gap-3 px-3 py-2 font-normal",
-                  activeItem === item.label &&
-                    "bg-accent text-accent-foreground",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </Button>
-            </li>
-          ))}
-        </ul>
+        <div className="flex w-full items-center justify-between">
+          <ConnectionStatus />
+        </div>
+      </SidebarHeader>
 
-        <div className="mb-4">
+      <SidebarContent className="px-2">
+        <SidebarGroup>
+          <SidebarMenu>
+            {mainNavItems.map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton
+                  onClick={item.action}
+                  isActive={activeItem === item.label}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <Collapsible
             open={openSections.favorites}
             onOpenChange={() => toggleSection("favorites")}
@@ -325,7 +316,6 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                         onClick={() => {
                           navigateTo(fav.path);
                           router.push(`/workspace/?path=${fav.path.join("/")}`);
-                          closeSidebar();
                         }}
                         className="hover:bg-accent hover:text-accent-foreground flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                       >
@@ -336,7 +326,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={() => removeFavorite(fav.id)}
+                        onClick={(e) => removeFavorite(fav.id, e)}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -346,66 +336,69 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
               </div>
             </CollapsibleContent>
           </Collapsible>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <BugReportDialog
+          trigger={
+            <Button
+              variant="destructive"
+              size="sm"
+              className={cn(
+                "relative z-10 w-full cursor-pointer",
+                !hasOpenedBugReport && "pulsate-border",
+              )}
+              onClick={handleBugReportOpen}
+            >
+              <Bug className="h-4 w-4" />
+              Report Bug
+            </Button>
+          }
+        />
+
+        <div className="border-border mt-4 border-t pt-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full">
+              <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-md p-2 transition-colors">
+                <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
+                  {email.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium">
+                    {email.split("@")[0].charAt(0).toUpperCase() +
+                      email.split("@")[0].slice(1)}
+                  </p>
+                  <p className="text-muted-foreground text-xs">{email}</p>
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {/* <DropdownMenuItem onClick={handleProfileClick}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSettingsClick}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator /> */}
+              {typeof window !== "undefined" &&
+              window.__TAURI__ !== undefined ? (
+                <DropdownMenuItem onClick={handleExitClick}>
+                  <Power className="mr-2 h-4 w-4" />
+                  <span>Exit</span>
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={handleLogoutClick}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </nav>
-
-      <BugReportDialog
-        trigger={
-          <Button
-            variant="destructive"
-            size="sm"
-            className={cn(
-              "relative z-10 m-4 cursor-pointer",
-              !hasOpenedBugReport && "pulsate-border",
-            )}
-            onClick={handleBugReportOpen}
-          >
-            <Bug className="h-4 w-4" />
-            Report Bug
-          </Button>
-        }
-      />
-
-      <div className="border-border border-t p-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="w-full">
-            <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-3 rounded-md p-2 transition-colors">
-              <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full">
-                {email.charAt(0).toUpperCase()}
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium">
-                  {email.split("@")[0].charAt(0).toUpperCase() +
-                    email.split("@")[0].slice(1)}
-                </p>
-                <p className="text-muted-foreground text-xs">{email}</p>
-              </div>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            {/* <DropdownMenuItem onClick={handleProfileClick}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSettingsClick}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator /> */}
-            {typeof window !== "undefined" && window.__TAURI__ !== undefined ? (
-              <DropdownMenuItem onClick={handleExitClick}>
-                <Power className="mr-2 h-4 w-4" />
-                <span>Exit</span>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={handleLogoutClick}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+      </SidebarFooter>
+    </>
   );
 }

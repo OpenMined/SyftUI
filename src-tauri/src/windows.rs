@@ -6,18 +6,20 @@ use crate::version::{
 };
 use tauri::{
     webview::{DownloadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, Manager, WebviewUrl,
+    AppHandle, Emitter, Manager, WebviewUrl, WindowEvent,
+};
+use tauri_plugin_decorum::WebviewWindowExt;
+
+#[cfg(target_os = "macos")]
+use {
+    cocoa::appkit::{NSColor, NSView, NSWindow},
+    cocoa::base::{id, nil, NO, YES},
+    objc::{msg_send, sel, sel_impl},
+    tauri::TitleBarStyle,
 };
 
-#[cfg(target_os = "macos")]
-use tauri::TitleBarStyle;
-
-#[cfg(target_os = "macos")]
-use cocoa::appkit::{NSColor, NSView, NSWindow};
-#[cfg(target_os = "macos")]
-use cocoa::base::{id, nil, NO, YES};
-#[cfg(target_os = "macos")]
-use objc::{msg_send, sel, sel_impl};
+pub const MACOS_TRAFFIC_LIGHTS_INSET_X: f32 = 16.0;
+pub const MACOS_TRAFFIC_LIGHTS_INSET_Y: f32 = 16.0;
 
 pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
     log::info!("Setting up main window");
@@ -27,6 +29,8 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
         .focused(true)
         .maximized(true)
         .min_inner_size(800.0, 600.0)
+        .hidden_title(true)
+        .title_bar_style(TitleBarStyle::Overlay)
         .inner_size(1200.0, 720.0);
 
     // Set up download handler
@@ -48,26 +52,48 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
         true
     });
 
-    #[cfg(target_os = "macos")]
-    let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
-
     let _window = win_builder.build().unwrap();
     log::debug!("Main window created successfully");
 
+    // Create a custom titlebar for main window
+    // On Windows this hides decoration and creates custom window controls
+    // On macOS it needs hiddenTitle: true and titleBarStyle: overlay
+    _window.create_overlay_titlebar().unwrap();
+
     #[cfg(target_os = "macos")]
     {
-        let ns_window = _window.ns_window().unwrap() as id;
-        unsafe {
-            let bg_color = NSColor::colorWithRed_green_blue_alpha_(
-                nil,
-                218.0 / 255.0,
-                241.0 / 255.0,
-                237.0 / 255.0,
-                1.0,
-            );
-            ns_window.setBackgroundColor_(bg_color);
-            log::debug!("Set macOS window background color");
-        }
+        let window_clone = _window.clone();
+        let window_clone_2 = _window.clone();
+
+        _window
+            .set_traffic_lights_inset(MACOS_TRAFFIC_LIGHTS_INSET_X, MACOS_TRAFFIC_LIGHTS_INSET_Y)
+            .unwrap();
+
+        _window.on_window_event(move |event| match event {
+            WindowEvent::Resized(_) | WindowEvent::ThemeChanged(_) | WindowEvent::Focused(_) => {
+                window_clone
+                    .set_traffic_lights_inset(
+                        MACOS_TRAFFIC_LIGHTS_INSET_X,
+                        MACOS_TRAFFIC_LIGHTS_INSET_Y,
+                    )
+                    .unwrap();
+            }
+            _ => {}
+        });
+
+        // TODO HACK to fix the traffic lights inset loosing position on macOS during initialisation
+        // Run 15 times with 1-second intervals. Initialisation will definitely be done by then.
+        tauri::async_runtime::spawn(async move {
+            for _ in 0..15 {
+                window_clone_2
+                    .set_traffic_lights_inset(
+                        MACOS_TRAFFIC_LIGHTS_INSET_X,
+                        MACOS_TRAFFIC_LIGHTS_INSET_Y,
+                    )
+                    .unwrap();
+                std::thread::sleep(std::time::Duration::from_secs(1));
+            }
+        });
     }
 }
 

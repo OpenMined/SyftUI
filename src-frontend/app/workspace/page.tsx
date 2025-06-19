@@ -26,7 +26,7 @@ export default function FilesPage() {
 
   return (
     <div
-      className="bg-background flex h-screen"
+      className="flex h-full"
       onMouseDown={(e) => {
         if (e.detail > 1) {
           // Prevent double click from selecting text

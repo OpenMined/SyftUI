@@ -2,12 +2,17 @@
 
 import "./globals.css";
 import type React from "react";
+import TitleBar from "@/components/title-bar";
 import { usePathname } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { useSidebarStore } from "@/stores";
-import { Sidebar } from "@/components/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import {
+  Sidebar,
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
 import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
@@ -16,7 +21,6 @@ const title = "SyftBox";
 const description = "The internet of private data!";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen, setSidebarOpen } = useSidebarStore();
   const pathname = usePathname();
   const sidebarExcludedPaths = ["/", "/about/", "/updates/"];
   const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
@@ -32,21 +36,29 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <NuqsAdapter>
-      <div className="flex h-screen">
-        {shouldShowSidebar && (
-          <div
-            className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out md:relative md:z-0 ${
-              sidebarOpen
-                ? "translate-x-0"
-                : "-translate-x-full md:translate-x-0"
-            } shrink-0 md:w-64`}
-          >
-            <Sidebar closeSidebar={() => setSidebarOpen(false)} />
+      <SidebarProvider
+        defaultOpen={
+          typeof window !== "undefined" ? window.innerWidth >= 768 : false
+        }
+        style={{
+          "--sidebar-width": "15rem",
+        }}
+      >
+        <div className="bg-sidebar flex h-screen w-screen flex-col">
+          <TitleBar />
+          <div className="flex flex-1 overflow-hidden">
+            {shouldShowSidebar && (
+              <Sidebar className="border-none">
+                <AppSidebar />
+              </Sidebar>
+            )}
+            <SidebarInset className="mx-2 mb-2 min-h-min flex-1 rounded-md border">
+              {children}
+            </SidebarInset>
           </div>
-        )}
-        <div className="flex-1 overflow-hidden">{children}</div>
-      </div>
-      <Toaster />
+        </div>
+        <Toaster />
+      </SidebarProvider>
     </NuqsAdapter>
   );
 }

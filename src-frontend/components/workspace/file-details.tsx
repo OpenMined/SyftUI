@@ -92,7 +92,7 @@ export function FileDetails({
   };
 
   return item ? (
-    <div className="bg-card flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b p-4">
         <h3 className="font-medium select-none">Details</h3>
         <Button
@@ -353,7 +353,7 @@ export function FileDetails({
       )}
     </div>
   ) : (
-    <div className="bg-card flex h-full flex-col items-center justify-center">
+    <div className="flex h-full flex-col items-center justify-center">
       <p className="text-muted-foreground">No item selected</p>
     </div>
   );
