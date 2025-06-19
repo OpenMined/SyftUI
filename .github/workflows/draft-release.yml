@@ -16,6 +16,8 @@ on:
 jobs:
   build:
     name: Build app bundle
+    outputs:
+      version: ${{ steps.bump_version.outputs.version }}
     strategy:
       matrix:
         include:
@@ -226,28 +228,29 @@ jobs:
             fi
           done
 
-  # generate-release-notes:
-  #   name: Generate Release Notes
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0 # Fetch all history for all branches and tags
-  #         submodules: recursive
+  generate-release-notes:
+    name: Generate Release Notes
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+          submodules: recursive
 
-  #     - name: Generate Release Notes
-  #       env:
-  #         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-  #       run: |
-  #         set -xv
+      - name: Generate Release Notes
+        run: |
+          set -xv
 
-  #         # Make the script executable
-  #         chmod +x ./scripts/generate-release-notes.sh
+          # Make the script executable
+          chmod +x ./scripts/generate-release-notes.sh
 
-  #         # Generate release notes and save to a file
-  #         ./scripts/generate-release-notes.sh > release_notes.md
+          # Generate release notes and save to a file
+          ./scripts/generate-release-notes.sh > release_notes.md
 
-  #         # Update the release with the generated notes
-  #         gh release edit ${{ steps.bump_version.outputs.version }} --notes-file release_notes.md
+          # Update the release with the generated notes
+          gh release edit ${{ needs.build.outputs.version }} --notes-file release_notes.md
