@@ -317,10 +317,12 @@ export function AppSidebar() {
                           navigateTo(fav.path);
                           router.push(`/workspace/?path=${fav.path.join("/")}`);
                         }}
-                        className="hover:bg-accent hover:text-accent-foreground flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
+                        className="hover:bg-accent hover:text-accent-foreground flex flex-1 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-sm transition-colors"
                       >
                         <FolderHeart className="h-4 w-4" />
-                        <span className="truncate">{fav.name}</span>
+                        <span className="flex-1 truncate text-start">
+                          {fav.name}
+                        </span>
                       </button>
                       <Button
                         variant="ghost"
