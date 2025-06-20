@@ -199,3 +199,29 @@
     box-shadow: 0 0 0 16px hsl(var(--destructive) / 0);
   }
 }
+
+/*
+  ---break---
+*/
+
+@theme inline {
+  --animate-gradient: gradient 8s linear infinite;
+  @keyframes gradient {
+    to {
+      background-position: var(--bg-size, 300%) 0;
+    }
+  }
+}
+
+/*
+  ---break---
+*/
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

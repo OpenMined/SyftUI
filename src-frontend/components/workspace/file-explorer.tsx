@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { updateUrlWithPath } from "@/lib/utils/url";
+import { Hint } from "@/components/ui/hint";
 
 // Background context menu component
 interface BackgroundContextMenuContentProps {
@@ -641,6 +642,7 @@ export function FileExplorer({
   const [draggedItem, setDraggedItem] = useState<FileSystemItem | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [shareItem, setShareItem] = useState<FileSystemItem | null>(null);
+  const [showSearchHint, setShowSearchHint] = useState(true);
 
   // Create a ref to maintain search state between renders
   const searchStateRef = useRef<SearchState>({
@@ -734,6 +736,10 @@ export function FileExplorer({
 
         if (match) {
           setSelectedItems([match.path]);
+          // Close the hint when user successfully uses keyboard navigation
+          if (showSearchHint) {
+            setShowSearchHint(false);
+          }
           requestAnimationFrame(() => {
             const element = document.getElementById(`file-item-${match.id}`);
             if (element) {
@@ -765,7 +771,13 @@ export function FileExplorer({
         state.timeout = null;
       }
     };
-  }, [setSelectedItems, selectedItems, items, handleItemDoubleClick]);
+  }, [
+    setSelectedItems,
+    selectedItems,
+    items,
+    handleItemDoubleClick,
+    showSearchHint,
+  ]);
 
   // Apply sorting to items based on sort configuration - memoized to prevent unnecessary re-sorting
   const sortedItems = useMemo(
@@ -1065,6 +1077,16 @@ export function FileExplorer({
             onDrop={(e) => handleDrop(e)}
             onContextMenu={handleBackgroundContextMenu}
           >
+            {/* Show search hint when there are more than 50 items */}
+            <AnimatePresence>
+              {items.length > 50 && showSearchHint && (
+                <Hint
+                  message="Type letters directly to jump to files"
+                  onClose={() => setShowSearchHint(false)}
+                />
+              )}
+            </AnimatePresence>
+
             <div
               className={cn(
                 "min-h-[300px] w-full",
