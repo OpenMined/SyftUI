@@ -8,6 +8,7 @@ import { FloatingConnectionStatus } from "@/components/floating-connection-statu
 import { OnboardingCard } from "@/components/onboarding";
 import { initializationService } from "@/lib/initialization";
 import { useConnectionStore } from "@/stores";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   const router = useRouter();
@@ -41,6 +42,9 @@ export default function HomePage() {
       <div className="mb-8 flex items-center justify-center p-6">
         <div className="flex h-[40] w-[180] items-center">
           <LogoComponent />
+        </div>
+        <div className="absolute top-1.5 right-3 z-[1000]">
+          <ThemeToggle />
         </div>
       </div>
 
