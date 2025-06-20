@@ -1,6 +1,6 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,7 @@ export default function TitleBar({
   children?: React.ReactNode;
 }) {
   const titleBarRef = useRef<HTMLDivElement>(null);
-  const { platform } =
-    typeof window !== "undefined" && window.__TAURI__
-      ? window.__TAURI__.os
-      : { platform: () => "web" };
+  const [platform, setPlatform] = useState<string>("macos");
 
   useEffect(() => {
     // Remove any element with data-tauri-decorum-tb attribute from the DOM, except this component
@@ -27,6 +24,14 @@ export default function TitleBar({
         element.remove();
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const { platform } =
+      typeof window !== "undefined" && window.__TAURI__
+        ? window.__TAURI__.os
+        : { platform: () => "web" };
+    setPlatform(platform());
   }, []);
 
   const goBack = () => {
@@ -53,7 +58,7 @@ export default function TitleBar({
         <div
           className={cn(
             "relative flex items-center gap-1",
-            platform() === "macos" ? "left-20" : "ml-2",
+            platform === "macos" ? "left-20" : "ml-2",
           )}
         >
           <SidebarTrigger />

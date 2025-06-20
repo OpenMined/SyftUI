@@ -1,3 +1,4 @@
+import Ansi from "ansi-to-react";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -132,8 +133,8 @@ export function AppLogs({ appId }: { appId: string }) {
                       {log.level.toUpperCase()}
                     </Badge>
                   </td>
-                  <td className="align-baseline text-wrap whitespace-pre">
-                    {log.message}
+                  <td className="align-baseline text-wrap">
+                    <Ansi>{log.message}</Ansi>
                   </td>
                 </tr>
               ))}

@@ -69,7 +69,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     <NuqsAdapter>
       <SidebarProvider
         defaultOpen={
-          typeof window !== "undefined" ? window.innerWidth >= 768 : false
+          typeof window !== "undefined" ? window.innerWidth >= 768 : true
         }
         style={{
           "--sidebar-width": "15rem",
@@ -78,12 +78,10 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         <div className="bg-sidebar flex h-screen w-screen flex-col">
           <TitleBar>{getBreadcrumb()}</TitleBar>
           <div className="flex flex-1 overflow-hidden">
-            {shouldShowSidebar && (
-              <Sidebar className="border-none">
-                <AppSidebar />
-              </Sidebar>
-            )}
-            <SidebarInset className="mx-2 mb-2 min-h-min flex-1 rounded-md border">
+            <Sidebar className="border-none">
+              <AppSidebar />
+            </Sidebar>
+            <SidebarInset className="mx-2 mb-2 min-h-min flex-1 overflow-hidden rounded-md border">
               {children}
             </SidebarInset>
           </div>

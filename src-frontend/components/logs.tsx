@@ -1,5 +1,6 @@
 "use client";
 
+import Ansi from "ansi-to-react";
 import { useEffect, useState, useRef } from "react";
 import { Download, Trash2, Pause, Play, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -272,7 +273,9 @@ export function Logs() {
                         {log.level.toUpperCase()}
                       </Badge>
                     </td>
-                    <td className="align-baseline text-wrap">{log.message}</td>
+                    <td className="align-baseline text-wrap">
+                      <Ansi>{log.message}</Ansi>
+                    </td>
                   </tr>
                 ))}
               </tbody>
