@@ -172,6 +172,9 @@ jobs:
 
       - name: Push changes to the repo
         run: |
+          # Create a new tag for the release
+          git tag ${{ steps.bump_version.outputs.version }}
+
           # Set a new remote URL using HTTPS with the github token
           git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
 
