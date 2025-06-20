@@ -16,6 +16,9 @@ import {
 import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
+import { AppBreadcrumb } from "@/components/apps/breadcrumb";
+import { WorkspaceBreadcrumb } from "@/components/workspace/breadcrumb";
+import { ScrollText } from "lucide-react";
 
 const title = "SyftBox";
 const description = "The internet of private data!";
@@ -34,6 +37,26 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
+  // Determine which breadcrumb to show based on the current route
+  const getBreadcrumb = () => {
+    if (pathname.startsWith("/apps")) {
+      return <AppBreadcrumb />;
+    }
+    if (pathname.startsWith("/workspace")) {
+      return <WorkspaceBreadcrumb />;
+    }
+    if (pathname.startsWith("/logs")) {
+      return (
+        <span className="flex items-center gap-2 p-1 text-sm">
+          <ScrollText className="h-4 w-4" />
+          <span>Logs</span>
+        </span>
+      );
+    }
+    // For other routes, show nothing
+    return null;
+  };
+
   return (
     <NuqsAdapter>
       <SidebarProvider
@@ -45,7 +68,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         <div className="bg-sidebar flex h-screen w-screen flex-col">
-          <TitleBar />
+          <TitleBar>{getBreadcrumb()}</TitleBar>
           <div className="flex flex-1 overflow-hidden">
             {shouldShowSidebar && (
               <Sidebar className="border-none">

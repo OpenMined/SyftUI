@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { FileExplorer } from "@/components/workspace/file-explorer";
-import { Breadcrumb } from "@/components/workspace/breadcrumb";
 import { FileToolbar } from "@/components/workspace/file-toolbar";
 import { FilePreview } from "@/components/workspace/file-preview";
 import { FileDetails } from "@/components/workspace/file-details";
@@ -33,6 +32,7 @@ export function FileManager() {
     viewMode,
     previewFile,
     detailsItem,
+    detailsSidebarOpen,
     setSelectedItems,
     navigateTo,
     setPreviewFile,
@@ -231,7 +231,6 @@ export function FileManager() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden" ref={fileManagerRef}>
       <FileToolbar />
-      <Breadcrumb />
       <div className="flex flex-1 overflow-hidden">
         <div className="relative flex-1 overflow-auto p-4">
           <FileExplorer
@@ -267,21 +266,24 @@ export function FileManager() {
           </AnimatePresence>
         </div>
 
-        {/* Desktop: Always show details sidebar */}
-        {!isMobile && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 320, opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="border-border hidden overflow-hidden border-l md:block"
-          >
-            <FileDetails
-              item={detailsItem || getCurrentDirectoryInfo()}
-              onClose={handleCloseDetails}
-              setDetailsItem={handleSetDetailsItem}
-            />
-          </motion.div>
-        )}
+        {/* Desktop: Conditionally show details sidebar */}
+        <AnimatePresence>
+          {!isMobile && detailsSidebarOpen && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-border hidden overflow-hidden border-l md:block"
+            >
+              <FileDetails
+                item={detailsItem || getCurrentDirectoryInfo()}
+                onClose={handleCloseDetails}
+                setDetailsItem={handleSetDetailsItem}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Mobile: File details shown as a slide-in panel from bottom */}

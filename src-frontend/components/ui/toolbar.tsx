@@ -3,8 +3,6 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { NotificationBell } from "@/components/notification-bell";
 import { Input } from "@/components/ui/input";
 import { ReactNode } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -115,10 +113,6 @@ function ToolbarInternal({
 
         {/* Custom right section */}
         {rightSection}
-
-        {/* Standard elements */}
-        <NotificationBell />
-        <ThemeToggle />
       </div>
     </div>
   );

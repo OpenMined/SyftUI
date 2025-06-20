@@ -37,6 +37,7 @@ interface FileSystemState {
   previewFile: FileSystemItem | null;
   detailsItem: FileSystemItem | null;
   isRefreshing: boolean;
+  detailsSidebarOpen: boolean;
 
   // Sync state
   syncPaused: boolean;
@@ -75,6 +76,8 @@ interface FileSystemState {
   setShowHiddenFiles: (show: boolean) => void;
   setPreviewFile: (file: FileSystemItem | null) => void;
   setDetailsItem: (item: FileSystemItem | null) => void;
+  setDetailsSidebarOpen: (open: boolean) => void;
+  toggleDetailsSidebar: () => void;
 
   // Sync actions
   setSyncPaused: (paused: boolean) => void;
@@ -132,6 +135,7 @@ export const useFileSystemStore = create<FileSystemState>(
       previewFile: null,
       detailsItem: null,
       isRefreshing: false,
+      detailsSidebarOpen: true,
 
       // Sync state
       syncPaused: false,
@@ -218,6 +222,9 @@ export const useFileSystemStore = create<FileSystemState>(
       setShowHiddenFiles: (show) => set({ showHiddenFiles: show }),
       setPreviewFile: (file) => set({ previewFile: file }),
       setDetailsItem: (item) => set({ detailsItem: item }),
+      setDetailsSidebarOpen: (open) => set({ detailsSidebarOpen: open }),
+      toggleDetailsSidebar: () =>
+        set((state) => ({ detailsSidebarOpen: !state.detailsSidebarOpen })),
 
       // Sync actions
       setSyncPaused: (paused) => set({ syncPaused: paused }),

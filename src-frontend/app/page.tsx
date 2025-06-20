@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoComponent } from "@/components/logo/logo";
 import { FloatingConnectionStatus } from "@/components/floating-connection-status";
 import { OnboardingCard } from "@/components/onboarding";
@@ -39,11 +38,10 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="mb-8 flex items-center justify-between p-6">
+      <div className="mb-8 flex items-center justify-center p-6">
         <div className="flex h-[40] w-[180] items-center">
           <LogoComponent />
         </div>
-        <ThemeToggle />
       </div>
 
       <OnboardingCard onComplete={navigateToApp} />

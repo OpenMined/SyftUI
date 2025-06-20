@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import {
-  ScrollText,
-  Download,
-  Trash2,
-  Pause,
-  Play,
-  Search,
-} from "lucide-react";
+import { Download, Trash2, Pause, Play, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,7 +166,44 @@ export function Logs() {
 
   return (
     <div className="flex h-full flex-col">
-      <Toolbar title="System Logs" icon={<ScrollText className="h-5 w-5" />}>
+      <Toolbar
+        leftSection={
+          <div className="flex items-center gap-2">
+            <div className="flex gap-2">
+              {logLevels.map((level) => (
+                <Badge
+                  key={level}
+                  className={cn(
+                    "cursor-pointer select-none",
+                    getLevelColor(level),
+                    filterLevel !== null &&
+                      filterLevel !== level &&
+                      "brightness-125 dark:brightness-[20%]",
+                  )}
+                  onClick={() =>
+                    setFilterLevel(filterLevel === level ? null : level)
+                  }
+                >
+                  {level.toUpperCase()}
+                </Badge>
+              ))}
+            </div>
+            <Select value={appId} onValueChange={handleAppChange}>
+              <SelectTrigger className="h-8 select-none">
+                <SelectValue placeholder="Select app" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="system">System</SelectItem>
+                {installedApps.map((appId) => (
+                  <SelectItem key={appId} value={appId}>
+                    {appId.split(".").pop()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
+      >
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
@@ -212,39 +242,6 @@ export function Logs() {
           <Download className="h-4 w-4" />
         </Button>
       </Toolbar>
-
-      <div className="flex gap-2 overflow-x-auto border-b p-2">
-        {logLevels.map((level) => (
-          <Badge
-            key={level}
-            className={cn(
-              "cursor-pointer select-none",
-              getLevelColor(level),
-              filterLevel !== null &&
-                filterLevel !== level &&
-                "brightness-125 dark:brightness-[20%]",
-            )}
-            onClick={() => setFilterLevel(filterLevel === level ? null : level)}
-          >
-            {level.toUpperCase()}
-          </Badge>
-        ))}
-        <div className="ml-2 flex items-start">
-          <Select value={appId} onValueChange={handleAppChange}>
-            <SelectTrigger className="h-8 select-none">
-              <SelectValue placeholder="Select app" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="system">System</SelectItem>
-              {installedApps.map((appId) => (
-                <SelectItem key={appId} value={appId}>
-                  {appId.split(".").pop()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-4 font-mono text-sm">

@@ -21,6 +21,7 @@ export function ThemeToggle() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-7 w-7"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             <motion.div

@@ -65,7 +65,7 @@ export function NotificationBell() {
   return (
     <DropdownMenu open={open} onOpenChange={handleOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative h-7 w-7">
           <Bell className="h-5 w-5" />
           <AnimatePresence>
             {unreadCount() > 0 && (

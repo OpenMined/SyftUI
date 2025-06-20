@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Toolbar } from "@/components/ui/toolbar";
 import { FileActions } from "@/components/workspace/file-toolbar/file-actions";
+import { SidebarToggle } from "@/components/workspace/file-toolbar/sidebar-toggle";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -103,8 +104,16 @@ export function FileToolbar({ onSearch }: FileToolbarProps) {
     </div>
   );
 
+  // Right section with sidebar toggle and search
+  const rightSection = (
+    <div className="flex items-center gap-2">
+      {collapsibleSearch}
+      <SidebarToggle />
+    </div>
+  );
+
   return (
-    <Toolbar leftSection={<FileActions />} rightSection={collapsibleSearch}>
+    <Toolbar leftSection={<FileActions />} rightSection={rightSection}>
       {/* Center content here if needed */}
     </Toolbar>
   );

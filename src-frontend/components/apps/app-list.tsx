@@ -4,7 +4,6 @@ import {
   Star,
   MoreHorizontal,
   Trash2,
-  AppWindow,
   Search,
   Plus,
   ChevronDown,
@@ -201,7 +200,35 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <Toolbar title="Apps" icon={<AppWindow className="h-5 w-5" />}>
+      <Toolbar
+        leftSection={
+          <div className="flex items-center gap-2">
+            <div className="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-1">
+              <Button
+                variant="ghost"
+                className={getTabButtonClassNames("all")}
+                onClick={() => setActiveTab("all")}
+              >
+                All
+              </Button>
+              <Button
+                variant="ghost"
+                className={getTabButtonClassNames("running")}
+                onClick={() => setActiveTab("running")}
+              >
+                Running
+              </Button>
+              <Button
+                variant="ghost"
+                className={getTabButtonClassNames("favorites")}
+                onClick={() => setActiveTab("favorites")}
+              >
+                Favorites
+              </Button>
+            </div>
+          </div>
+        }
+      >
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
@@ -218,32 +245,6 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
       </Toolbar>
 
       <div className="flex-1 overflow-hidden">
-        <div className="overflow-x-auto border-b px-4 py-2">
-          <div className="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-1">
-            <Button
-              variant="ghost"
-              className={getTabButtonClassNames("all")}
-              onClick={() => setActiveTab("all")}
-            >
-              All
-            </Button>
-            <Button
-              variant="ghost"
-              className={getTabButtonClassNames("running")}
-              onClick={() => setActiveTab("running")}
-            >
-              Running
-            </Button>
-            <Button
-              variant="ghost"
-              className={getTabButtonClassNames("favorites")}
-              onClick={() => setActiveTab("favorites")}
-            >
-              Favorites
-            </Button>
-          </div>
-        </div>
-
         <div className="h-full flex-1 overflow-auto px-4 py-2">
           {isLoading ? null : filteredApps.length > 0 ? (
             <div className="overflow-hidden rounded-lg border">

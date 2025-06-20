@@ -4,10 +4,10 @@ import type React from "react";
 
 import { useState } from "react";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
-import { ChevronRight, Briefcase } from "lucide-react";
+import { ChevronRight, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function Breadcrumb() {
+export function WorkspaceBreadcrumb() {
   const { currentPath, navigateTo, moveItems } = useFileSystemStore();
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
@@ -44,18 +44,19 @@ export function Breadcrumb() {
   };
 
   return (
-    <div className="border-border flex items-center border-b px-4 py-2">
+    <div className="inline-flex items-center">
       <button
         onClick={() => navigateTo([])}
         className={cn(
-          "hover:bg-accent hover:text-accent-foreground rounded-md p-1",
+          "hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm",
           dropTargetIndex === 0 && "bg-accent",
         )}
         onDragOver={(e) => handleDragOver(e, 0)}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, 0)}
       >
-        <Briefcase className="h-4 w-4" />
+        <Database className="h-4 w-4" />
+        <span>Workspace</span>
       </button>
 
       {currentPath.length > 0 && (
@@ -67,7 +68,7 @@ export function Breadcrumb() {
           <button
             onClick={() => handleNavigate(index + 1)}
             className={cn(
-              "rounded px-1 py-0.5 text-sm hover:underline",
+              "hover:bg-accent hover:text-accent-foreground rounded-md p-1 text-sm",
               dropTargetIndex === index + 1 && "bg-accent",
             )}
             onDragOver={(e) => handleDragOver(e, index + 1)}
