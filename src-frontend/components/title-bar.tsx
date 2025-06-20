@@ -15,9 +15,9 @@ export default function TitleBar({
 }) {
   const titleBarRef = useRef<HTMLDivElement>(null);
   const { platform } =
-    typeof window !== "undefined"
+    typeof window !== "undefined" && window.__TAURI__
       ? window.__TAURI__.os
-      : { platform: () => "macos" };
+      : { platform: () => "web" };
 
   useEffect(() => {
     // Remove any element with data-tauri-decorum-tb attribute from the DOM, except this component
