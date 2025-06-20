@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e -xv
-
 # Get the latest tag
 v=$(git tag --list | sort -V | tail -n 1)
 
@@ -12,20 +10,25 @@ prev_v=$(git tag --list | sort -V | tail -n 2 | head -n 1)
 syftui_commits=$(git --no-pager log --pretty=format:'%s' "$prev_v".."$v")
 
 # Collect Daemon commit hashes and logs
-read h1 h2 < <(git --no-pager diff "$prev_v".."$v" -- src-daemon | tail -n 2 | awk '{print $3}')
-daemon_commits=$(cd src-daemon && git --no-pager log --pretty=format:'%s' "$h1".."$h2")
+daemon_diff=$(git --no-pager diff "$prev_v".."$v" -- src-daemon)
+if [ -n "$daemon_diff" ]; then
+    read h1 h2 < <(echo "$daemon_diff" | tail -n 2 | awk '{print $3}')
+    daemon_commits=$(cd src-daemon && git --no-pager log --pretty=format:'%s' "$h1".."$h2")
+else
+    daemon_commits=""
+fi
 
 # Compose the full prompt
 prompt_template=$(cat << EOM
 You are a release note generator for a desktop application project called SyftBox.
 
-Here are the commit messages since the last version ($v):
+Here are the commit messages since the last version ($prev_v):
 
 $syftui_commits
 
 $daemon_commits
 
-Write a concise, user-friendly release note with:
+Write a concise, user-friendly release note for $v with:
 - A high-level overview of the release.
 - Grouped and bulleted highlights under clear sections.
 - Plain English; minimal jargon.
@@ -64,15 +67,25 @@ This update delivers a smoother, more polished experience with dynamic theming, 
 EOM
 )
 
-echo -e "\033[1;36mGenerating release notes for the below new commits since $v\033[0m"
-echo -e "\n\033[1;33m=== SyftUI commits ===\033[0m"
-echo "$syftui_commits"
-echo -e "\n\033[1;33m=== Daemon commits ===\033[0m"
-echo "$daemon_commits"
+echo -e "\033[1;36mGenerating release notes for the below new commits since $prev_v\033[0m" >&2
+
+echo -e "\n\033[1;33m=== SyftUI commits ===\033[0m" >&2
+if [ -n "$syftui_commits" ]; then
+    echo "$syftui_commits" >&2
+else
+    echo "<No SyftUI commits>" >&2
+fi
+
+echo -e "\n\033[1;33m=== Daemon commits ===\033[0m" >&2
+if [ -n "$daemon_commits" ]; then
+    echo "$daemon_commits" >&2
+else
+    echo "<No Daemon commits>" >&2
+fi
 
 # Ensure OPENROUTER_API_KEY is set
 if [ -z "$OPENROUTER_API_KEY" ]; then
-    echo "Error: Please set OPENROUTER_API_KEY environment variable."
+    echo "Error: Please set OPENROUTER_API_KEY environment variable." >&2
     exit 1
 fi
 
@@ -89,5 +102,5 @@ response=$(curl -s https://openrouter.ai/api/v1/chat/completions \
 }')
 
 # Extract and print content
-echo -e "\n\033[1;36mGenerated release notes:\033[0m"
+echo -e "\n\033[1;36mGenerated release notes:\033[0m" >&2
 echo "$response" | jq -r '.choices[0].message.content'
