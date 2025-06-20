@@ -5,13 +5,15 @@ set -e -xv
 # Get the latest tag
 v=$(git tag --list | sort -V | tail -n 1)
 
+# Get the previous tag
+prev_v=$(git tag --list | sort -V | tail -n 2 | head -n 1)
+
 # Collect SyftUI commits
-syftui_commits=$(git --no-pager log --pretty=format:'%s' "$v"..HEAD)
+syftui_commits=$(git --no-pager log --pretty=format:'%s' "$prev_v".."$v")
 
 # Collect Daemon commit hashes and logs
-read h1 h2 < <(git --no-pager diff "$v"..HEAD -- src-daemon | tail -n 2 | awk '{print $3}')
+read h1 h2 < <(git --no-pager diff "$prev_v".."$v" -- src-daemon | tail -n 2 | awk '{print $3}')
 daemon_commits=$(cd src-daemon && git --no-pager log --pretty=format:'%s' "$h1".."$h2")
-
 
 # Compose the full prompt
 prompt_template=$(cat << EOM
