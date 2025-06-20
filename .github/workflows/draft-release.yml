@@ -87,6 +87,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.bump-version.outputs.version }}
           submodules: recursive
 
       - name: Import signing certificate into keychain
@@ -258,6 +259,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ needs.bump-version.outputs.version }}
           fetch-depth: 0 # Fetch all history for all branches and tags
           submodules: recursive
 
