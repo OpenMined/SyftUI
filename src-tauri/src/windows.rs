@@ -18,7 +18,10 @@ use {
     tauri::{TitleBarStyle, WindowEvent},
 };
 
+#[cfg(target_os = "macos")]
 pub const MACOS_TRAFFIC_LIGHTS_INSET_X: f32 = 16.0;
+
+#[cfg(target_os = "macos")]
 pub const MACOS_TRAFFIC_LIGHTS_INSET_Y: f32 = 16.0;
 
 pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {

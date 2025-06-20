@@ -14,10 +14,52 @@ on:
           - patch
 
 jobs:
-  build:
-    name: Build app bundle
+  bump-version:
+    name: Bump versions
     outputs:
       version: ${{ steps.bump_version.outputs.version }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "^3.13"
+
+      - name: Setup git config
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
+
+      - name: Bump the Version
+        id: bump_version
+        run: |
+          just bump-version ${{ inputs.bump_type }}
+          echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+
+      - name: Push changes to the repo
+        run: |
+          # Set a new remote URL using HTTPS with the github token
+          git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+
+          # Push the current branch to the remote repo
+          git push origin
+
+          # Push the tag to the remote repo
+          git push origin ${{ steps.bump_version.outputs.version }}
+
+  build:
+    name: Build app bundle
+    needs: bump-version
     strategy:
       matrix:
         include:
@@ -112,21 +154,6 @@ jobs:
           bun install --cwd src-frontend
           bun install --global @tauri-apps/cli@latest
 
-      - name: Setup git config
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
-
-      - name: Bump the Version
-        id: bump_version
-        run: |
-          # Clear all tags to remove traces of old and unsuccessful runs
-          git tag --list | xargs git tag --delete
-          just bump-version ${{ inputs.bump_type }}
-          echo "version=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
-
       - name: Build app (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -170,28 +197,14 @@ jobs:
           mv src-tauri/target/${{ matrix.args }}/release/bundle/appimage/*.AppImage artifacts/SyftBox-${{ matrix.args }}.AppImage
           mv src-tauri/target/${{ matrix.args }}/release/bundle/appimage/*.AppImage.sig artifacts/SyftBox-${{ matrix.args }}.AppImage.sig
 
-      - name: Push changes to the repo
-        run: |
-          # Create a new tag for the release
-          git tag ${{ steps.bump_version.outputs.version }}
-
-          # Set a new remote URL using HTTPS with the github token
-          git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
-
-          # Push the current branch to the remote repo
-          git push origin
-
-          # Push the tag to the remote repo
-          git push origin ${{ steps.bump_version.outputs.version }}
-
       # - name: Deploy frontend to syftbox-stage
       #   run: just deploy-frontend-to-stage
 
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.bump_version.outputs.version }}
-          name: ${{ steps.bump_version.outputs.version }}
+          tag: ${{ needs.bump-version.outputs.version }}
+          name: ${{ needs.bump-version.outputs.version }}
           draft: true
           allowUpdates: true
           omitBodyDuringUpdate: true
@@ -233,7 +246,7 @@ jobs:
 
   generate-release-notes:
     name: Generate Release Notes
-    needs: build
+    needs: bump-version
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -256,4 +269,4 @@ jobs:
           ./scripts/generate-release-notes.sh > release_notes.md
 
           # Update the release with the generated notes
-          gh release edit ${{ needs.build.outputs.version }} --notes-file release_notes.md
+          gh release edit ${{ needs.bump-version.outputs.version }} --notes-file release_notes.md
