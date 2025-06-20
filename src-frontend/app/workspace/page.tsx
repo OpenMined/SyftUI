@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useQueryState } from "nuqs";
 import { FileManager } from "@/components/workspace/file-manager";
 import {
@@ -8,7 +8,7 @@ import {
   useFileSystemStore,
 } from "@/stores/useFileSystemStore";
 
-export default function FilesPage() {
+function FilesPageContent() {
   const [initialPath] = useQueryState("path");
   const { refreshFileSystem } = useFileSystemStore();
 
@@ -39,5 +39,13 @@ export default function FilesPage() {
     >
       <FileManager />
     </div>
+  );
+}
+
+export default function FilesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FilesPageContent />
+    </Suspense>
   );
 }

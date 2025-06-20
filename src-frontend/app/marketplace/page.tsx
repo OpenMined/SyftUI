@@ -20,8 +20,9 @@ import { mockApps } from "@/lib/mock-apps";
 import { Toolbar } from "@/components/ui/toolbar";
 import { toast } from "@/hooks/use-toast";
 import { AnnouncementBar } from "@/components/ui/announcement-bar";
+import { Suspense } from "react";
 
-export default function MarketplacePage() {
+function MarketplacePageContent() {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
   const [searchQuery, setSearchQuery] = useState("");
@@ -189,5 +190,13 @@ export default function MarketplacePage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MarketplacePageContent />
+    </Suspense>
   );
 }

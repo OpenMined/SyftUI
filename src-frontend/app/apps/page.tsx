@@ -6,8 +6,9 @@ import { AppList } from "@/components/apps/app-list";
 import { AppDetail } from "@/components/apps/app-detail";
 import { toast } from "@/hooks/use-toast";
 import { uninstallApp } from "@/lib/api/apps";
+import { Suspense } from "react";
 
-export default function AppsPage() {
+function AppsPageContent() {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
 
@@ -51,5 +52,13 @@ export default function AppsPage() {
       onSelectApp={(appId) => router.push(`/apps?id=${appId}`)}
       onUninstall={handleUninstallApp}
     />
+  );
+}
+
+export default function AppsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AppsPageContent />
+    </Suspense>
   );
 }

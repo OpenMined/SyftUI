@@ -66,29 +66,31 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider
-      defaultOpen={
-        typeof window !== "undefined" ? window.innerWidth >= 768 : false
-      }
-      style={{
-        "--sidebar-width": "15rem",
-      }}
-    >
-      <div className="bg-sidebar flex h-screen w-screen flex-col">
-        <TitleBar>{getBreadcrumb()}</TitleBar>
-        <div className="flex flex-1 overflow-hidden">
-          {shouldShowSidebar && (
-            <Sidebar className="border-none">
-              <AppSidebar />
-            </Sidebar>
-          )}
-          <SidebarInset className="mx-2 mb-2 min-h-min flex-1 rounded-md border">
-            {children}
-          </SidebarInset>
+    <NuqsAdapter>
+      <SidebarProvider
+        defaultOpen={
+          typeof window !== "undefined" ? window.innerWidth >= 768 : false
+        }
+        style={{
+          "--sidebar-width": "15rem",
+        }}
+      >
+        <div className="bg-sidebar flex h-screen w-screen flex-col">
+          <TitleBar>{getBreadcrumb()}</TitleBar>
+          <div className="flex flex-1 overflow-hidden">
+            {shouldShowSidebar && (
+              <Sidebar className="border-none">
+                <AppSidebar />
+              </Sidebar>
+            )}
+            <SidebarInset className="mx-2 mb-2 min-h-min flex-1 rounded-md border">
+              {children}
+            </SidebarInset>
+          </div>
         </div>
-      </div>
-      <Toaster />
-    </SidebarProvider>
+        <Toaster />
+      </SidebarProvider>
+    </NuqsAdapter>
   );
 }
 
@@ -113,9 +115,7 @@ export default function RootLayout({
             defaultTheme="light"
             disableTransitionOnChange
           >
-            <NuqsAdapter>
-              <MainLayout>{children}</MainLayout>
-            </NuqsAdapter>
+            <MainLayout>{children}</MainLayout>
           </ThemeProvider>
         </AnalyticsProvider>
       </body>

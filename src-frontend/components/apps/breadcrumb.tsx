@@ -5,9 +5,9 @@ import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
 import { ChevronRight, AppWindow } from "lucide-react";
 import { getApp, type App } from "@/lib/api/apps";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-export function AppBreadcrumb() {
+function AppBreadcrumbContent() {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
   const [app, setApp] = useState<App | null>(null);
@@ -53,5 +53,22 @@ export function AppBreadcrumb() {
         </>
       )}
     </div>
+  );
+}
+
+export function AppBreadcrumb() {
+  return (
+    <Suspense
+      fallback={
+        <div className="inline-flex items-center">
+          <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm">
+            <AppWindow className="h-4 w-4" />
+            <span>Apps</span>
+          </div>
+        </div>
+      }
+    >
+      <AppBreadcrumbContent />
+    </Suspense>
   );
 }
