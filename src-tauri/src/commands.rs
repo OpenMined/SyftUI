@@ -1,12 +1,15 @@
 //! Tauri command handlers
 
 use crate::state::{AppState, PendingUpdate, UpdateWindowState, UpdateWindowType};
-use crate::windows::{
-    _show_update_window, MACOS_TRAFFIC_LIGHTS_INSET_X, MACOS_TRAFFIC_LIGHTS_INSET_Y,
-};
+use crate::windows::_show_update_window;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager, Theme};
-use tauri_plugin_decorum::WebviewWindowExt;
+
+#[cfg(target_os = "macos")]
+use {
+    crate::windows::{MACOS_TRAFFIC_LIGHTS_INSET_X, MACOS_TRAFFIC_LIGHTS_INSET_Y},
+    tauri_plugin_decorum::WebviewWindowExt,
+};
 
 #[tauri::command]
 pub fn update_theme(app: AppHandle, is_dark: bool) {

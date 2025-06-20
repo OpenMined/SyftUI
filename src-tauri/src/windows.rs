@@ -6,7 +6,7 @@ use crate::version::{
 };
 use tauri::{
     webview::{DownloadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, Manager, WebviewUrl, WindowEvent,
+    AppHandle, Emitter, Manager, WebviewUrl,
 };
 use tauri_plugin_decorum::WebviewWindowExt;
 
@@ -15,7 +15,7 @@ use {
     cocoa::appkit::{NSColor, NSView, NSWindow},
     cocoa::base::{id, nil, NO, YES},
     objc::{msg_send, sel, sel_impl},
-    tauri::TitleBarStyle,
+    tauri::{TitleBarStyle, WindowEvent},
 };
 
 pub const MACOS_TRAFFIC_LIGHTS_INSET_X: f32 = 16.0;
@@ -29,9 +29,12 @@ pub fn _setup_main_window(app: &AppHandle, url: WebviewUrl) {
         .focused(true)
         .maximized(true)
         .min_inner_size(800.0, 600.0)
-        .hidden_title(true)
-        .title_bar_style(TitleBarStyle::Overlay)
         .inner_size(1200.0, 720.0);
+
+    #[cfg(target_os = "macos")]
+    let win_builder = win_builder
+        .title_bar_style(TitleBarStyle::Overlay)
+        .hidden_title(true);
 
     // Set up download handler
     let win_builder = win_builder.on_download(|_webview, event| {
