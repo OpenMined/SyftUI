@@ -54,6 +54,8 @@ export default function UpdatePage() {
       : { openPath: (path: string) => window.open(path, "_blank") };
 
   useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
     const updateWindowStateListener = async () => {
       if (typeof window !== "undefined") {
         // Get initial state
@@ -66,20 +68,22 @@ export default function UpdatePage() {
         // Listen for further state updates
         const appWebview =
           window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
-        const unlisten = await appWebview.listen<UpdateWindowState>(
+        unlisten = await appWebview.listen<UpdateWindowState>(
           "update-window-state",
           (event) => {
             setState(event.payload);
           },
         );
-
-        return () => {
-          unlisten();
-        };
       }
     };
 
     updateWindowStateListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
   }, []);
 
   useEffect(() => {

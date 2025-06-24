@@ -6,6 +6,9 @@
   "permissions": [
     "dialog:default",
     "dialog:allow-open",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:window:allow-is-fullscreen",
     "process:allow-exit",
     {
       "identifier": "opener:allow-open-path",

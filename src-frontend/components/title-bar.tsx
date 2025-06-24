@@ -15,6 +15,7 @@ export default function TitleBar({
 }) {
   const titleBarRef = useRef<HTMLDivElement>(null);
   const [platform, setPlatform] = useState<string>("macos");
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   useEffect(() => {
     // Remove any element with data-tauri-decorum-tb attribute from the DOM, except this component
@@ -32,6 +33,32 @@ export default function TitleBar({
         ? window.__TAURI__.os
         : { platform: () => "web" };
     setPlatform(platform());
+  }, []);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const checkFullscreen = async () => {
+      if (typeof window === "undefined" || !window.__TAURI__) {
+        return;
+      }
+
+      const { listen } = window.__TAURI__.event;
+      unlisten = await listen("tauri://resize", async () => {
+        const fullscreen = await window.__TAURI__.window
+          .getCurrentWindow()
+          .isFullscreen();
+        setIsFullscreen(fullscreen);
+      });
+    };
+
+    checkFullscreen();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
   }, []);
 
   const goBack = () => {
@@ -58,7 +85,7 @@ export default function TitleBar({
         <div
           className={cn(
             "relative flex items-center gap-1",
-            platform === "macos" ? "left-20" : "ml-2",
+            platform === "macos" && !isFullscreen ? "left-20" : "ml-2",
           )}
         >
           <SidebarTrigger />
