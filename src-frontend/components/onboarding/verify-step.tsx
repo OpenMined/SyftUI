@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { useConnectionStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface VerifyStepProps {
   onComplete: () => void;
@@ -29,6 +30,7 @@ interface VerifyStepProps {
 
 export function VerifyStep({ onComplete, onBack, isLoading }: VerifyStepProps) {
   const { control, getValues, trigger } = useFormContext();
+  const [isVerifying, setIsVerifying] = useState(false);
   const {
     settings: { url, token },
   } = useConnectionStore();
@@ -37,31 +39,37 @@ export function VerifyStep({ onComplete, onBack, isLoading }: VerifyStepProps) {
     const isValid = await trigger(["token"]);
     if (!isValid) return;
 
-    const response = await fetch(`${url}/v1/init/datasite`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        dataDir: getValues("dataDir"),
-        email: getValues("email"),
-        serverUrl: getValues("serverUrl"),
-        token: getValues("token"),
-      }),
-    });
+    setIsVerifying(true);
 
-    if (!response.ok) {
-      toast({
-        icon: "❌",
-        variant: "destructive",
-        title: "Failed to verify email",
-        description: "Please try again",
+    try {
+      const response = await fetch(`${url}/v1/init/datasite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          dataDir: getValues("dataDir"),
+          email: getValues("email"),
+          serverUrl: getValues("serverUrl"),
+          token: getValues("token"),
+        }),
       });
-      return;
-    }
 
-    onComplete();
+      if (!response.ok) {
+        toast({
+          icon: "❌",
+          variant: "destructive",
+          title: "Failed to verify email",
+          description: "Please try again",
+        });
+        return;
+      }
+
+      onComplete();
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -111,17 +119,17 @@ export function VerifyStep({ onComplete, onBack, isLoading }: VerifyStepProps) {
           variant="outline"
           className="cursor-pointer"
           onClick={onBack}
-          disabled={isLoading}
+          disabled={isLoading || isVerifying}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
         <Button
           className="cursor-pointer"
-          disabled={isLoading}
+          disabled={isLoading || isVerifying}
           onClick={handleCompleteSetup}
         >
-          {isLoading ? (
+          {isLoading || isVerifying ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Verifying...

@@ -1,4 +1,5 @@
-import { ArrowLeft, ArrowRight, Folder } from "lucide-react";
+import { ArrowLeft, ArrowRight, Folder, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   FormControl,
@@ -25,6 +26,7 @@ interface ConfigureStepProps {
 
 export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
   const { control, getValues, setValue, trigger } = useFormContext();
+  const [isConfiguring, setIsConfiguring] = useState(false);
 
   const handleDirectorySelect = async () => {
     if (typeof window === "undefined" || !window.__TAURI__) return;
@@ -41,7 +43,14 @@ export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
   const handleConfigureClient = async () => {
     const isValid = await trigger(["dataDir", "serverUrl"]);
     if (isValid) {
-      onNext();
+      setIsConfiguring(true);
+      try {
+        // Simulate some configuration time or add actual configuration logic here
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        onNext();
+      } finally {
+        setIsConfiguring(false);
+      }
     }
   };
 
@@ -81,6 +90,7 @@ export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
                     variant="outline"
                     onClick={handleDirectorySelect}
                     type="button"
+                    disabled={isConfiguring}
                   >
                     <Folder className="mr-2 h-4 w-4" />
                     Browse
@@ -113,14 +123,32 @@ export function ConfigureStep({ onNext, onBack }: ConfigureStepProps) {
       </CardContent>
 
       <CardFooter className="flex justify-between">
-        <Button variant="outline" className="cursor-pointer" onClick={onBack}>
+        <Button
+          variant="outline"
+          className="cursor-pointer"
+          onClick={onBack}
+          disabled={isConfiguring}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
 
-        <Button className="cursor-pointer" onClick={handleConfigureClient}>
-          Next
-          <ArrowRight className="ml-2 h-4 w-4" />
+        <Button
+          className="cursor-pointer"
+          onClick={handleConfigureClient}
+          disabled={isConfiguring}
+        >
+          {isConfiguring ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Configuring...
+            </>
+          ) : (
+            <>
+              Next
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

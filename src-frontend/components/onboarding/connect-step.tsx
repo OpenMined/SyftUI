@@ -41,6 +41,7 @@ export function ConnectStep({
   setIsLoading,
 }: ConnectStepProps) {
   const [showToken, setShowToken] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const { updateSettings, status, datasite, connect, settings } =
     useConnectionStore();
 
@@ -58,34 +59,39 @@ export function ConnectStep({
   }, [settings.url, settings.token, form]);
 
   const handleConnectDaemon = async (values: ConnectionFormValues) => {
+    setIsConnecting(true);
     setIsLoading(true);
 
-    // Update connection settings from form values
-    updateSettings({
-      url: values.url,
-      token: values.token,
-    });
-
-    // Attempt connection
-    const result = await connect();
-    setIsLoading(false);
-
-    // Error handling
-    if (result.success) {
-      if (isConfigValid(datasite?.status)) {
-        onComplete();
-      } else {
-        onNext();
-      }
-    } else {
-      Object.entries(result.errors).forEach(([key, value]) => {
-        if (value && key in values) {
-          form.setError(key as keyof ConnectionFormValues, {
-            type: "manual",
-            message: value,
-          });
-        }
+    try {
+      // Update connection settings from form values
+      updateSettings({
+        url: values.url,
+        token: values.token,
       });
+
+      // Attempt connection
+      const result = await connect();
+
+      // Error handling
+      if (result.success) {
+        if (isConfigValid(datasite?.status)) {
+          onComplete();
+        } else {
+          onNext();
+        }
+      } else {
+        Object.entries(result.errors).forEach(([key, value]) => {
+          if (value && key in values) {
+            form.setError(key as keyof ConnectionFormValues, {
+              type: "manual",
+              message: value,
+            });
+          }
+        });
+      }
+    } finally {
+      setIsConnecting(false);
+      setIsLoading(false);
     }
   };
 
@@ -164,9 +170,9 @@ export function ConnectStep({
             <Button
               type="submit"
               className="w-full cursor-pointer"
-              disabled={isLoading || status === "connecting"}
+              disabled={isLoading || status === "connecting" || isConnecting}
             >
-              {isLoading || status === "connecting" ? (
+              {isLoading || status === "connecting" || isConnecting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Connecting...

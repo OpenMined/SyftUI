@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form";
-import { ArrowLeft, ArrowRight, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   FormControl,
@@ -22,6 +22,7 @@ import { toast } from "@/hooks/use-toast";
 import { GoogleIcon } from "@/components/logo/google-icon";
 import { GithubIcon } from "@/components/logo/github-icon";
 import { useConnectionStore } from "@/stores";
+import { useState } from "react";
 
 interface EmailStepProps {
   onNext: (email: string) => void;
@@ -31,6 +32,7 @@ interface EmailStepProps {
 
 export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
   const { control, getValues, trigger, resetField } = useFormContext();
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const {
     settings: { url, token },
   } = useConnectionStore();
@@ -50,28 +52,34 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
     const isValid = await trigger(["email"]);
     if (!isValid) return;
 
-    // Clear the token field in the form
-    resetField("token");
+    setIsSendingCode(true);
 
-    const response = await fetch(
-      `${url}/v1/init/token?email=${getValues("email")}&server_url=${getValues("serverUrl")}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+    try {
+      // Clear the token field in the form
+      resetField("token");
+
+      const response = await fetch(
+        `${url}/v1/init/token?email=${getValues("email")}&server_url=${getValues("serverUrl")}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    );
-    if (!response.ok) {
-      const data = await response.json();
-      toast({
-        icon: "❌",
-        title: "Error",
-        description: `Failed to send verification code. Error: ${data.message}`,
-      });
-      return;
+      );
+      if (!response.ok) {
+        const data = await response.json();
+        toast({
+          icon: "❌",
+          title: "Error",
+          description: `Failed to send verification code. Error: ${data.message}`,
+        });
+        return;
+      }
+      onNext();
+    } finally {
+      setIsSendingCode(false);
     }
-    onNext();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -103,7 +111,7 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
           variant="outline"
           className="w-full cursor-pointer"
           onClick={() => handleOAuthLogin("Google")}
-          disabled={isLoading}
+          disabled={isLoading || isSendingCode}
           type="button"
         >
           <GoogleIcon className="mr-2 h-4 w-4" />
@@ -113,7 +121,7 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
           variant="outline"
           className="w-full cursor-pointer"
           onClick={() => handleOAuthLogin("GitHub")}
-          disabled={isLoading}
+          disabled={isLoading || isSendingCode}
           type="button"
         >
           <GithubIcon className="mr-2 h-4 w-4" />
@@ -143,7 +151,7 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
                     placeholder="you@example.com"
                     className="h-11 pl-10"
                     onKeyDown={handleKeyDown}
-                    disabled={isLoading}
+                    disabled={isLoading || isSendingCode}
                     {...field}
                   />
                 </div>
@@ -162,7 +170,7 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
           variant="outline"
           className="cursor-pointer"
           onClick={onBack}
-          disabled={isLoading}
+          disabled={isLoading || isSendingCode}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -170,10 +178,19 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
         <Button
           className="cursor-pointer"
           onClick={handleEmailLogin}
-          disabled={isLoading}
+          disabled={isLoading || isSendingCode}
         >
-          Continue with Email
-          <ArrowRight className="ml-2 h-4 w-4" />
+          {isLoading || isSendingCode ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending Code...
+            </>
+          ) : (
+            <>
+              Continue with Email
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>
