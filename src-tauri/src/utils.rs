@@ -9,8 +9,6 @@ use tauri_plugin_autostart::ManagerExt;
 
 #[cfg(not(debug_assertions))]
 use {
-    command_group::CommandGroup,
-    std::process::Command as StdCommand,
     std::{thread, time::Duration},
     tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind},
     tauri_plugin_shell::ShellExt,
@@ -126,38 +124,35 @@ pub fn _setup_sidecars_for_release_builds(
         }
     }
 
-    let mut sidecar_cmd: StdCommand = app
-        .shell()
-        .sidecar("syftboxd")
-        .unwrap()
-        .args([
-            "daemon",
-            "--http-addr",
-            &format!("{}:{}", daemon_host, daemon_port),
-            "--http-token",
-            &daemon_token,
-        ])
-        .env(
-            "SYFTBOX_DESKTOP_BINARIES_PATH",
-            std::env::current_exe()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-        )
-        .into();
-
-    let mut daemon_sidecar = sidecar_cmd.group_spawn().expect("Failed to spawn sidecar");
-    let daemon_group_id = daemon_sidecar.id();
-    log::info!("Daemon sidecar spawned with Group ID: {}", daemon_group_id);
-
     let app_handle_clone = app.app_handle().clone();
+    let daemon_host = daemon_host.to_string();
+    let daemon_port = daemon_port.to_string();
+    let daemon_token = daemon_token.to_string();
     tauri::async_runtime::spawn(async move {
-        let exit_code = daemon_sidecar
-            .wait()
-            .ok()
-            .and_then(|status| status.code())
+        let daemon_sidecar_exit_code = app_handle_clone
+            .shell()
+            .sidecar("syftboxd")
+            .unwrap()
+            .args([
+                "daemon",
+                "--http-addr",
+                &format!("{}:{}", daemon_host, daemon_port),
+                "--http-token",
+                &daemon_token,
+            ])
+            .env(
+                "SYFTBOX_DESKTOP_BINARIES_PATH",
+                std::env::current_exe()
+                    .unwrap()
+                    .parent()
+                    .unwrap()
+                    .to_str()
+                    .unwrap(),
+            )
+            .status()
+            .await
+            .unwrap()
+            .code()
             .unwrap_or_else(|| {
                 log::warn!("Daemon sidecar exited without a status code");
                 1
@@ -165,7 +160,7 @@ pub fn _setup_sidecars_for_release_builds(
 
         log::error!(
             "Daemon sidecar exited unexpectedly with code: {}",
-            exit_code
+            daemon_sidecar_exit_code
         );
         app_handle_clone
             .dialog()
@@ -176,20 +171,8 @@ pub fn _setup_sidecars_for_release_builds(
             .title("Error")
             .blocking_show();
 
-        app_handle_clone.exit(exit_code);
+        app_handle_clone.exit(daemon_sidecar_exit_code);
     });
-
-    let (_, process_wick_sidecar) = app
-        .shell()
-        .sidecar("process-wick")
-        .unwrap()
-        .args(["--targets", &daemon_group_id.to_string()])
-        .spawn()
-        .expect("Failed to spawn sidecar");
-    log::info!(
-        "Process wick sidecar spawned with PID: {}",
-        process_wick_sidecar.pid()
-    );
 }
 
 pub fn _setup_system_tray(app: &AppHandle) {
