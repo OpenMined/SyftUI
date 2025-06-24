@@ -76,12 +76,11 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         return;
       }
 
-      if (["UNPROVISIONED", "ERROR", undefined].includes(datasite?.status)) {
+      if (["UNPROVISIONED", "ERROR"].includes(datasite?.status)) {
         setStep("configure");
-        return;
+      } else if (["PROVISIONING", "PROVISIONED"].includes(datasite?.status)) {
+        onComplete();
       }
-
-      onComplete();
     };
     attemptConnection();
   }, [
@@ -95,19 +94,19 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
   ]);
 
   const handleNext = () => {
-    setStep(
+    const nextStep =
       step === "connect"
         ? "configure"
         : step === "configure"
           ? "email"
-          : "verify",
-    );
+          : "verify";
+    setStep(nextStep);
   };
 
   const handleBack = () => {
-    setStep(
-      step === "verify" ? "email" : step === "email" ? "configure" : "connect",
-    );
+    const prevStep =
+      step === "verify" ? "email" : step === "email" ? "configure" : "connect";
+    setStep(prevStep);
   };
 
   if (step === "initialize") return null;

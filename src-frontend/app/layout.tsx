@@ -61,6 +61,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="bg-sidebar flex h-screen w-screen">
         <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+        <Toaster />
       </div>
     );
   }

@@ -53,8 +53,10 @@ export function VerifyStep({ onComplete, onBack, isLoading }: VerifyStepProps) {
 
     if (!response.ok) {
       toast({
-        title: "Error",
-        description: "Failed to verify email",
+        icon: "❌",
+        variant: "destructive",
+        title: "Failed to verify email",
+        description: "Please try again",
       });
       return;
     }
