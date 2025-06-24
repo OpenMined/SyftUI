@@ -800,7 +800,7 @@ update-version TARGET_TRIPLE="":
     # Find and get daemon version
     daemon_path = next(Path('src-tauri/target/binaries').glob(f'syftboxd-{target_triple}*'))
     daemon_output = subprocess.run([str(daemon_path), '--version'], capture_output=True, text=True).stdout
-    daemon_version = re.search(r'version ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
+    daemon_version = re.search(r'version v([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9]+)*)', daemon_output).group(1)
     daemon_hash = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=Path('src-daemon'), capture_output=True, text=True).stdout.strip()
     daemon_build = subprocess.run(['git', '--no-pager', 'log', '-1', '--format=%cI'], cwd=Path('src-daemon'), capture_output=True, text=True).stdout.strip()
 
