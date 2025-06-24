@@ -120,6 +120,13 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(move |_app_handle, event| match event {
+            tauri::RunEvent::Exit => {
+                log::info!("Exit requested - cleaning up child processes");
+                utils::cleanup_child_processes();
+            }
+            _ => {}
+        });
 }
