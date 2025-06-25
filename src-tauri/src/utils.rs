@@ -174,6 +174,42 @@ pub fn _setup_sidecars_for_release_builds(
 
         app_handle_clone.exit(daemon_sidecar_exit_code);
     });
+
+    let main_process_pid = std::process::id();
+    let child_process_pids = _find_child_process_pids();
+
+    let (_, process_wick_sidecar) = app
+        .shell()
+        .sidecar("process-wick")
+        .unwrap()
+        .args([
+            "--dog",
+            &main_process_pid.to_string(),
+            "--targets",
+            &child_process_pids.join(","),
+        ])
+        .spawn()
+        .expect("Failed to spawn sidecar");
+    log::info!(
+        "Process wick sidecar spawned with PID: {}",
+        process_wick_sidecar.pid()
+    );
+}
+
+#[cfg(not(debug_assertions))]
+pub fn _find_child_process_pids() -> Vec<String> {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+    let current_pid = sysinfo::Pid::from_u32(std::process::id());
+    let mut child_process_pids = Vec::new();
+    for (pid, process) in sys.processes() {
+        if let Some(parent_pid) = process.parent() {
+            if parent_pid == current_pid {
+                child_process_pids.push(pid.to_string());
+            }
+        }
+    }
+    child_process_pids
 }
 
 pub fn _setup_system_tray(app: &AppHandle) {
@@ -330,58 +366,4 @@ pub fn _generate_secure_token() -> String {
         .try_fill_bytes(&mut key)
         .expect("Failed to generate secure token key");
     hex::encode(key)
-}
-
-/// Lists and kills all child processes of the current process
-pub fn cleanup_child_processes() {
-    log::info!("Starting child process cleanup");
-
-    let mut sys = System::new_all();
-    sys.refresh_all();
-
-    let current_pid = sysinfo::Pid::from_u32(std::process::id());
-    let mut child_processes = Vec::new();
-
-    // Find all child processes
-    for (pid, process) in sys.processes() {
-        if let Some(parent_pid) = process.parent() {
-            if parent_pid == current_pid {
-                child_processes.push((*pid, process.name().to_string_lossy().to_string()));
-                log::info!(
-                    "Found child process: PID={}, Name={}",
-                    pid,
-                    process.name().to_string_lossy()
-                );
-            }
-        }
-    }
-
-    if child_processes.is_empty() {
-        log::info!("No child processes found to clean up");
-        return;
-    }
-
-    log::info!(
-        "Found {} child processes, attempting to terminate them",
-        child_processes.len()
-    );
-
-    // Kill each child process
-    for (pid, name) in child_processes {
-        match sys.process(pid) {
-            Some(process) => {
-                log::info!("Terminating child process: PID={}, Name={}", pid, name);
-                if process.kill() {
-                    log::info!("Successfully terminated process {} ({})", pid, name);
-                } else {
-                    log::warn!("Failed to terminate process {} ({})", pid, name);
-                }
-            }
-            None => {
-                log::warn!("Process {} ({}) no longer exists", pid, name);
-            }
-        }
-    }
-
-    log::info!("Child process cleanup completed");
 }

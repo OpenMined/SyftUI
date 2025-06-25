@@ -736,6 +736,7 @@ update-binaries TARGET_TRIPLE="":
 
 
         UV_ASSETS_BASE_URL = "https://github.com/astral-sh/uv/releases/latest/download"
+        PROCESS_WICK_ASSETS_BASE_URL = "https://github.com/itstauq/process-wick/releases/latest/download"
 
         all_assets = [
             Asset(
@@ -757,6 +758,27 @@ update-binaries TARGET_TRIPLE="":
                 url=f"{UV_ASSETS_BASE_URL}/uv-x86_64-unknown-linux-gnu.tar.gz",
                 target_triple="x86_64-unknown-linux-gnu",
                 binary_names=["uv", "uvx"]
+            ),
+
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-aarch64-apple-darwin",
+                target_triple="aarch64-apple-darwin",
+                binary_names=["process-wick-aarch64-apple-darwin"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-apple-darwin",
+                target_triple="x86_64-apple-darwin",
+                binary_names=["process-wick-x86_64-apple-darwin"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-pc-windows-msvc.exe",
+                target_triple="x86_64-pc-windows-msvc",
+                binary_names=["process-wick-x86_64-pc-windows-msvc.exe"]
+            ),
+            Asset(
+                url=f"{PROCESS_WICK_ASSETS_BASE_URL}/process-wick-x86_64-unknown-linux-gnu",
+                target_triple="x86_64-unknown-linux-gnu",
+                binary_names=["process-wick-x86_64-unknown-linux-gnu"]
             ),
         ]
 

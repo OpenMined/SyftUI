@@ -124,8 +124,7 @@ pub fn run() {
         .expect("error while building tauri application")
         .run(move |_app_handle, event| match event {
             tauri::RunEvent::Exit => {
-                log::info!("Exit requested - cleaning up child processes");
-                utils::cleanup_child_processes();
+                log::info!("Exiting application");
             }
             _ => {}
         });
