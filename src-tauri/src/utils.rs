@@ -371,7 +371,7 @@ pub fn cleanup_child_processes() {
         match sys.process(pid) {
             Some(process) => {
                 log::info!("Terminating child process: PID={}, Name={}", pid, name);
-                if _gracefully_terminate(process) {
+                if process.kill() {
                     log::info!("Successfully terminated process {} ({})", pid, name);
                 } else {
                     log::warn!("Failed to terminate process {} ({})", pid, name);
@@ -384,59 +384,4 @@ pub fn cleanup_child_processes() {
     }
 
     log::info!("Child process cleanup completed");
-}
-
-fn _gracefully_terminate(process: &sysinfo::Process) -> bool {
-    #[cfg(unix)]
-    {
-        // SIGTERM = 15 for graceful termination
-        match process.kill_with(sysinfo::Signal::Term) {
-            Some(success) => {
-                if success {
-                    log::debug!("Successfully sent SIGTERM to PID {}", process.pid());
-                } else {
-                    log::warn!("Failed to send SIGTERM to PID {}", process.pid());
-                }
-                success
-            }
-            None => {
-                log::warn!(
-                    "Failed to send SIGTERM to PID {}: process not found",
-                    process.pid()
-                );
-                false
-            }
-        }
-    }
-
-    #[cfg(windows)]
-    {
-        use std::process::Command;
-
-        let pid = process.pid().as_u32();
-        let pid_str = pid.to_string();
-        let mut cmd = Command::new("taskkill");
-        cmd.arg("/PID").arg(&pid_str);
-
-        match cmd.output() {
-            Ok(output) => {
-                if output.status.success() {
-                    log::debug!("Successfully terminated PID {} and its children", pid);
-                    true
-                } else {
-                    log::warn!(
-                        "taskkill failed for PID {}. Status: {}. Stderr: {}",
-                        pid,
-                        output.status,
-                        String::from_utf8_lossy(&output.stderr).trim()
-                    );
-                    false
-                }
-            }
-            Err(e) => {
-                log::warn!("Failed to execute taskkill for PID {}: {:?}", pid, e);
-                false
-            }
-        }
-    }
 }
