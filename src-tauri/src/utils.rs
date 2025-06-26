@@ -1,6 +1,5 @@
 //! Utility functions and helpers
 
-use sysinfo::System;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem},
     tray::TrayIconBuilder,
