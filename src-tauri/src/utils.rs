@@ -10,6 +10,7 @@ use tauri_plugin_autostart::ManagerExt;
 #[cfg(not(debug_assertions))]
 use {
     std::{thread, time::Duration},
+    sysinfo::System,
     tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind},
     tauri_plugin_shell::ShellExt,
 };
