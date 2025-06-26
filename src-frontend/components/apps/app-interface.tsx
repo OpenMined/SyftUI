@@ -1,5 +1,6 @@
 import { ExternalLink, Play, RefreshCcw, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 interface AppInterfaceProps {
   app: App;
@@ -22,6 +23,17 @@ export function AppInterface({
   handleStart,
   openPath,
 }: AppInterfaceProps) {
+  useEffect(() => {
+    // Auto-refresh every 5 seconds when app is running but has no URL yet
+    if (appStatus === "running" && !appUrl) {
+      const interval = setInterval(() => {
+        fetchApp();
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [appStatus, appUrl, fetchApp]);
+
   return (
     <>
       {appStatus === "running" && appUrl ? (
