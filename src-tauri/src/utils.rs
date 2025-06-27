@@ -155,12 +155,12 @@ pub fn _setup_sidecars_for_release_builds(
             .unwrap()
             .code()
             .unwrap_or_else(|| {
-                log::warn!("Daemon sidecar exited without a status code");
+                log::warn!("syftboxd sidecar exited without a status code");
                 1
             });
 
         log::error!(
-            "Daemon sidecar exited unexpectedly with code: {}",
+            "syftboxd sidecar exited unexpectedly with code: {}",
             daemon_sidecar_exit_code
         );
         app_handle_clone
@@ -178,22 +178,48 @@ pub fn _setup_sidecars_for_release_builds(
     let main_process_pid = std::process::id();
     let child_process_pids = _find_child_process_pids();
 
-    let (_, process_wick_sidecar) = app
-        .shell()
-        .sidecar("process-wick")
-        .unwrap()
-        .args([
-            "--dog",
-            &main_process_pid.to_string(),
-            "--targets",
-            &child_process_pids.join(","),
-        ])
-        .spawn()
-        .expect("Failed to spawn sidecar");
-    log::info!(
-        "Process wick sidecar spawned with PID: {}",
-        process_wick_sidecar.pid()
-    );
+    // Spawn process-wick sidecar with restart mechanism
+    let app_handle_clone = app.app_handle().clone();
+    tauri::async_runtime::spawn(async move {
+        loop {
+            log::info!("Starting process-wick sidecar");
+            let process_wick_sidecar_exit_code = app_handle_clone
+                .shell()
+                .sidecar("process-wick")
+                .unwrap()
+                .args([
+                    "--dog",
+                    &main_process_pid.to_string(),
+                    "--targets",
+                    &child_process_pids.join(","),
+                    "--log-file",
+                    dirs::home_dir()
+                        .expect("Failed to get home directory")
+                        .join(".syftbox")
+                        .join("logs")
+                        .join("process-wick.log")
+                        .to_str()
+                        .unwrap(),
+                ])
+                .status()
+                .await
+                .unwrap()
+                .code()
+                .unwrap_or_else(|| {
+                    log::warn!("process-wick sidecar exited without a status code");
+                    1
+                });
+
+            // Wait for the sidecar to exit
+            log::warn!(
+                "process-wick sidecar exited with status: {:?}, restarting...",
+                process_wick_sidecar_exit_code
+            );
+
+            // Small delay before restarting to avoid rapid restart loops
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
 }
 
 #[cfg(not(debug_assertions))]
