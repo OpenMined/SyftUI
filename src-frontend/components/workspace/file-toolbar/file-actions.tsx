@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useFileSystemStore } from "@/stores/useFileSystemStore";
+import { useFileSystemStore, useSidebarStore } from "@/stores";
 import { Grid, List } from "lucide-react";
-import { addToFavorites } from "@/lib/utils/favorites";
 import {
   FolderPlus,
   Trash2,
@@ -65,6 +64,8 @@ export function FileActions() {
     showHiddenFiles,
     setShowHiddenFiles,
   } = useFileSystemStore();
+
+  const { addFavorite } = useSidebarStore();
 
   // Check if any selected items are folders
   const hasSelectedFolder =
@@ -138,11 +139,10 @@ export function FileActions() {
       );
 
       if (folder && folder.type === "folder") {
-        addToFavorites({
+        addFavorite({
           id: folder.id,
           name: folder.name,
-          type: folder.type,
-          path: currentPath,
+          path: [...currentPath, folder.name],
         });
       }
     }

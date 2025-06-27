@@ -13,3 +13,4 @@ export {
   useFileSystemStore,
   initializeFileSystemStore,
 } from "./useFileSystemStore";
+export { useSidebarStore, type FavoriteItem } from "./useSidebarStore";

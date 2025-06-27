@@ -7,11 +7,10 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { useFileSystemStore } from "@/stores/useFileSystemStore";
+import { useFileSystemStore, useSidebarStore } from "@/stores";
 import type { FileSystemItem, ClipboardItem } from "@/lib/types";
 import { FileIcon } from "@/components/workspace/file-icon";
 import { SyncStatus } from "@/components/workspace/sync-status";
-import { addToFavorites } from "@/lib/utils/favorites";
 import { PermissionsDialog } from "@/components/workspace/permissions-dialog";
 import {
   ContextMenu,
@@ -78,6 +77,8 @@ function BackgroundContextMenuContent({
   clipboard,
   pasteItems,
 }: BackgroundContextMenuContentProps) {
+  const { addFavorite } = useSidebarStore();
+
   // Get current directory name
   const currentDirName =
     currentPath.length > 0
@@ -117,29 +118,27 @@ function BackgroundContextMenuContent({
   };
 
   // Handler for adding current directory to favorites
-  // const handleAddToFavorites = () => {
-  //   // For root directory
-  //   if (currentPath.length === 0) {
-  //     addToFavorites({
-  //       id: "root", // Using "root" as ID for root directory
-  //       name: "Workspace",
-  //       type: "folder",
-  //       path: [],
-  //     });
-  //     return;
-  //   }
+  const handleAddToFavorites = () => {
+    // For root directory
+    if (currentPath.length === 0) {
+      addFavorite({
+        id: "root", // Using "root" as ID for root directory
+        name: "Workspace",
+        path: [],
+      });
+      return;
+    }
 
-  //   // For non-root directories, we need to construct an item
-  //   const dirName = currentPath[currentPath.length - 1];
-  //   const dirPath = currentPath.slice(0, -1);
+    // For non-root directories, we need to construct an item
+    const dirName = currentPath[currentPath.length - 1];
+    const dirPath = currentPath.slice(0, -1);
 
-  //   addToFavorites({
-  //     id: `dir-${dirName}`, // Creating a pseudo-ID based on name
-  //     name: dirName,
-  //     type: "folder",
-  //     path: dirPath,
-  //   });
-  // };
+    addFavorite({
+      id: `dir-${dirName}`, // Creating a pseudo-ID based on name
+      name: dirName,
+      path: dirPath,
+    });
+  };
 
   return (
     <>
@@ -193,12 +192,12 @@ function BackgroundContextMenuContent({
         </ContextMenuItem>
         {/* <ContextMenuItem onClick={toggleSyncPause}>
           {syncPaused ? "Resume Sync" : "Pause Sync"}
-        </ContextMenuItem>
+        </ContextMenuItem> */}
         <ContextMenuItem onClick={handleAddToFavorites}>
           <Star className="mr-2 h-4 w-4" />
-          Add Current Folder to Favorites
+          Add to Favorites
         </ContextMenuItem>
-        <ContextMenuSeparator /> */}
+        <ContextMenuSeparator />
 
         {/* View mode submenu */}
         <ContextMenuSub>
@@ -380,6 +379,8 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   handleDelete,
   isMobile,
 }: FileExplorerItemProps) {
+  const { addFavorite } = useSidebarStore();
+
   // Extract common class names for better readability
   const itemClasses = cn(
     `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
@@ -507,11 +508,10 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
         {item.type === "folder" && (
           <ContextMenuItem
             onClick={() =>
-              addToFavorites({
+              addFavorite({
                 id: item.id,
                 name: item.name,
-                type: item.type,
-                path: currentPath,
+                path: [...currentPath, item.name],
               })
             }
           >

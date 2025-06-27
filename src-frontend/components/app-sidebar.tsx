@@ -28,8 +28,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
-import { useConnectionStore, useFileSystemStore } from "@/stores";
+import {
+  useConnectionStore,
+  useFileSystemStore,
+  useSidebarStore,
+} from "@/stores";
 import {
   AppWindow,
   Bug,
@@ -47,12 +50,6 @@ import {
 const EMAIL_PLACEHOLDER = "user@example.com";
 
 export function AppSidebar() {
-  const [favorites, setFavorites] = useState<
-    { id: string; name: string; path: string[] }[]
-  >([]);
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-    favorites: true,
-  });
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
@@ -60,22 +57,19 @@ export function AppSidebar() {
   const { datasite } = useConnectionStore();
   const [email, setEmail] = useState<string>(EMAIL_PLACEHOLDER);
 
-  // Load favorites from localStorage on initial render
-  useEffect(() => {
-    const savedFavorites = loadFavorites();
-    if (savedFavorites.length > 0) {
-      setFavorites(savedFavorites);
-    }
-  }, []);
+  // Use Zustand store for sidebar state
+  const {
+    favorites,
+    openSections,
+    activeItem,
+    removeFavorite,
+    toggleSection,
+    setActiveItem,
+  } = useSidebarStore();
 
   useEffect(() => {
     setEmail(datasite?.email ?? EMAIL_PLACEHOLDER);
   }, [datasite?.email]);
-
-  // Save favorites to localStorage whenever they change
-  useEffect(() => {
-    saveFavorites(favorites);
-  }, [favorites]);
 
   const getActiveItem = (pathname: string) => {
     if (pathname.startsWith("/diagnostic")) return "Diagnostic";
@@ -87,46 +81,11 @@ export function AppSidebar() {
     return "";
   };
 
-  const [activeItem, setActiveItem] = useState(getActiveItem(pathname));
-
   // Update activeItem when pathname changes
   useEffect(() => {
-    setActiveItem(getActiveItem(pathname));
-  }, [pathname]);
-
-  // Listen for add-to-favorites events
-  useEffect(() => {
-    const handleAddToFavorites = (event: Event) => {
-      const detail = event.detail;
-
-      if (detail && detail.id && detail.name) {
-        // Check if already in favorites
-        if (!favorites.some((fav) => fav.id === detail.id)) {
-          setFavorites((prev) => [
-            ...prev,
-            {
-              id: detail.id,
-              name: detail.name,
-              path: detail.path || [],
-            },
-          ]);
-        }
-      }
-    };
-
-    window.addEventListener("add-to-favorites", handleAddToFavorites);
-
-    return () => {
-      window.removeEventListener("add-to-favorites", handleAddToFavorites);
-    };
-  }, [favorites]);
-
-  const toggleSection = (section: string) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+    const newActiveItem = getActiveItem(pathname);
+    setActiveItem(newActiveItem);
+  }, [pathname, setActiveItem]);
 
   const mainNavItems = [
     // TODO: enable features once we implement them, hide for now
@@ -211,19 +170,12 @@ export function AppSidebar() {
       try {
         const item = JSON.parse(data);
         if (item.type === "folder") {
-          // Check if already in favorites
-          if (!favorites.some((fav) => fav.id === item.id)) {
-            // Make sure path is properly formatted
-
-            setFavorites((prev) => [
-              ...prev,
-              {
-                id: item.id,
-                name: item.name,
-                path: [...item.path, item.name],
-              },
-            ]);
-          }
+          const { addFavorite } = useSidebarStore.getState();
+          addFavorite({
+            id: item.id,
+            name: item.name,
+            path: [...item.path, item.name],
+          });
         }
       } catch (err) {
         console.error("Failed to parse drag data", err);
@@ -236,9 +188,9 @@ export function AppSidebar() {
     e.dataTransfer.dropEffect = "copy";
   };
 
-  const removeFavorite = (id: string, e: React.MouseEvent) => {
+  const handleRemoveFavorite = (id: string, e: React.MouseEvent) => {
     e?.stopPropagation();
-    setFavorites((prev) => prev.filter((fav) => fav.id !== id));
+    removeFavorite(id);
   };
 
   return (
@@ -315,7 +267,7 @@ export function AppSidebar() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={(e) => removeFavorite(fav.id, e)}
+                        onClick={(e) => handleRemoveFavorite(fav.id, e)}
                       >
                         <X className="h-3 w-3" />
                       </Button>
