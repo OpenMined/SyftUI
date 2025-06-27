@@ -124,6 +124,7 @@ function BackgroundContextMenuContent({
       addFavorite({
         id: "root", // Using "root" as ID for root directory
         name: "Workspace",
+        type: "folder",
         path: [],
       });
       return;
@@ -131,12 +132,12 @@ function BackgroundContextMenuContent({
 
     // For non-root directories, we need to construct an item
     const dirName = currentPath[currentPath.length - 1];
-    const dirPath = currentPath.slice(0, -1);
 
     addFavorite({
       id: `dir-${dirName}`, // Creating a pseudo-ID based on name
       name: dirName,
-      path: dirPath,
+      type: "folder",
+      path: currentPath,
     });
   };
 
@@ -511,6 +512,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
               addFavorite({
                 id: item.id,
                 name: item.name,
+                type: "folder",
                 path: [...currentPath, item.name],
               })
             }

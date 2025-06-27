@@ -39,7 +39,8 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
-  FolderHeart,
+  Folder,
+  Heart,
   LogOut,
   Power,
   ScrollText,
@@ -169,12 +170,19 @@ export function AppSidebar() {
     if (data) {
       try {
         const item = JSON.parse(data);
+        const { addFavorite } = useSidebarStore.getState();
         if (item.type === "folder") {
-          const { addFavorite } = useSidebarStore.getState();
           addFavorite({
             id: item.id,
             name: item.name,
+            type: "folder",
             path: [...item.path, item.name],
+          });
+        } else if (item.type === "app") {
+          addFavorite({
+            id: item.id,
+            name: item.name,
+            type: "app",
           });
         }
       } catch (err) {
@@ -243,7 +251,7 @@ export function AppSidebar() {
                   <p className="text-muted-foreground px-3 py-2 text-xs">
                     {isMobile
                       ? "Use the star button to add favorites"
-                      : "Drag folders here to add to favorites"}
+                      : "Drag folders or apps here to add to favorites"}
                   </p>
                 ) : (
                   favorites.map((fav) => (
@@ -253,12 +261,28 @@ export function AppSidebar() {
                     >
                       <button
                         onClick={() => {
-                          navigateTo(fav.path);
-                          router.push(`/workspace/?path=${fav.path.join("/")}`);
+                          if (fav.type === "folder" && fav.path) {
+                            navigateTo(fav.path);
+                            router.push(
+                              `/workspace/?path=${fav.path.join("/")}`,
+                            );
+                          } else if (fav.type === "app") {
+                            router.push(`/apps/?id=${fav.id}`);
+                          }
                         }}
                         className="hover:bg-accent hover:text-accent-foreground flex flex-1 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-sm transition-colors"
                       >
-                        <FolderHeart className="h-4 w-4" />
+                        {fav.type === "folder" ? (
+                          <div className="relative">
+                            <Folder className="h-4 w-4" />
+                            <Heart className="absolute -right-[1px] -bottom-[1px] h-2 w-2 fill-white stroke-4" />
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <AppWindow className="h-4 w-4" />
+                            <Heart className="absolute -right-[1px] -bottom-[1px] h-2 w-2 fill-white stroke-4" />
+                          </div>
+                        )}
                         <span className="flex-1 truncate text-start">
                           {fav.name}
                         </span>

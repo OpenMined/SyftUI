@@ -43,6 +43,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 import { cn } from "@/lib/utils";
+import { useSidebarStore } from "@/stores";
 
 // Install form schema
 const installFormSchema = z
@@ -73,7 +74,8 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   const [apps, setApps] = useState<App[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
-  const [favorites, setFavorites] = useState<string[]>([]);
+
+  const { favorites, addFavorite, removeFavorite } = useSidebarStore();
 
   const installForm = useForm<InstallFormValues>({
     resolver: zodResolver(installFormSchema),
@@ -151,14 +153,21 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     if (uninstalled) await loadApps();
   };
 
-  const handleFavoriteClick = (appId: string) => {
-    console.log(`Favorite clicked for app: ${appId}`);
-    setFavorites((prev) => {
-      const newFavorites = prev.includes(appId)
-        ? prev.filter((id) => id !== appId)
-        : [...prev, appId];
-      return newFavorites;
-    });
+  const handleFavoriteClick = (app: App, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const isFavorited = favorites.some(
+      (fav) => fav.id === app.info.id && fav.type === "app",
+    );
+
+    if (isFavorited) {
+      removeFavorite(app.info.id);
+    } else {
+      addFavorite({
+        id: app.info.id,
+        name: app.info.name,
+        type: "app",
+      });
+    }
   };
 
   const getTabButtonClassNames = (tab: string) =>
@@ -281,16 +290,16 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFavoriteClick(app.info.id);
-                            }}
+                            onClick={(e) => handleFavoriteClick(app, e)}
                           >
                             <Star
                               className={cn(
                                 "h-4 w-4",
-                                favorites.includes(app.info.id) &&
-                                  "fill-current text-yellow-500",
+                                favorites.some(
+                                  (fav) =>
+                                    fav.id === app.info.id &&
+                                    fav.type === "app",
+                                ) && "fill-current text-yellow-500",
                               )}
                             />
                           </Button>

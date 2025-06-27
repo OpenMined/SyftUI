@@ -142,6 +142,7 @@ export function FileActions() {
         addFavorite({
           id: folder.id,
           name: folder.name,
+          type: "folder",
           path: [...currentPath, folder.name],
         });
       }
