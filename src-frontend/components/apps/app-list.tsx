@@ -35,6 +35,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast";
 import { type App, installApp, listApps } from "@/lib/api/apps";
 import { useForm } from "react-hook-form";
@@ -170,6 +176,18 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, app: App) => {
+    // Create a drag item with app data for the sidebar
+    const dragItem = {
+      id: app.info.id,
+      name: app.info.name,
+      type: "app" as const,
+    };
+
+    e.dataTransfer.setData("application/json", JSON.stringify(dragItem));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   const getTabButtonClassNames = (tab: string) =>
     cn(
       "hover:text-muted-foreground h-auto px-3 py-1",
@@ -257,13 +275,33 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                   {filteredApps.map((app) => (
                     <tr
                       key={app.info.id}
-                      className="hover:bg-muted/50 cursor-pointer"
+                      className="hover:bg-muted/50 group cursor-pointer"
                       onClick={() => onSelectApp(app.info.id)}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, app)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <AppIcon name={app.info.name} />
                           <span className="font-medium">{app.info.name}</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-muted-foreground cursor-grab opacity-0 transition-opacity group-hover:opacity-100">
+                                  <svg
+                                    className="h-3 w-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M7 2a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 2zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 8zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 14zm6-8a2 2 0 1 1-.001-4.001A2 2 0 0 1 13 6zm0 2a2 2 0 1 1 .001 4.001A2 2 0 0 1 13 8zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 13 14z" />
+                                  </svg>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Drag to add to sidebar favorites</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </td>
                       <td className="px-6 py-4">

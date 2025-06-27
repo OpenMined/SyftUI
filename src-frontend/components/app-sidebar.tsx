@@ -47,6 +47,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const EMAIL_PLACEHOLDER = "user@example.com";
 
@@ -54,18 +55,19 @@ export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const { navigateTo } = useFileSystemStore();
   const { datasite } = useConnectionStore();
   const [email, setEmail] = useState<string>(EMAIL_PLACEHOLDER);
 
   // Use Zustand store for sidebar state
   const {
+    activeItem,
     favorites,
     openSections,
-    activeItem,
     removeFavorite,
-    toggleSection,
     setActiveItem,
+    toggleSection,
   } = useSidebarStore();
 
   useEffect(() => {
@@ -164,8 +166,22 @@ export function AppSidebar() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only set dragging to false if we're leaving the drop zone entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDraggingOver(false);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDraggingOver(false);
     const data = e.dataTransfer.getData("application/json");
     if (data) {
       try {
@@ -189,11 +205,6 @@ export function AppSidebar() {
         console.error("Failed to parse drag data", err);
       }
     }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
   };
 
   const handleRemoveFavorite = (id: string, e: React.MouseEvent) => {
@@ -243,9 +254,14 @@ export function AppSidebar() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div
-                className="space-y-1 py-2 pr-2 pl-4"
+                className={cn(
+                  "space-y-1 py-2 pr-2 pl-4 transition-colors",
+                  isDraggingOver &&
+                    "bg-accent/50 border-primary rounded-md border-2 border-dashed",
+                )}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
               >
                 {favorites.length === 0 ? (
                   <p className="text-muted-foreground px-3 py-2 text-xs">
