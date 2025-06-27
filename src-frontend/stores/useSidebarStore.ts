@@ -29,24 +29,7 @@ interface SidebarState {
   clearFavorites: () => void;
 }
 
-const SIDEBAR_STORAGE_KEY = "syftui-sidebar";
-
-// Migration function to handle old favorite format
-const migrateFavorites = (favorites: unknown[]): FavoriteItem[] => {
-  return favorites.map((fav) => {
-    const favorite = fav as Record<string, unknown>;
-    // If the favorite doesn't have a type field, assume it's a folder (old format)
-    if (!favorite.type) {
-      return {
-        id: favorite.id as string,
-        name: favorite.name as string,
-        path: favorite.path as string[],
-        type: "folder" as const,
-      };
-    }
-    return favorite as FavoriteItem;
-  });
-};
+const SIDEBAR_STORAGE_KEY = "syftui-sidebar-20250628";
 
 export const useSidebarStore = create<SidebarState>()(
   persist(
@@ -103,11 +86,6 @@ export const useSidebarStore = create<SidebarState>()(
         favorites: state.favorites,
         openSections: state.openSections,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.favorites) {
-          state.favorites = migrateFavorites(state.favorites);
-        }
-      },
     },
   ),
 );

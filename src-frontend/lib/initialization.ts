@@ -1,7 +1,7 @@
 // lib/initialization.ts
 import { useConnectionStore, useSidebarStore } from "@/stores";
 
-const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250519";
+const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250628";
 
 /**
  * Initialization service for SyftUI application
@@ -85,7 +85,12 @@ export const initializationService = {
     const { setFavorites } = useSidebarStore.getState();
 
     const favorites = [
-      { id: "dir-datasites", name: "Datasites", path: ["datasites"] },
+      {
+        id: "dir-datasites",
+        name: "Datasites",
+        path: ["datasites"],
+        type: "folder",
+      },
     ];
 
     // Wait for datasite email to be available
@@ -95,6 +100,7 @@ export const initializationService = {
         id: "dir-my-datasite",
         name: "My datasite",
         path: ["datasites", email],
+        type: "folder",
       });
     }
 
