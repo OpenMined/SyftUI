@@ -44,17 +44,6 @@ import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 import { cn } from "@/lib/utils";
 
-const FAVORITE_APPS_KEY = "favorite-apps";
-
-const saveFavoritesToLocalStorage = (favorites: string[]) => {
-  localStorage.setItem(FAVORITE_APPS_KEY, JSON.stringify(favorites));
-};
-
-const loadFavoritesFromLocalStorage = (): string[] => {
-  const favorites = localStorage.getItem(FAVORITE_APPS_KEY);
-  return favorites ? JSON.parse(favorites) : [];
-};
-
 // Install form schema
 const installFormSchema = z
   .object({
@@ -99,11 +88,6 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
 
   useEffect(() => {
     loadApps();
-
-    const savedFavorites = loadFavoritesFromLocalStorage();
-    if (savedFavorites.length > 0) {
-      setFavorites(savedFavorites);
-    }
 
     // Set up interval to refresh apps every 5 seconds
     const refreshInterval = setInterval(() => {
@@ -167,12 +151,12 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     if (uninstalled) await loadApps();
   };
 
-  const toggleFavorite = (appId: string) => {
+  const handleFavoriteClick = (appId: string) => {
+    console.log(`Favorite clicked for app: ${appId}`);
     setFavorites((prev) => {
       const newFavorites = prev.includes(appId)
         ? prev.filter((id) => id !== appId)
         : [...prev, appId];
-      saveFavoritesToLocalStorage(newFavorites);
       return newFavorites;
     });
   };
@@ -191,10 +175,12 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
       const matchesStatus =
-        activeTab === "running" ? app.status === "running" : true;
-      const matchesFavorites =
-        activeTab === "favorites" ? favorites.includes(app.info.id) : true;
-      return matchesSearch && matchesStatus && matchesFavorites;
+        activeTab === "running"
+          ? app.status === "running"
+          : activeTab === "stopped"
+            ? app.status === "stopped"
+            : true;
+      return matchesSearch && matchesStatus;
     })
     .sort((a, b) => a.info.name.localeCompare(b.info.name));
 
@@ -220,10 +206,10 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
               </Button>
               <Button
                 variant="ghost"
-                className={getTabButtonClassNames("favorites")}
-                onClick={() => setActiveTab("favorites")}
+                className={getTabButtonClassNames("stopped")}
+                onClick={() => setActiveTab("stopped")}
               >
-                Favorites
+                Stopped
               </Button>
             </div>
           </div>
@@ -297,7 +283,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                             className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleFavorite(app.info.id);
+                              handleFavoriteClick(app.info.id);
                             }}
                           >
                             <Star
@@ -350,7 +336,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                   </h3>
                   <p className="text-muted-foreground mb-4">
                     You haven&apos;t installed any apps yet. Install an app to
-                    get started. started.
+                    get started.
                   </p>
                   <Button onClick={() => setIsInstallDialogOpen(true)}>
                     Install App
