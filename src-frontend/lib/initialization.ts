@@ -33,6 +33,26 @@ export const initializationService = {
   },
 
   /**
+   * Wait for datasite email to be available
+   */
+  async waitForDatasiteEmail(
+    maxWaitTime: number = 30000,
+  ): Promise<string | null> {
+    const startTime = Date.now();
+    const checkInterval = 1000; // Check every 1 second
+
+    while (Date.now() - startTime < maxWaitTime) {
+      const { datasite } = useConnectionStore.getState();
+      if (datasite?.email) {
+        return datasite.email;
+      }
+      await new Promise((resolve) => setTimeout(resolve, checkInterval));
+    }
+
+    return null; // Timeout reached
+  },
+
+  /**
    * Run initialization tasks and mark as initialized
    */
   async initialize(): Promise<void> {
@@ -62,19 +82,22 @@ export const initializationService = {
    */
   async setupSidebarFavorites(): Promise<void> {
     if (typeof window === "undefined") return;
-    const { datasite } = useConnectionStore.getState();
     const { setFavorites } = useSidebarStore.getState();
 
     const favorites = [
       { id: "dir-datasites", name: "Datasites", path: ["datasites"] },
     ];
-    if (datasite?.email) {
+
+    // Wait for datasite email to be available
+    const email = await this.waitForDatasiteEmail();
+    if (email) {
       favorites.push({
         id: "dir-my-datasite",
         name: "My datasite",
-        path: ["datasites", datasite?.email],
+        path: ["datasites", email],
       });
     }
+
     setFavorites(favorites);
   },
 };
