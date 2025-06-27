@@ -186,20 +186,6 @@
   }
 }
 
-.pulsate-border {
-  box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.7);
-  animation: border-pulse 1s infinite;
-}
-
-@keyframes border-pulse {
-  0% {
-    box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.7);
-  }
-  100% {
-    box-shadow: 0 0 0 16px hsl(var(--destructive) / 0);
-  }
-}
-
 /*
   ---break---
 */

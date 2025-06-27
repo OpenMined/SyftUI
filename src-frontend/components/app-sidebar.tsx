@@ -28,7 +28,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import { loadFavorites, saveFavorites } from "@/lib/utils/favorites";
 import { useConnectionStore, useFileSystemStore } from "@/stores";
 import {
@@ -54,7 +53,6 @@ export function AppSidebar() {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     favorites: true,
   });
-  const [hasOpenedBugReport, setHasOpenedBugReport] = useState<boolean>(false);
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
@@ -78,12 +76,6 @@ export function AppSidebar() {
   useEffect(() => {
     saveFavorites(favorites);
   }, [favorites]);
-
-  // Load bug report dialog state from localStorage on initial render
-  useEffect(() => {
-    const hasOpened = localStorage.getItem("hasOpenedBugReport");
-    setHasOpenedBugReport(hasOpened === "true");
-  }, []);
 
   const getActiveItem = (pathname: string) => {
     if (pathname.startsWith("/diagnostic")) return "Diagnostic";
@@ -249,11 +241,6 @@ export function AppSidebar() {
     setFavorites((prev) => prev.filter((fav) => fav.id !== id));
   };
 
-  const handleBugReportOpen = () => {
-    setHasOpenedBugReport(true);
-    localStorage.setItem("hasOpenedBugReport", "true");
-  };
-
   return (
     <>
       <SidebarHeader className="border-border mx-4 flex items-center justify-between gap-2 border-b px-0 py-4 pt-12">
@@ -347,11 +334,7 @@ export function AppSidebar() {
             <Button
               variant="destructive"
               size="sm"
-              className={cn(
-                "relative z-10 w-full cursor-pointer",
-                !hasOpenedBugReport && "pulsate-border",
-              )}
-              onClick={handleBugReportOpen}
+              className="relative z-10 w-full cursor-pointer"
             >
               <Bug className="h-4 w-4" />
               Report Bug
