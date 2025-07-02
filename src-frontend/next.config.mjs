@@ -1,7 +1,6 @@
 const isProd = process.env.NODE_ENV === "production";
 const isDesktopBuild = process.env.IS_DESKTOP_BUILD !== undefined;
-const basePath =
-  isProd && !isDesktopBuild ? "/datasites/tauquir@openmined.org/syftui" : "";
+const basePath = isProd && !isDesktopBuild ? "/syftui" : "";
 
 // Make basePath available to the client as an environment variable
 process.env.NEXT_PUBLIC_BASE_PATH = basePath;
