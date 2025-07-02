@@ -55,7 +55,7 @@ export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
   const { navigateTo } = useFileSystemStore();
   const { datasite } = useConnectionStore();
   const [email, setEmail] = useState<string>(EMAIL_PLACEHOLDER);
@@ -73,6 +73,42 @@ export function AppSidebar() {
   useEffect(() => {
     setEmail(datasite?.email ?? EMAIL_PLACEHOLDER);
   }, [datasite?.email]);
+
+  // Add global drag event listeners
+  useEffect(() => {
+    const handleGlobalDragStart = (e: DragEvent) => {
+      // Check if the dragged item is a valid type (app or folder)
+      const dataTransfer = e.dataTransfer;
+      if (dataTransfer) {
+        try {
+          // Try to get the JSON data and validate it's a valid app or folder
+          const jsonData = dataTransfer.getData("application/json");
+          if (jsonData) {
+            const item = JSON.parse(jsonData);
+            // Check if it's a valid app or folder item
+            if (item && (item.type === "app" || item.type === "folder")) {
+              setIsDragActive(true);
+            }
+          }
+        } catch (err) {
+          // If JSON parsing fails, it's not a valid item for favorites
+          console.debug("Drag data is not a valid app or folder item:", err);
+        }
+      }
+    };
+
+    const handleGlobalDragEnd = () => {
+      setIsDragActive(false);
+    };
+
+    document.addEventListener("dragstart", handleGlobalDragStart);
+    document.addEventListener("dragend", handleGlobalDragEnd);
+
+    return () => {
+      document.removeEventListener("dragstart", handleGlobalDragStart);
+      document.removeEventListener("dragend", handleGlobalDragEnd);
+    };
+  }, []);
 
   const getActiveItem = (pathname: string) => {
     if (pathname.startsWith("/diagnostic")) return "Diagnostic";
@@ -124,7 +160,6 @@ export function AppSidebar() {
     //   action: () => {
     //     setActiveItem("Marketplace");
     //     router.push("/marketplace/");
-    //     closeSidebar();
     //   },
     // },
     {
@@ -169,19 +204,11 @@ export function AppSidebar() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
-    setIsDraggingOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    // Only set dragging to false if we're leaving the drop zone entirely
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDraggingOver(false);
-    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDraggingOver(false);
+    setIsDragActive(false);
     const data = e.dataTransfer.getData("application/json");
     if (data) {
       try {
@@ -256,12 +283,11 @@ export function AppSidebar() {
               <div
                 className={cn(
                   "space-y-1 py-2 pr-2 pl-4 transition-colors",
-                  isDraggingOver &&
+                  isDragActive &&
                     "bg-accent/50 border-primary rounded-md border-2 border-dashed",
                 )}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
               >
                 {favorites.length === 0 ? (
                   <p className="text-muted-foreground px-3 py-2 text-xs">

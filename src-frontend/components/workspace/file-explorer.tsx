@@ -387,7 +387,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
     `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
     viewMode === "grid" ? `${GRID_ITEM_SIZE} shrink-0 grow-0` : "w-full",
     selectedItems.includes(item.path) ? "bg-accent" : "hover:bg-muted",
-    dropTarget === item.id && "ring-2 ring-primary",
+    dropTarget === item.id && "ring-1 ring-primary",
     viewMode === "list" && "justify-start gap-3",
     document.activeElement?.id === `file-item-${item.id}` &&
       "ring-2 ring-primary animate-pulse",
@@ -912,6 +912,7 @@ export function FileExplorer({
         ) {
           e.dataTransfer.dropEffect = "move";
           setDropTarget(targetId);
+          e.stopPropagation();
         } else {
           e.dataTransfer.dropEffect = "none";
         }
