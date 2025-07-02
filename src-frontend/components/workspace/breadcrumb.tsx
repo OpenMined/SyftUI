@@ -48,7 +48,7 @@ export function WorkspaceBreadcrumb() {
       <button
         onClick={() => navigateTo([])}
         className={cn(
-          "hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm",
+          "hover:bg-accent-foreground/15 hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm",
           dropTargetIndex === 0 && "bg-accent",
         )}
         onDragOver={(e) => handleDragOver(e, 0)}
@@ -68,7 +68,7 @@ export function WorkspaceBreadcrumb() {
           <button
             onClick={() => handleNavigate(index + 1)}
             className={cn(
-              "hover:bg-accent hover:text-accent-foreground rounded-md p-1 text-sm",
+              "hover:bg-accent-foreground/15 hover:text-accent-foreground rounded-md p-1 text-sm",
               dropTargetIndex === index + 1 && "bg-accent",
             )}
             onDragOver={(e) => handleDragOver(e, index + 1)}

@@ -278,9 +278,10 @@ export function FileActions() {
               <Button
                 variant="ghost"
                 size="sm"
+                className="h-8 w-8 p-0"
                 onClick={() => navigateTo(currentPath.slice(0, -1))}
+                aria-label="Go up"
                 disabled={currentPath.length === 0}
-                className="flex items-center gap-2"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>

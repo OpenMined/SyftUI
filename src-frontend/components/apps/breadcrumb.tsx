@@ -35,7 +35,7 @@ function AppBreadcrumbContent() {
     <div className="inline-flex items-center">
       <button
         onClick={handleNavigateToApps}
-        className="hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm"
+        className="hover:bg-accent-foreground/15 hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm"
       >
         <AppWindow className="h-4 w-4" />
         <span>Apps</span>
@@ -46,7 +46,7 @@ function AppBreadcrumbContent() {
           <ChevronRight className="text-muted-foreground mx-1 h-4 w-4" />
           <button
             onClick={handleNavigateToApp}
-            className="hover:bg-accent hover:text-accent-foreground bg-accent rounded-md p-1 text-sm"
+            className="hover:bg-accent-foreground/15 hover:text-accent-foreground rounded-md p-1 text-sm"
           >
             {app.info.name}
           </button>
@@ -61,7 +61,7 @@ export function AppBreadcrumb() {
     <Suspense
       fallback={
         <div className="inline-flex items-center">
-          <div className="hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm">
+          <div className="hover:bg-accent-foreground/15 hover:text-accent-foreground flex items-center gap-2 rounded-md p-1 text-sm">
             <AppWindow className="h-4 w-4" />
             <span>Apps</span>
           </div>
