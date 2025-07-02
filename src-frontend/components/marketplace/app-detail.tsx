@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Toolbar } from "@/components/ui/toolbar";
-import { type App, mockApps } from "@/lib/mock-apps";
+import { type App, publishedApps } from "@/lib/apps-data";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -104,7 +104,7 @@ const securityData = {
 };
 
 export function AppDetail({ appId, onBack }: AppDetailProps) {
-  const app = mockApps.find((a) => a.id === appId) as App;
+  const app = publishedApps.find((a) => a.id === appId) as App;
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInstalled, setIsInstalled] = useState(app.installed);

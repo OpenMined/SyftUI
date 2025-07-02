@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { App } from "@/lib/mock-apps";
+import { App } from "@/lib/apps-data";
 import { AppCard } from "./app-card";
 
 interface AppListProps {

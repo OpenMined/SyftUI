@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Star, Download, Settings, Power, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { App } from "@/lib/mock-apps";
+import { App } from "@/lib/apps-data";
 import { InstallConfirmationDialog } from "./install-confirmation-dialog";
 import {
   DropdownMenu,

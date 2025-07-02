@@ -16,10 +16,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppDetail } from "@/components/marketplace/app-detail";
 import { AppList } from "@/components/marketplace/app-list";
-import { mockApps } from "@/lib/mock-apps";
+import { publishedApps } from "@/lib/apps-data";
 import { Toolbar } from "@/components/ui/toolbar";
 import { toast } from "@/hooks/use-toast";
-import { AnnouncementBar } from "@/components/ui/announcement-bar";
 import { Suspense } from "react";
 
 function MarketplacePageContent() {
@@ -55,12 +54,12 @@ function MarketplacePageContent() {
 
   const handleAppInstall = (appId: string) => {
     // Find the app in the mock data
-    const appIndex = mockApps.findIndex((app) => app.id === appId);
+    const appIndex = publishedApps.findIndex((app) => app.id === appId);
     if (appIndex !== -1) {
       // Toggle the installed state in our copy of the data
       // Note: In a real application, this would be managed by a state management solution
       // or would involve API calls to actually install/uninstall the app
-      const updatedApps = [...mockApps];
+      const updatedApps = [...publishedApps];
       updatedApps[appIndex] = {
         ...updatedApps[appIndex],
         installed: !updatedApps[appIndex].installed,
@@ -85,10 +84,6 @@ function MarketplacePageContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <AnnouncementBar variant="warning">
-        This is a mocked version of the marketplace page. The real version with
-        full functionality is coming soon.
-      </AnnouncementBar>
       <Toolbar title="Marketplace" icon={<ShoppingBag className="h-5 w-5" />}>
         <div className="relative w-72">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
@@ -117,7 +112,7 @@ function MarketplacePageContent() {
 
         <TabsContent value="all" className="flex-1 p-0">
           <AppList
-            apps={mockApps}
+            apps={publishedApps}
             onSelectApp={(appId) => router.push(`/marketplace?id=${appId}`)}
             onActionClick={handleAppInstall}
             searchQuery={searchQuery}
@@ -158,7 +153,7 @@ function MarketplacePageContent() {
             </p>
             <div className="space-y-2">
               <label htmlFor="repo-url" className="text-sm font-medium">
-                GitHub Repository URL
+                Public GitHub Repository URL
               </label>
               <Input
                 id="repo-url"
@@ -167,8 +162,8 @@ function MarketplacePageContent() {
                 onChange={(e) => setRepoUrl(e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                Make sure your repository includes a valid manifest.json file
-                with app metadata.
+                Make sure your repository is a valid SyftBox app and includes a
+                valid run.sh file
               </p>
             </div>
           </div>

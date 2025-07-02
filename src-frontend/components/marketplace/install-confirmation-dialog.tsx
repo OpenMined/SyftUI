@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { App } from "@/lib/mock-apps";
+import { App } from "@/lib/apps-data";
 
 interface InstallConfirmationDialogProps {
   isOpen: boolean;
