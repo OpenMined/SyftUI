@@ -17,9 +17,18 @@ import {
   ChevronDown,
   Square,
   CheckSquare,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +50,7 @@ import {
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { FileSystemItem } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
 
 export function FileActions() {
   const {
@@ -59,6 +69,7 @@ export function FileActions() {
     setSortConfig,
     fileSystem,
     currentPath,
+    navigateTo,
     viewMode,
     setViewMode,
     showHiddenFiles,
@@ -204,10 +215,84 @@ export function FileActions() {
     }
   };
 
+  const goBack = () => {
+    window.history.back();
+  };
+
+  const goForward = () => {
+    window.history.forward();
+  };
+
   return (
     <>
       {/* Sync status button */}
       {/* {renderSyncStatusButton()} */}
+
+      {/* Navigation buttons */}
+      <div className="flex items-center gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={goBack}
+                aria-label="Go back"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Go back</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={goForward}
+                aria-label="Go forward"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Go forward</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={`inline-block ${currentPath.length === 0 ? "cursor-not-allowed" : ""}`}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateTo(currentPath.slice(0, -1))}
+                disabled={currentPath.length === 0}
+                className="flex items-center gap-2"
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{currentPath.length === 0 ? "At workspace root" : "Go up"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <Separator orientation="vertical" className="h-4" />
 
       {isCompactView ? (
         /* Compact Menu - Single dropdown with all options */

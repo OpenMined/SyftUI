@@ -3,8 +3,6 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function TitleBar({
   className,
@@ -61,14 +59,6 @@ export default function TitleBar({
     };
   }, []);
 
-  const goBack = () => {
-    window.history.back();
-  };
-
-  const goForward = () => {
-    window.history.forward();
-  };
-
   return (
     <div
       ref={titleBarRef}
@@ -90,11 +80,11 @@ export default function TitleBar({
         >
           <SidebarTrigger />
           <div className="flex items-center gap-1">
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={goBack}
+              onClick={() => window.history.back()}
               aria-label="Go back"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -103,11 +93,11 @@ export default function TitleBar({
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={goForward}
+              onClick={() => window.history.forward()}
               aria-label="Go forward"
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         </div>
         <div className="flex items-center">{children}</div>
