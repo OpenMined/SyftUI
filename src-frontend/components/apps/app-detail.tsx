@@ -52,6 +52,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [isUninstalling, setIsUninstalling] = useState(false);
   const [activeTab, setActiveTab] = useState("interface");
+  const [tabKey, setTabKey] = useState(0); // Increment this to force remounting of tab content
   const {
     settings: { url: daemonUrl },
   } = useConnectionStore();
@@ -107,6 +108,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
     try {
       setIsStarting(true);
       await startApp(appId);
+      setTabKey((prev) => prev + 1); // Force remounting of tab content
     } catch (error) {
       toast({
         icon: "❌",
@@ -218,6 +220,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
       setIsRestarting(true);
       await stopApp(appId);
       await startApp(appId);
+      setTabKey((prev) => prev + 1); // Force remounting of tab content
     } catch (error) {
       toast({
         icon: "❌",
@@ -417,6 +420,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
         ) : (
           <div className="bg-muted/40 flex-1 overflow-auto px-4 py-2">
             <TabsContent
+              key={`interface-${tabKey}`}
               value="interface"
               className="m-0 h-full data-[state=active]:flex-1"
             >
@@ -433,6 +437,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
             </TabsContent>
 
             <TabsContent
+              key={`logs-${tabKey}`}
               value="logs"
               className="m-0 h-full data-[state=active]:flex-1"
             >
@@ -440,6 +445,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
             </TabsContent>
 
             <TabsContent
+              key={`files-${tabKey}`}
               value="files"
               className="m-0 h-full data-[state=active]:flex-1"
             >
@@ -447,6 +453,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
             </TabsContent>
 
             <TabsContent
+              key={`stats-${tabKey}`}
               value="stats"
               className="m-0 h-full data-[state=active]:flex-1"
             >
