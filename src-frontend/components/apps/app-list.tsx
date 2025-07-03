@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  RefreshCcw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast";
-import { type App, installApp, listApps } from "@/lib/api/apps";
+import {
+  type App,
+  installApp,
+  listApps,
+  startApp,
+  stopApp,
+} from "@/lib/api/apps";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -72,6 +79,9 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   const [apps, setApps] = useState<App[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [reinstallingApps, setReinstallingApps] = useState<Set<string>>(
+    new Set(),
+  );
 
   const { favorites, addFavorite, removeFavorite } = useSidebarStore();
 
@@ -145,6 +155,84 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   const handleUninstallApp = async (appId: string) => {
     const uninstalled = await onUninstall(appId);
     if (uninstalled) await loadApps();
+  };
+
+  const handleReinstallApp = async (app: App) => {
+    // Only git-based apps can be reinstalled
+    if (app.info.source !== "git") {
+      toast({
+        icon: "❌",
+        title: "Failed to reinstall app",
+        description: `This is a ${app.info.source} app, only git apps can be reinstalled`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setReinstallingApps((prev) => new Set(prev).add(app.info.id));
+
+      // Stop the app if it's currently running to ensure clean reinstallation
+      if (app.status === "running") {
+        await stopApp(app.info.id);
+      }
+
+      // Reinstall the app with force flag to overwrite existing files
+      await installApp({
+        repoURL: app.info.sourceURI,
+        branch: app.info.branch,
+        force: true, // Force overwrite existing installation
+      });
+
+      // Attempt to restart the app after successful reinstallation
+      // We ignore restart errors as the user can manually start the app
+      try {
+        await startApp(app.info.id);
+      } catch (restartError) {
+        console.warn(
+          `Failed to auto-restart app ${app.info.id}:`,
+          restartError,
+        );
+        // Don't throw here - reinstallation was successful, just restart failed
+      }
+
+      // Refresh app data after a short delay to allow for state updates
+      setTimeout(async () => {
+        await loadApps();
+        setReinstallingApps((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(app.info.id);
+          return newSet;
+        });
+      }, 1000);
+
+      // Show success message
+      toast({
+        icon: "✅",
+        title: "App reinstalled",
+        description: "App has been reinstalled successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error(`Failed to reinstall app ${app.info.id}:`, error);
+
+      // Show error message with helpful context
+      toast({
+        icon: "❌",
+        title: "Failed to reinstall app",
+        description:
+          (error instanceof Error ? error.message : "Unknown error occurred") +
+          ". Please check the app's logs for more information.",
+        variant: "destructive",
+      });
+    } finally {
+      // Always reset the reinstalling state, even if there was an error
+      setReinstallingApps((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(app.info.id);
+        return newSet;
+      });
+    }
   };
 
   const handleFavoriteClick = (app: App, e: React.MouseEvent) => {
@@ -342,6 +430,18 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReinstallApp(app);
+                                }}
+                                disabled={reinstallingApps.has(app.info.id)}
+                              >
+                                <RefreshCcw className="h-4 w-4" />
+                                {reinstallingApps.has(app.info.id)
+                                  ? "Reinstalling..."
+                                  : "Reinstall"}
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-500 focus:text-red-500"
                                 onClick={(e) => {
