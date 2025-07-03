@@ -52,19 +52,11 @@ import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores";
 
 // Install form schema
-const installFormSchema = z
-  .object({
-    repoURL: z.string().url("Must be a valid Git repository URL"),
-    branch: z.string().optional(),
-    tag: z.string().optional(),
-    commit: z.string().optional(),
-    force: z.boolean().default(false),
-  })
-  .refine((data) => data.branch || data.tag || data.commit, {
-    message: "At least one of branch, tag, or commit must be provided",
-    path: ["repoURL"],
-  });
-
+const installFormSchema = z.object({
+  repoURL: z.string().url("Must be a valid Git repository URL"),
+  branch: z.string(),
+  force: z.boolean().default(false),
+});
 // Install form type
 type InstallFormValues = z.infer<typeof installFormSchema>;
 
@@ -88,8 +80,6 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
     defaultValues: {
       repoURL: "",
       branch: "main",
-      tag: "",
-      commit: "",
       force: false,
     },
   });
@@ -128,8 +118,6 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
       await installApp({
         repoURL: data.repoURL,
         branch: data.branch || undefined,
-        tag: data.tag || undefined,
-        commit: data.commit || undefined,
         force: data.force,
       });
 
@@ -463,44 +451,14 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
 
                     {showAdvanced && (
                       <div className="mt-4 space-y-4 rounded-lg">
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={installForm.control}
-                            name="branch"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Branch</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="main" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={installForm.control}
-                            name="tag"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Tag</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="v1.0.0" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
                         <FormField
                           control={installForm.control}
-                          name="commit"
+                          name="branch"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Commit Hash</FormLabel>
+                              <FormLabel>Branch</FormLabel>
                               <FormControl>
-                                <Input placeholder="a1b2c3d..." {...field} />
+                                <Input placeholder="main" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

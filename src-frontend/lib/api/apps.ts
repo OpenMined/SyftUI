@@ -87,8 +87,6 @@ interface App {
 interface AppInstallRequest {
   repoURL: string;
   branch?: string;
-  tag?: string;
-  commit?: string;
   force?: boolean;
 }
 
