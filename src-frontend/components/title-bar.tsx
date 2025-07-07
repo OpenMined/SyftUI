@@ -100,7 +100,9 @@ export default function TitleBar({
             </Button> */}
           </div>
         </div>
-        <div className="flex items-center">{children}</div>
+        <div className="absolute left-1/2 flex -translate-x-1/2 transform items-center justify-center">
+          {children}
+        </div>
         <div className="flex items-center gap-2">
           <NotificationBell />
           <ThemeToggle />
