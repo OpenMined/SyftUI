@@ -79,10 +79,15 @@ function formatType(type: number): string {
 }
 
 const flattenObjectProperty = <T extends object>(
-  obj: T,
+  obj: T | null | undefined,
   property: string,
   childrenKey: keyof T,
 ): Array<unknown> => {
+  // Handle null or undefined objects
+  if (!obj) {
+    return [];
+  }
+
   const getNestedValue = (obj: object, path: string): unknown => {
     return path
       .split(".")
@@ -312,13 +317,13 @@ export function AppStats({ appId }: { appId: string }) {
     stats,
     "cpuPercent",
     "children",
-  ).reduce((acc, curr) => acc + (curr as number), 0);
+  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
 
   const cumulativeNumThreads = flattenObjectProperty(
     stats,
     "numThreads",
     "children",
-  ).reduce((acc, curr) => acc + (curr as number), 0);
+  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
 
   const totalMemory =
     ((stats.memoryInfo?.rss ?? 0) / stats.memoryPercent) * 100;
@@ -327,17 +332,17 @@ export function AppStats({ appId }: { appId: string }) {
     stats,
     "memoryPercent",
     "children",
-  ).reduce((acc, curr) => acc + (curr as number), 0);
+  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
 
   const cumulativeMemoryRSS = flattenObjectProperty(
     stats,
     "memoryInfo.rss",
     "children",
-  ).reduce((acc, curr) => acc + (curr as number), 0);
+  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
 
   const cumulativeMemoryVMS =
     flattenObjectProperty(stats, "memoryInfo.vms", "children").reduce(
-      (acc, curr) => acc + (curr as number),
+      (acc, curr) => acc + ((curr as number) || 0),
       0,
     ) / 1000;
 
@@ -345,13 +350,15 @@ export function AppStats({ appId }: { appId: string }) {
     stats,
     "memoryInfo.swap",
     "children",
-  ).reduce((acc, curr) => acc + (curr as number), 0);
+  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
 
   const allConnections: ConnectionStat[] = flattenObjectProperty(
     stats,
     "connections",
     "children",
-  ).flat() as ConnectionStat[];
+  )
+    .flat()
+    .filter(Boolean) as ConnectionStat[];
 
   return (
     <div className="flex h-full flex-col gap-2">

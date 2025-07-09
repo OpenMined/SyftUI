@@ -458,7 +458,7 @@ bump-version level="patch":
 
     level = "{{ level }}"
     valid_levels = ["major", "minor", "patch"]
-    
+
     if level not in valid_levels:
         print(f"Error: Invalid level. Use 'major', 'minor', or 'patch'.", file=sys.stderr)
         sys.exit(1)
@@ -470,16 +470,16 @@ bump-version level="patch":
             "--format", "json",
             "--increment", level
         ], capture_output=True, text=True, check=True)
-        
+
         version_info = json.loads(result.stdout)
         current_version = version_info["current_version"]
         new_version = version_info["new_version"]
-        
+
         print(f"Bumping version from {current_version} to {new_version}")
-        
+
         # Bump version
         subprocess.run(["uvx", "bump-my-version", "bump", level], check=True)
-        
+
     except subprocess.CalledProcessError as e:
         print(f"Error running bump-my-version: {e}", file=sys.stderr)
         sys.exit(e.returncode)
