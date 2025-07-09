@@ -521,8 +521,8 @@ generate-release-json version upload="no":
             "signature": "SyftBox-x86_64-apple-darwin.app.tar.gz.sig"
         },
         "windows-x86_64": {
-            "url": "SyftBox-x86_64-pc-windows-msvc.msi",
-            "signature": "SyftBox-x86_64-pc-windows-msvc.msi.sig"
+            "url": "SyftBox-x86_64-pc-windows-msvc.exe",
+            "signature": "SyftBox-x86_64-pc-windows-msvc.exe.sig"
         },
         "linux-x86_64": {
             "url": "SyftBox-x86_64-unknown-linux-gnu.AppImage",

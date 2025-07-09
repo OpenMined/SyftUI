@@ -57,7 +57,7 @@
       "appimage",
       "deb",
       "dmg",
-      "msi",
+      "nsis",
       "rpm"
     ]
   },

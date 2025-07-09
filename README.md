@@ -14,7 +14,7 @@ SyftUI comes in two flavors:
 The easiest, most powerful way to run SyftUI.
 
 - Download the app for your OS.
-  - [Windows](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-pc-windows-msvc.msi)
+  - [Windows](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-pc-windows-msvc.exe)
   - [Linux](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-unknown-linux-gnu.AppImage)
   - [Mac (Apple Silicon)](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-aarch64-apple-darwin.dmg)
   - [Mac (Intel)](https://github.com/OpenMined/SyftUI/releases/latest/download/SyftBox-x86_64-apple-darwin.dmg)
@@ -73,7 +73,7 @@ just package
 
 Depending on your OS, this command will generate the appropriate installer:
 
-* **Windows**: `.msi` package
+* **Windows**: `.exe` installer
 * **Linux**: `.AppImage`, `.deb`, and `.rpm` packages
 * **macOS**: `.dmg` package
 
