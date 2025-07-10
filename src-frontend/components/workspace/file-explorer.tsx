@@ -380,6 +380,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
 }: FileExplorerItemProps) {
   const { addFavorite } = useSidebarStore();
   const [platform, setPlatform] = useState<string>("macos");
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 
   useEffect(() => {
     const { platform } =
@@ -418,11 +419,14 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   const itemClasses = cn(
     `group cursor-pointer rounded-lg ${ITEM_PADDING} transition-colors relative flex items-center justify-center`,
     viewMode === "grid" ? `${GRID_ITEM_SIZE} shrink-0 grow-0` : "w-full",
-    selectedItems.includes(item.path) ? "bg-accent" : "hover:bg-muted",
+    selectedItems.includes(item.path) || isContextMenuOpen
+      ? "bg-accent"
+      : "hover:bg-muted",
     dropTarget === item.id && "ring-1 ring-primary",
     viewMode === "list" && "justify-start gap-3",
     document.activeElement?.id === `file-item-${item.id}` &&
       "ring-2 ring-primary animate-pulse",
+    isContextMenuOpen && "ring-2 ring-accent-foreground/50",
   );
 
   const contentClasses = cn(
@@ -445,7 +449,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   );
 
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={setIsContextMenuOpen}>
       <ContextMenuTrigger asChild>
         <motion.div
           id={`file-item-${item.id}`}
