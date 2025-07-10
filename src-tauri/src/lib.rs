@@ -15,6 +15,10 @@ pub fn run() {
     log::info!("Starting SyftBox application");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            log::info!("Instance already running, showing main window");
+            utils::show_main_window(app);
+        }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
@@ -122,9 +126,20 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(move |_app_handle, event| match event {
+        .run(move |app_handle, event| match event {
             tauri::RunEvent::Exit => {
                 log::info!("Exiting application");
+            }
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen {
+                has_visible_windows,
+                ..
+            } => {
+                log::info!(
+                    "Reopen event: has_visible_windows = {}",
+                    has_visible_windows
+                );
+                utils::show_main_window(&app_handle);
             }
             _ => {}
         });

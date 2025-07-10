@@ -306,14 +306,7 @@ pub fn _setup_system_tray(app: &AppHandle) {
     tray.on_menu_event(move |event_app, event| match event.id.as_ref() {
         "show_dashboard" => {
             log::info!("Show dashboard menu item clicked");
-            let window = event_app.get_webview_window("main").unwrap();
-            window.set_skip_taskbar(false).unwrap();
-            #[cfg(target_os = "macos")]
-            event_app
-                .set_activation_policy(tauri::ActivationPolicy::Regular)
-                .unwrap();
-            window.show().unwrap();
-            window.set_focus().unwrap();
+            show_main_window(event_app);
         }
         "autostart" => {
             log::info!("Autostart menu item clicked");
@@ -399,4 +392,15 @@ pub fn _generate_secure_token() -> String {
         .try_fill_bytes(&mut key)
         .expect("Failed to generate secure token key");
     hex::encode(key)
+}
+
+pub fn show_main_window(app: &AppHandle) {
+    log::debug!("Showing main window");
+    let window = app.get_webview_window("main").unwrap();
+    window.set_skip_taskbar(false).unwrap();
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(tauri::ActivationPolicy::Regular)
+        .unwrap();
+    window.show().unwrap();
+    window.set_focus().unwrap();
 }
