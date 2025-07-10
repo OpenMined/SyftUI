@@ -49,7 +49,9 @@
     },
     "windows": {
       "nsis": {
-        "installerHooks": "./windows/hooks.nsh"
+        "installerHooks": "./windows/hooks.nsh",
+        "installerIcon": "./icons/icon.ico",
+        "sidebarImage": "./images/nsis-background.bmp"
       },
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
