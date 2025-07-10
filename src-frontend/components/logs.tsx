@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toolbar } from "@/components/ui/toolbar";
 import { cn } from "@/lib/utils";
-import { getLogs, logLevels, type LogsResponse } from "@/lib/api/logs";
+import {
+  getLogs,
+  logLevels,
+  downloadLogs,
+  type LogsResponse,
+} from "@/lib/api/logs";
 import {
   Select,
   SelectContent,
@@ -131,22 +136,27 @@ export function Logs() {
     setNextToken(1);
   };
 
-  const handleDownload = () => {
-    const logText = logs
-      .map(
-        (log) =>
-          `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}`,
-      )
-      .join("\n");
-    const blob = new Blob([logText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `SyftBoxDaemon-${appId}-${new Date().toISOString()}.log`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDownload = async () => {
+    // current utc datetime in format YYYY-MM-DD_HH-MM-SS
+    const now = new Date()
+      .toISOString()
+      .replace(/T/, "_")
+      .replace(/:/g, "-")
+      .split(".")[0];
+
+    try {
+      const blob = await downloadLogs();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `SyftBox-${now}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download logs:", error);
+    }
   };
 
   const getLevelColor = (level: string) => {
