@@ -87,8 +87,15 @@ pub fn _setup_sidecars_for_release_builds(
 ) {
     log::info!("Setting up sidecars");
 
-    if is_app_updated && _is_port_in_use(daemon_port) {
-        log::info!("App was just updated and port is still in use, silently waiting for clean up");
+    if _is_port_in_use(daemon_port) {
+        if is_app_updated {
+            log::info!(
+                "App was just updated and port is still in use, silently waiting for clean up"
+            );
+        } else {
+            log::info!("Port is in use, silently waiting for clean up");
+        }
+
         for i in 0..10 {
             thread::sleep(Duration::from_secs(1));
             if !_is_port_in_use(daemon_port) {
