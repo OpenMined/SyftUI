@@ -19,6 +19,7 @@
           "path": "https://openmined.org/privacy-policy/"
         }
       ]
-    }
+    },
+    "log:default"
   ]
 }

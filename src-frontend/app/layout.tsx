@@ -37,6 +37,30 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
+  // Forward console logs to Tauri logger
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.__TAURI__) {
+      const { warn, debug, trace, info, error } = window.__TAURI__.log;
+
+      function forwardConsole(
+        fnName: "log" | "debug" | "info" | "warn" | "error",
+        logger: (message: string) => Promise<void>,
+      ) {
+        const original = console[fnName];
+        console[fnName] = (message) => {
+          original(message);
+          logger(message);
+        };
+      }
+
+      forwardConsole("log", trace);
+      forwardConsole("debug", debug);
+      forwardConsole("info", info);
+      forwardConsole("warn", warn);
+      forwardConsole("error", error);
+    }
+  }, []);
+
   // Determine which breadcrumb to show based on the current route
   const getBreadcrumb = () => {
     if (pathname.startsWith("/apps")) {
