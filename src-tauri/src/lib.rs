@@ -126,7 +126,7 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(move |app_handle, event| match event {
+        .run(move |_app_handle, event| match event {
             tauri::RunEvent::Exit => {
                 log::info!("Exiting application");
             }
@@ -139,7 +139,7 @@ pub fn run() {
                     "Reopen event: has_visible_windows = {}",
                     has_visible_windows
                 );
-                utils::show_main_window(&app_handle);
+                utils::show_main_window(_app_handle);
             }
             _ => {}
         });
