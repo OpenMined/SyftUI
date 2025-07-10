@@ -25,7 +25,6 @@ import {
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
 } from "@/components/ui/context-menu";
-import { Star } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -195,7 +194,6 @@ function BackgroundContextMenuContent({
           {syncPaused ? "Resume Sync" : "Pause Sync"}
         </ContextMenuItem> */}
         <ContextMenuItem onClick={handleAddToFavorites}>
-          <Star className="mr-2 h-4 w-4" />
           Add to Favorites
         </ContextMenuItem>
         <ContextMenuSeparator />
@@ -381,6 +379,40 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   isMobile,
 }: FileExplorerItemProps) {
   const { addFavorite } = useSidebarStore();
+  const [platform, setPlatform] = useState<string>("macos");
+
+  useEffect(() => {
+    const { platform } =
+      typeof window !== "undefined" && window.__TAURI__
+        ? window.__TAURI__.os
+        : { platform: () => "web" };
+    setPlatform(platform());
+  }, []);
+
+  // Handler for opening item in file manager
+  const openInFileManager = async (item: FileSystemItem) => {
+    if (platform === "web") return;
+
+    try {
+      if (typeof window !== "undefined" && window.__TAURI__) {
+        const { openPath } = window.__TAURI__.opener;
+        const { sep } = window.__TAURI__.path;
+
+        if (item.type === "file") {
+          // For files, open the parent directory
+          // Use the platform's path separator for splitting
+          const pathParts = item.absolutePath.split(sep);
+          const parentPath = pathParts.slice(0, -1).join(sep);
+          await openPath(parentPath);
+        } else {
+          // For folders, open directly
+          await openPath(item.absolutePath);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to open in file manager:", error);
+    }
+  };
 
   // Extract common class names for better readability
   const itemClasses = cn(
@@ -474,6 +506,12 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
         <ContextMenuItem onClick={() => handleItemDoubleClick(item)}>
           {item.type === "folder" ? "Open" : "Preview"}
         </ContextMenuItem>
+        {platform !== "web" && (
+          <ContextMenuItem onClick={() => openInFileManager(item)}>
+            {platform === "macos" ? "Open in Finder" : "Open in Explorer"}
+          </ContextMenuItem>
+        )}
+        <ContextMenuSeparator />
         <ContextMenuItem onClick={() => cutItemsToClipboard([item.id])}>
           Cut
           <ContextMenuShortcut>⌘X</ContextMenuShortcut>
@@ -517,7 +555,6 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
               })
             }
           >
-            <Star className="mr-2 h-4 w-4" />
             Add to Favorites
           </ContextMenuItem>
         )}

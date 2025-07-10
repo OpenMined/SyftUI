@@ -31,6 +31,7 @@ export interface FileSystemItem {
   name: string;
   type: "file" | "folder";
   path: string;
+  absolutePath: string;
   createdAt: string;
   modifiedAt: string;
   size?: number;
