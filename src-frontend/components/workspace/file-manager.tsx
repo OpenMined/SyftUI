@@ -280,6 +280,7 @@ export function FileManager() {
                 item={detailsItem || getCurrentDirectoryInfo()}
                 onClose={handleCloseDetails}
                 setDetailsItem={handleSetDetailsItem}
+                selectedCount={selectedItems.length}
               />
             </motion.div>
           )}
@@ -300,6 +301,7 @@ export function FileManager() {
               item={detailsItem}
               onClose={handleCloseDetails}
               setDetailsItem={handleSetDetailsItem}
+              selectedCount={selectedItems.length}
             />
           </motion.div>
         )}

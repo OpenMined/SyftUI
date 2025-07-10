@@ -16,6 +16,7 @@ interface FileDetailsProps {
   item: FileSystemItem;
   onClose: () => void;
   setDetailsItem?: (item: FileSystemItem | null) => void;
+  selectedCount?: number;
 }
 
 const getFileType = (item: FileSystemItem) => {
@@ -65,6 +66,7 @@ export function FileDetails({
   item,
   onClose,
   setDetailsItem,
+  selectedCount = 1,
 }: FileDetailsProps) {
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -91,15 +93,52 @@ export function FileDetails({
     setIsRenaming(false);
   };
 
+  // If multiple items are selected, show multi-selection view
+  if (selectedCount > 1) {
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-end border-b p-4 md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+          <div className="relative mb-4">
+            <div className="h-16 w-16">
+              <FileIcon type="folder" className="absolute z-30" />
+            </div>
+            <div className="absolute top-1 left-2 z-20 h-16 w-16">
+              <FileIcon type="folder" className="opacity-70" />
+            </div>
+            <div className="absolute top-2 left-4 z-10 h-16 w-16">
+              <FileIcon type="folder" className="opacity-40" />
+            </div>
+          </div>
+          <h3 className="mb-2 text-lg font-medium">
+            {selectedCount} items selected
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Select a single file or folder to get more information
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return item ? (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b p-4">
-        <h3 className="font-medium select-none">Details</h3>
+      <div className="flex items-center justify-end border-b p-4 md:hidden">
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="h-8 w-8 md:hidden"
+          className="h-8 w-8"
         >
           <X className="h-4 w-4" />
         </Button>

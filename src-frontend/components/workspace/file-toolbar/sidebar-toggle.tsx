@@ -11,17 +11,20 @@ export function SidebarToggle() {
     <Button
       variant="ghost"
       size="sm"
-      className="h-8 w-8 p-0"
+      className="h-8 px-2"
       onClick={toggleDetailsSidebar}
       aria-label={
         detailsSidebarOpen ? "Hide details sidebar" : "Show details sidebar"
       }
     >
-      {detailsSidebarOpen ? (
-        <PanelRightClose className="h-4 w-4" />
-      ) : (
-        <PanelRightOpen className="h-4 w-4" />
-      )}
+      <div className="flex items-center gap-2">
+        {detailsSidebarOpen ? (
+          <PanelRightClose className="h-4 w-4" />
+        ) : (
+          <PanelRightOpen className="h-4 w-4" />
+        )}
+        <span>Details</span>
+      </div>
     </Button>
   );
 }
