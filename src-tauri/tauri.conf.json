@@ -57,16 +57,14 @@
         "type": "downloadBootstrapper"
       }
     },
-    "targets": [
-      "app",
-      "appimage",
-      "deb",
-      "dmg",
-      "nsis",
-      "rpm"
-    ]
+    "targets": ["app", "appimage", "deb", "dmg", "nsis", "rpm"]
   },
   "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["syft"]
+      }
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERDNDQwRjM5QTY1NzFDQTgKUldTb0hGZW1PUTlFM1AxcDBodCttQmxZLzM1NzdMMFpJREI3NVlMa3pHNm8wN0hKa0Q5ZTFRZmsK",
       "endpoints": [

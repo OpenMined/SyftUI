@@ -29,6 +29,19 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const { breadcrumbContent } = useBreadcrumbStore();
 
   useEffect(() => {
+    const handleDeepLink = async () => {
+      if (typeof window !== "undefined" && window.__TAURI__) {
+        const { onOpenUrl } = window.__TAURI__.deepLink;
+        await onOpenUrl((urls) => {
+          console.log("Deep link received");
+          console.log(urls);
+        });
+      }
+    };
+    handleDeepLink();
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== "undefined" && window.__TAURI__) {
       window.__TAURI__.core.invoke("update_theme", {
         isDark: theme === "dark",

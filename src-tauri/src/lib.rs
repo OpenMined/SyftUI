@@ -19,6 +19,7 @@ pub fn run() {
             log::info!("Instance already running, showing main window");
             utils::show_main_window(app);
         }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
@@ -78,6 +79,14 @@ pub fn run() {
                 pending_update: Mutex::new(None),
                 pending_update_window_state: Mutex::new(None),
             });
+
+            // below block is recommended by tauri docs. See note at the bottom of this section
+            // https://tauri.app/plugin/deep-linking/#registering-desktop-deep-links-at-runtime
+            #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                app.deep_link().register_all()?;
+            }
 
             // Generate daemon client arguments
             let (daemon_host, daemon_port, daemon_token) = utils::_generate_daemon_client_args();
