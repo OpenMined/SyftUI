@@ -5,32 +5,17 @@ import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ShoppingBag } from "lucide-react";
 import { type MarketplaceApp } from "@/lib/api/marketplace";
-import { getMarketplaceApp } from "@/lib/api/marketplace";
-import { useEffect, useState, Suspense } from "react";
+import { Suspense } from "react";
 
-function MarketplaceBreadcrumbContent() {
+interface MarketplaceBreadcrumbContentProps {
+  app: MarketplaceApp | null;
+}
+
+function MarketplaceBreadcrumbContent({
+  app,
+}: MarketplaceBreadcrumbContentProps) {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
-  const [app, setApp] = useState<MarketplaceApp | null>(null);
-
-  // Find app details when selectedApp changes
-  useEffect(() => {
-    const fetchApp = async () => {
-      if (selectedApp) {
-        try {
-          const foundApp = await getMarketplaceApp(selectedApp);
-          setApp(foundApp);
-        } catch (error) {
-          console.error("Failed to fetch app:", error);
-          setApp(null);
-        }
-      } else {
-        setApp(null);
-      }
-    };
-
-    fetchApp();
-  }, [selectedApp]);
 
   const handleNavigateToMarketplace = () => {
     router.push("/marketplace");
@@ -67,7 +52,11 @@ function MarketplaceBreadcrumbContent() {
   );
 }
 
-export function MarketplaceBreadcrumb() {
+interface MarketplaceBreadcrumbProps {
+  app?: MarketplaceApp | null;
+}
+
+export function MarketplaceBreadcrumb({ app }: MarketplaceBreadcrumbProps) {
   return (
     <Suspense
       fallback={
@@ -79,7 +68,7 @@ export function MarketplaceBreadcrumb() {
         </div>
       }
     >
-      <MarketplaceBreadcrumbContent />
+      <MarketplaceBreadcrumbContent app={app} />
     </Suspense>
   );
 }

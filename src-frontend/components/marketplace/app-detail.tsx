@@ -9,8 +9,9 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Toolbar } from "@/components/ui/toolbar";
-import { type MarketplaceApp } from "@/lib/api/marketplace";
-import { getMarketplaceApp } from "@/lib/api/marketplace";
+import { type MarketplaceApp, getMarketplaceApp } from "@/lib/api/marketplace";
+import { useBreadcrumbStore } from "@/stores";
+import { MarketplaceBreadcrumb } from "./marketplace-breadcrumb";
 
 import { getAssetPath } from "@/lib/utils";
 import Image from "next/image";
@@ -66,8 +67,8 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
-  // Fetch app details
   useEffect(() => {
     const fetchApp = async () => {
       try {
@@ -83,6 +84,11 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
 
     fetchApp();
   }, [appId]);
+
+  useEffect(() => {
+    setBreadcrumb(<MarketplaceBreadcrumb app={app} />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb, app]);
 
   const handleInstall = () => {
     setIsProcessing(true);
