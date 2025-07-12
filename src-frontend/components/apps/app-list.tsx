@@ -58,7 +58,7 @@ import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 import { cn } from "@/lib/utils";
 import { useSidebarStore, useBreadcrumbStore } from "@/stores";
-import { AppBreadcrumb } from "./breadcrumb";
+import { AppBreadcrumb } from "./apps-breadcrumb";
 
 // Install form schema
 const installFormSchema = z.object({

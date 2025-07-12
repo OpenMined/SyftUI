@@ -36,7 +36,7 @@ import {
 import { useConnectionStore, useBreadcrumbStore } from "@/stores";
 import { AppFiles, AppInterface, AppLogs, AppStats } from "@/components/apps";
 import { toast } from "@/hooks/use-toast";
-import { AppBreadcrumb } from "./breadcrumb";
+import { AppBreadcrumb } from "./apps-breadcrumb";
 
 interface AppDetailProps {
   appId: string;

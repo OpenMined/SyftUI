@@ -8,7 +8,7 @@ import {
   useFileSystemStore,
 } from "@/stores/useFileSystemStore";
 import { useBreadcrumbStore } from "@/stores";
-import { WorkspaceBreadcrumb } from "@/components/workspace/breadcrumb";
+import { WorkspaceBreadcrumb } from "@/components/workspace/workspace-breadcrumb";
 
 function FilesPageContent() {
   const [initialPath] = useQueryState("path");
