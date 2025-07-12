@@ -3,7 +3,7 @@ import { MarketplaceApp } from "@/lib/api/marketplace";
 // Hardcoded apps data for marketplace list
 export const marketplaceApps: MarketplaceApp[] = [
   {
-    id: "1",
+    id: "com.github.openmined.organic-coop",
     name: "Organic Coop",
     description: "Organic Coop",
     author: "OpenMined",

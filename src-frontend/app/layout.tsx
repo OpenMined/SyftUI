@@ -17,6 +17,7 @@ import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useBreadcrumbStore } from "@/stores";
+import { DeepLinkRouter } from "@/components/deep-link-router";
 
 const title = "SyftBox";
 const description = "The internet of private data!";
@@ -27,19 +28,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
   const { theme } = useTheme();
   const { breadcrumbContent } = useBreadcrumbStore();
-
-  useEffect(() => {
-    const handleDeepLink = async () => {
-      if (typeof window !== "undefined" && window.__TAURI__) {
-        const { onOpenUrl } = window.__TAURI__.deepLink;
-        await onOpenUrl((urls) => {
-          console.log("Deep link received");
-          console.log(urls);
-        });
-      }
-    };
-    handleDeepLink();
-  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.__TAURI__) {
@@ -130,6 +118,7 @@ export default function RootLayout({
             defaultTheme="light"
             disableTransitionOnChange
           >
+            <DeepLinkRouter />
             <MainLayout>{children}</MainLayout>
           </ThemeProvider>
         </AnalyticsProvider>
