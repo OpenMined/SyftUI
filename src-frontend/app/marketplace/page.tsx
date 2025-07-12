@@ -24,6 +24,8 @@ import {
 import { Toolbar } from "@/components/ui/toolbar";
 import { toast } from "@/hooks/use-toast";
 import { Suspense } from "react";
+import { useBreadcrumbStore } from "@/stores";
+import { MarketplaceBreadcrumb } from "@/components/marketplace/marketplace-breadcrumb";
 
 function MarketplacePageContent() {
   const router = useRouter();
@@ -35,6 +37,7 @@ function MarketplacePageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [marketplaceApps, setMarketplaceApps] = useState<MarketplaceApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -56,6 +59,11 @@ function MarketplacePageContent() {
 
     fetchApps();
   }, []);
+
+  useEffect(() => {
+    setBreadcrumb(<MarketplaceBreadcrumb />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb]);
 
   const handlePublishSubmit = async () => {
     if (!repoUrl.trim()) return;

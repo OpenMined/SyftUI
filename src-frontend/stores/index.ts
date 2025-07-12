@@ -14,3 +14,4 @@ export {
   initializeFileSystemStore,
 } from "./useFileSystemStore";
 export { useSidebarStore, type FavoriteItem } from "./useSidebarStore";
+export { useBreadcrumbStore } from "./useBreadcrumbStore";

@@ -7,14 +7,22 @@ import {
   initializeFileSystemStore,
   useFileSystemStore,
 } from "@/stores/useFileSystemStore";
+import { useBreadcrumbStore } from "@/stores";
+import { WorkspaceBreadcrumb } from "@/components/workspace/breadcrumb";
 
 function FilesPageContent() {
   const [initialPath] = useQueryState("path");
   const { refreshFileSystem } = useFileSystemStore();
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   useEffect(() => {
     initializeFileSystemStore(initialPath);
   }, [initialPath]);
+
+  useEffect(() => {
+    setBreadcrumb(<WorkspaceBreadcrumb />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb]);
 
   useEffect(() => {
     // Periodically refresh the file system

@@ -6,11 +6,19 @@ import { AppList } from "@/components/apps/app-list";
 import { AppDetail } from "@/components/apps/app-detail";
 import { toast } from "@/hooks/use-toast";
 import { uninstallApp } from "@/lib/api/apps";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useBreadcrumbStore } from "@/stores";
+import { AppBreadcrumb } from "@/components/apps/breadcrumb";
 
 function AppsPageContent() {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
+
+  useEffect(() => {
+    setBreadcrumb(<AppBreadcrumb />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb]);
 
   const handleUninstallApp = async (appId: string): Promise<boolean> => {
     const appName = appId.split(".").pop();

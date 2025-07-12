@@ -16,10 +16,7 @@ import {
 import { AnalyticsProvider, PageViewTracker } from "@/lib/analytics";
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
-import { AppBreadcrumb } from "@/components/apps/breadcrumb";
-import { WorkspaceBreadcrumb } from "@/components/workspace/breadcrumb";
-import { MarketplaceBreadcrumb } from "@/components/marketplace/marketplace-breadcrumb";
-import { ScrollText } from "lucide-react";
+import { useBreadcrumbStore } from "@/stores";
 
 const title = "SyftBox";
 const description = "The internet of private data!";
@@ -29,6 +26,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const sidebarExcludedPaths = ["/", "/about/", "/updates/"];
   const shouldShowSidebar = !sidebarExcludedPaths.includes(pathname);
   const { theme } = useTheme();
+  const { breadcrumbContent } = useBreadcrumbStore();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.__TAURI__) {
@@ -62,29 +60,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Determine which breadcrumb to show based on the current route
-  const getBreadcrumb = () => {
-    if (pathname.startsWith("/apps")) {
-      return <AppBreadcrumb />;
-    }
-    if (pathname.startsWith("/workspace")) {
-      return <WorkspaceBreadcrumb />;
-    }
-    if (pathname.startsWith("/marketplace")) {
-      return <MarketplaceBreadcrumb />;
-    }
-    if (pathname.startsWith("/logs")) {
-      return (
-        <span className="flex items-center gap-2 p-1 text-sm">
-          <ScrollText className="h-4 w-4" />
-          <span>Logs</span>
-        </span>
-      );
-    }
-    // For other routes, show nothing
-    return null;
-  };
-
   if (!shouldShowSidebar) {
     return (
       <div className="bg-sidebar flex h-screen w-screen">
@@ -105,7 +80,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         <div className="bg-sidebar flex h-screen w-screen flex-col">
-          <TitleBar>{getBreadcrumb()}</TitleBar>
+          <TitleBar>{breadcrumbContent}</TitleBar>
           <div className="flex flex-1 overflow-hidden">
             <Sidebar className="border-none">
               <AppSidebar />
