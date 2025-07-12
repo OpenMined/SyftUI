@@ -4,22 +4,16 @@ import type React from "react";
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
 import { ChevronRight, AppWindow } from "lucide-react";
-import { getApp, type App } from "@/lib/api/apps";
-import { useEffect, useState, Suspense } from "react";
+import { type App } from "@/lib/api/apps";
+import { Suspense } from "react";
 
-function AppBreadcrumbContent() {
+interface AppBreadcrumbContentProps {
+  app: App | null;
+}
+
+function AppBreadcrumbContent({ app }: AppBreadcrumbContentProps) {
   const router = useRouter();
   const [selectedApp] = useQueryState("id");
-  const [app, setApp] = useState<App | null>(null);
-
-  // Fetch app details when selectedApp changes
-  useEffect(() => {
-    if (selectedApp) {
-      getApp(selectedApp).then(setApp).catch(console.error);
-    } else {
-      setApp(null);
-    }
-  }, [selectedApp]);
 
   const handleNavigateToApps = () => {
     router.push("/apps");
@@ -56,7 +50,11 @@ function AppBreadcrumbContent() {
   );
 }
 
-export function AppBreadcrumb() {
+interface AppBreadcrumbProps {
+  app?: App | null;
+}
+
+export function AppBreadcrumb({ app }: AppBreadcrumbProps) {
   return (
     <Suspense
       fallback={
@@ -68,7 +66,7 @@ export function AppBreadcrumb() {
         </div>
       }
     >
-      <AppBreadcrumbContent />
+      <AppBreadcrumbContent app={app} />
     </Suspense>
   );
 }

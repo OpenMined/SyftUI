@@ -49,6 +49,7 @@ import {
   listApps,
   startApp,
   stopApp,
+  uninstallApp,
 } from "@/lib/api/apps";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,7 +57,8 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/apps/app-icon";
 import { cn } from "@/lib/utils";
-import { useSidebarStore } from "@/stores";
+import { useSidebarStore, useBreadcrumbStore } from "@/stores";
+import { AppBreadcrumb } from "./breadcrumb";
 
 // Install form schema
 const installFormSchema = z.object({
@@ -69,10 +71,9 @@ type InstallFormValues = z.infer<typeof installFormSchema>;
 
 interface AppListProps {
   onSelectApp: (appId: string) => void;
-  onUninstall: (appId: string) => Promise<boolean>;
 }
 
-export function AppList({ onSelectApp, onUninstall }: AppListProps) {
+export function AppList({ onSelectApp }: AppListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -84,6 +85,7 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   );
 
   const { favorites, addFavorite, removeFavorite } = useSidebarStore();
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   const installForm = useForm<InstallFormValues>({
     resolver: zodResolver(installFormSchema),
@@ -93,6 +95,11 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
       force: false,
     },
   });
+
+  useEffect(() => {
+    setBreadcrumb(<AppBreadcrumb />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb]);
 
   useEffect(() => {
     loadApps();
@@ -153,8 +160,32 @@ export function AppList({ onSelectApp, onUninstall }: AppListProps) {
   };
 
   const handleUninstallApp = async (appId: string) => {
-    const uninstalled = await onUninstall(appId);
-    if (uninstalled) await loadApps();
+    const appName = appId.split(".").pop();
+    try {
+      toast({
+        icon: "🗑️",
+        title: "Uninstalling...",
+        description: `Uninstalling ${appName}...`,
+      });
+
+      await uninstallApp(appId);
+
+      toast({
+        icon: "🗑️",
+        title: "App uninstalled",
+        description: `${appName} has been uninstalled.`,
+      });
+
+      await loadApps();
+    } catch (error) {
+      toast({
+        icon: "❌",
+        title: "Uninstall Failed",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleReinstallApp = async (app: App) => {

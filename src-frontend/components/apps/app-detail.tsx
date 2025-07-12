@@ -30,19 +30,20 @@ import {
   installApp,
   startApp,
   stopApp,
+  uninstallApp,
   type App,
 } from "@/lib/api/apps";
-import { useConnectionStore } from "@/stores";
+import { useConnectionStore, useBreadcrumbStore } from "@/stores";
 import { AppFiles, AppInterface, AppLogs, AppStats } from "@/components/apps";
 import { toast } from "@/hooks/use-toast";
+import { AppBreadcrumb } from "./breadcrumb";
 
 interface AppDetailProps {
   appId: string;
-  onUninstall: () => Promise<boolean>;
   onBack: () => void;
 }
 
-export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
+export function AppDetail({ appId, onBack }: AppDetailProps) {
   const [app, setApp] = useState<App | null>(null);
   const [appUrl, setAppUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +57,7 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
   const {
     settings: { url: daemonUrl },
   } = useConnectionStore();
+  const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   const { openPath } =
     typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
@@ -84,6 +86,11 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
     fetchApp();
   }, [fetchApp]);
 
+  useEffect(() => {
+    setBreadcrumb(<AppBreadcrumb app={app} />);
+    return () => clearBreadcrumb();
+  }, [setBreadcrumb, clearBreadcrumb, app]);
+
   // Update the appUrl state when the app is loaded
   useEffect(() => {
     if (daemonUrl && app && app.ports.length > 0) {
@@ -96,12 +103,38 @@ export function AppDetail({ appId, onUninstall, onBack }: AppDetailProps) {
   }, [app, daemonUrl]);
 
   const handleUninstall = async () => {
+    if (!app) return;
+
     setIsUninstalling(true);
-    const uninstalled = await onUninstall();
-    if (uninstalled) {
-      onBack();
+    const appName = app.info.id.split(".").pop();
+
+    try {
+      toast({
+        icon: "🗑️",
+        title: "Uninstalling...",
+        description: `Uninstalling ${appName}...`,
+      });
+
+      await uninstallApp(app.info.id);
+
+      toast({
+        icon: "🗑️",
+        title: "App uninstalled",
+        description: `${appName} has been uninstalled.`,
+      });
+
+      onBack(); // Navigate back after successful uninstall
+    } catch (error) {
+      toast({
+        icon: "❌",
+        title: "Uninstall Failed",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUninstalling(false);
     }
-    setIsUninstalling(false);
   };
 
   const handleStart = async () => {
