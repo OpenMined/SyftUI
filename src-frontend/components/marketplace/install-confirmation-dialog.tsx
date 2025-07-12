@@ -18,12 +18,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { App } from "@/lib/apps-data";
+import { MarketplaceApp } from "@/lib/api/marketplace";
 
 interface InstallConfirmationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  app: App;
+  app: MarketplaceApp;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -52,7 +52,7 @@ export function InstallConfirmationDialog({
           <div className="flex items-start">
             <AlertTriangle className="mr-2 flex-shrink-0 text-amber-500" />
             <AlertDialogTitle className="text-left">
-              Do you trust the publisher &ldquo;{app.publisher}&rdquo;?
+              Do you trust the authors of this app?
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="space-y-3 text-left md:ml-8">
@@ -65,34 +65,40 @@ export function InstallConfirmationDialog({
             >
               {app.name} <ExternalLink className="h-2 w-2 align-super" />
             </a>
-            is published by{" "}
+            is added by{" "}
             <a
               href={app.website}
               target="_blank"
               rel="noopener noreferrer"
               className="m-0 inline-flex text-blue-600 hover:underline"
             >
-              {app.publisher} <ExternalLink className="h-2 w-2 align-super" />
+              {app.author} <ExternalLink className="h-2 w-2 align-super" />
             </a>
-            . This is the first app you&apos;re installing from this publisher.
+            .
             <span className="my-3 flex items-center gap-2 text-sm">
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 p-1 dark:bg-slate-700">
                 <ShieldAlert className="h-4 w-4 text-red-500" />
               </span>
               <span className="text-muted-foreground">
-                {app.publisher} is{" "}
-                <span className="font-bold text-yellow-500">not</span>
-                <span className="font-medium text-yellow-500"> verified</span>.
+                SyftBox may automatically execute files from this app on
+                installation.
               </span>
             </span>
-            SyftBox has no control over the behavior of third-party apps,
+            SyftBox has no control over the behavior of installed apps,
             including how they manage your personal data. Proceed only if you
-            trust the publisher.
+            trust the author.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between md:ml-8">
-            <Button variant="outline">Learn More</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.open(app.repository, "_blank");
+              }}
+            >
+              View Source
+            </Button>
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
               <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
               <Button
@@ -101,7 +107,7 @@ export function InstallConfirmationDialog({
                 className="bg-primary hover:bg-primary/90"
               >
                 <Download className="mr-2 h-4 w-4" />
-                {isProcessing ? "Installing..." : "Trust Publisher & Install"}
+                {isProcessing ? "Installing..." : "Trust & Install"}
               </Button>
             </div>
           </div>

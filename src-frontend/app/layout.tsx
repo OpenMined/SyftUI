@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { AppBreadcrumb } from "@/components/apps/breadcrumb";
 import { WorkspaceBreadcrumb } from "@/components/workspace/breadcrumb";
+import { MarketplaceBreadcrumb } from "@/components/marketplace/marketplace-breadcrumb";
 import { ScrollText } from "lucide-react";
 
 const title = "SyftBox";
@@ -68,6 +69,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
     if (pathname.startsWith("/workspace")) {
       return <WorkspaceBreadcrumb />;
+    }
+    if (pathname.startsWith("/marketplace")) {
+      return <MarketplaceBreadcrumb />;
     }
     if (pathname.startsWith("/logs")) {
       return (
