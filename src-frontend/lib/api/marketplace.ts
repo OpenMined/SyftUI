@@ -1,4 +1,5 @@
 import { marketplaceApps } from "@/lib/apps-data";
+import { listApps } from "@/lib/api/apps";
 
 export interface MarketplaceApp {
   id: string;
@@ -48,10 +49,26 @@ export async function listMarketplaceApps(): Promise<MarketplaceAppListResponse>
   // const data: MarketplaceAppListResponse = await response.json();
   // return data;
 
-  // For now, return the hardcoded data
-  return {
-    apps: marketplaceApps,
-  };
+  // For now, return the hardcoded data with real installation status
+  try {
+    const installedApps = await listApps();
+    const installedAppIds = new Set(installedApps.apps.map((app) => app.id));
+
+    const appsWithInstallStatus = marketplaceApps.map((app) => ({
+      ...app,
+      installed: installedAppIds.has(app.id),
+    }));
+
+    return {
+      apps: appsWithInstallStatus,
+    };
+  } catch (error) {
+    console.error("Failed to check installation status:", error);
+    // Fallback to original data with dummy install status
+    return {
+      apps: marketplaceApps,
+    };
+  }
 }
 
 export async function getMarketplaceApp(
@@ -74,11 +91,26 @@ export async function getMarketplaceApp(
   // const data: MarketplaceApp = await response.json();
   // return data;
 
-  // For now, find the app in the hardcoded data
+  // For now, find the app in the hardcoded data and check real installation status
   const app = marketplaceApps.find((app) => app.id === appId);
   if (!app) {
     throw new Error(`Marketplace app not found: ${appId}`);
   }
 
-  return app;
+  // Check if app is actually installed
+  try {
+    const installedApps = await listApps();
+    const isInstalled = installedApps.apps.some(
+      (installedApp) => installedApp.id === appId,
+    );
+
+    return {
+      ...app,
+      installed: isInstalled,
+    };
+  } catch (error) {
+    console.error("Failed to check installation status:", error);
+    // Fallback to original app data with dummy install status
+    return app;
+  }
 }

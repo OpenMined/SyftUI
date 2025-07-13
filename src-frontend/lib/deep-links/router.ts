@@ -3,11 +3,12 @@ import type { DeepLinkRoute } from "./parser";
 export interface DeepLinkRouterDeps {
   workspaceHandler: (route: DeepLinkRoute) => Promise<void>;
   appsHandler: (route: DeepLinkRoute) => Promise<void>;
+  marketplaceHandler: (route: DeepLinkRoute) => Promise<void>;
 }
 
 export function createDeepLinkRouter(deps: DeepLinkRouterDeps) {
   return async function routeDeepLink(route: DeepLinkRoute): Promise<void> {
-    const { workspaceHandler, appsHandler } = deps;
+    const { workspaceHandler, appsHandler, marketplaceHandler } = deps;
 
     try {
       switch (route.type) {
@@ -18,6 +19,10 @@ export function createDeepLinkRouter(deps: DeepLinkRouterDeps) {
 
         case "apps":
           await appsHandler(route);
+          break;
+
+        case "marketplace":
+          await marketplaceHandler(route);
           break;
 
         default:

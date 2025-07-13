@@ -7,6 +7,9 @@ import { parseDeepLink } from "@/lib/deep-links/parser";
 import { createDeepLinkRouter } from "@/lib/deep-links/router";
 import { createWorkspaceHandler } from "@/lib/deep-links/handlers/workspace";
 import { createAppsHandler } from "@/lib/deep-links/handlers/apps";
+import { createMarketplaceHandler } from "@/lib/deep-links/handlers/marketplace";
+
+const INITIAL_DEEP_LINKS_PROCESSED_KEY = "syft_initial_deep_links_processed";
 
 export function DeepLinkRouter() {
   const router = useRouter();
@@ -14,20 +17,22 @@ export function DeepLinkRouter() {
   useEffect(() => {
     const handleDeepLink = async () => {
       if (typeof window !== "undefined" && window.__TAURI__) {
-        const { onOpenUrl } = window.__TAURI__.deepLink;
+        const { onOpenUrl, getCurrent } = window.__TAURI__.deepLink;
 
         // Create handlers with dependencies
         const workspaceHandler = createWorkspaceHandler({ router });
         const appsHandler = createAppsHandler({ router });
+        const marketplaceHandler = createMarketplaceHandler({ router });
 
         // Create the router
         const deepLinkRouter = createDeepLinkRouter({
           workspaceHandler,
           appsHandler,
+          marketplaceHandler,
         });
 
-        await onOpenUrl(async (urls) => {
-          console.log("Deep link received:", urls);
+        const processUrls = async (urls: string[]) => {
+          console.log("Processing deep links:", urls);
 
           for (const url of urls) {
             try {
@@ -56,7 +61,27 @@ export function DeepLinkRouter() {
               });
             }
           }
-        });
+        };
+
+        // Check for initial URLs that launched the app (run once per session)
+        const hasProcessed = sessionStorage.getItem(
+          INITIAL_DEEP_LINKS_PROCESSED_KEY,
+        );
+        if (!hasProcessed) {
+          sessionStorage.setItem(INITIAL_DEEP_LINKS_PROCESSED_KEY, "true");
+          try {
+            const initialUrls = await getCurrent();
+            if (initialUrls && initialUrls.length > 0) {
+              console.log("Processing initial launch URLs:", initialUrls);
+              await processUrls(initialUrls);
+            }
+          } catch (error) {
+            console.log("No initial URLs or failed to get them:", error);
+          }
+        }
+
+        // Listen for new deep link events while app is running
+        await onOpenUrl(processUrls);
       }
     };
 

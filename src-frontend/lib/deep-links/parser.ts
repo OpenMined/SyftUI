@@ -1,5 +1,5 @@
 export interface DeepLinkRoute {
-  type: "datasite" | "workspace" | "apps";
+  type: "datasite" | "workspace" | "apps" | "marketplace";
   email?: string;
   path?: string;
   action?: string;
@@ -59,6 +59,20 @@ export function parseDeepLink(url: string): DeepLinkRoute | null {
           type: "apps",
           action: "install",
           params: searchParams,
+        };
+      }
+    }
+
+    // Handle marketplace commands
+    if (host === "marketplace") {
+      const pathParts = pathname.split("/").filter(Boolean);
+      const appId = pathParts[0];
+
+      if (appId) {
+        return {
+          type: "marketplace",
+          action: searchParams.action || "view",
+          params: { ...searchParams, id: appId },
         };
       }
     }

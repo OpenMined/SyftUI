@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MarketplaceApp, listMarketplaceApps } from "@/lib/api/marketplace";
 import { AppCard } from "./app-card";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,9 @@ import { MarketplaceBreadcrumb } from "./marketplace-breadcrumb";
 
 interface AppListProps {
   onSelectApp: (appId: string) => void;
-  onActionClick?: (appId: string) => void;
 }
 
-export function AppList({ onSelectApp, onActionClick }: AppListProps) {
+export function AppList({ onSelectApp }: AppListProps) {
   const [apps, setApps] = useState<MarketplaceApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,26 +39,31 @@ export function AppList({ onSelectApp, onActionClick }: AppListProps) {
     return () => clearBreadcrumb();
   }, [setBreadcrumb, clearBreadcrumb]);
 
-  useEffect(() => {
-    const fetchApps = async () => {
-      try {
-        const response = await listMarketplaceApps();
-        setApps(response.apps);
-      } catch (error) {
-        console.error("Failed to fetch marketplace apps:", error);
-        toast({
-          icon: "❌",
-          title: "Failed to load marketplace",
-          description: "Please try refreshing the page.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchApps();
+  const fetchApps = useCallback(async () => {
+    try {
+      const response = await listMarketplaceApps();
+      setApps(response.apps);
+    } catch (error) {
+      console.error("Failed to fetch marketplace apps:", error);
+      toast({
+        icon: "❌",
+        title: "Failed to load marketplace",
+        description: "Please try refreshing the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchApps();
+  }, [fetchApps]);
+
+  const handleAppInstalled = useCallback(() => {
+    // Refresh the apps list to update installation status
+    fetchApps();
+  }, [fetchApps]);
 
   const handlePublishSubmit = async () => {
     if (!repoUrl.trim()) return;
@@ -203,7 +207,7 @@ export function AppList({ onSelectApp, onActionClick }: AppListProps) {
                   key={app.id}
                   app={app}
                   onClick={onSelectApp}
-                  onActionClick={onActionClick}
+                  onAppInstalled={handleAppInstalled}
                 />
               ))}
             </div>

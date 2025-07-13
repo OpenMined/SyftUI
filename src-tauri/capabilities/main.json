@@ -35,6 +35,7 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-internal-toggle-maximize",
     "decorum:allow-show-snap-overlay",
-    "log:default"
+    "log:default",
+    "deep-link:allow-get-current"
   ]
 }

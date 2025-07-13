@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,13 +12,18 @@ import { InstallConfirmationDialog } from "./install-confirmation-dialog";
 interface AppCardProps {
   app: MarketplaceApp;
   onClick: (appId: string) => void;
-  onActionClick?: (appId: string) => void;
+  onAppInstalled?: () => void;
 }
 
-export function AppCard({ app, onClick, onActionClick }: AppCardProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+export function AppCard({ app, onClick, onAppInstalled }: AppCardProps) {
+  const router = useRouter();
   const [isInstalled, setIsInstalled] = useState(app.installed);
   const [showInstallDialog, setShowInstallDialog] = useState(false);
+
+  // Sync with app.installed prop when it changes
+  useEffect(() => {
+    setIsInstalled(app.installed);
+  }, [app.installed]);
   return (
     <>
       <motion.div
@@ -58,35 +64,21 @@ export function AppCard({ app, onClick, onActionClick }: AppCardProps) {
                 size="sm"
                 className={
                   isInstalled
-                    ? "transition-colors hover:border-red-500 hover:text-red-500"
+                    ? "hover:border-primary hover:text-primary transition-colors"
                     : ""
                 }
-                disabled={isProcessing}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (isInstalled) {
-                    if (onActionClick) {
-                      setIsProcessing(true);
-                      // Simulate installation/uninstallation process
-                      setTimeout(() => {
-                        setIsInstalled(!isInstalled);
-                        setIsProcessing(false);
-                        onActionClick(app.id);
-                      }, 2000);
-                    }
+                    // Navigate to the apps page to open the installed app
+                    router.push(`/apps?id=${app.id}`);
                   } else {
                     // Show install confirmation dialog
                     setShowInstallDialog(true);
                   }
                 }}
               >
-                {isProcessing
-                  ? isInstalled
-                    ? "Uninstalling..."
-                    : "Installing..."
-                  : isInstalled
-                    ? "Uninstall"
-                    : "Install"}
+                {isInstalled ? "Open App" : "Install"}
               </Button>
             </div>
           </div>
@@ -107,9 +99,9 @@ export function AppCard({ app, onClick, onActionClick }: AppCardProps) {
         onOpenChange={setShowInstallDialog}
         app={app}
         onConfirm={() => {
-          setIsInstalled(!isInstalled);
-          if (onActionClick) {
-            onActionClick(app.id);
+          setIsInstalled(true);
+          if (onAppInstalled) {
+            onAppInstalled();
           }
           setShowInstallDialog(false);
         }}

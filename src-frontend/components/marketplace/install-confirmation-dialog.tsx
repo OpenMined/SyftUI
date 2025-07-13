@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { MarketplaceApp } from "@/lib/api/marketplace";
+import { installApp } from "@/lib/api/apps";
+import { toast } from "@/hooks/use-toast";
 
 interface InstallConfirmationDialogProps {
   isOpen: boolean;
@@ -36,13 +38,56 @@ export function InstallConfirmationDialog({
   onCancel,
 }: InstallConfirmationDialogProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const handleInstall = () => {
+  const handleInstall = async () => {
+    if (!app.repository) {
+      toast({
+        icon: "❌",
+        title: "Installation Failed",
+        description: "App repository URL is not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
-    // Simulate an installation process
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    try {
+      // Show loading toast
+      toast({
+        icon: app.icon || "📦",
+        title: "Installing app",
+        description: `Installing ${app.name}...`,
+      });
+
+      // Install app using repository URL
+      await installApp({
+        repoURL: app.repository,
+        branch: app.branch || "main",
+        force: false,
+      });
+
+      // Success toast
+      toast({
+        icon: "🎉",
+        title: "App Installed!",
+        description: `${app.name} has been successfully installed.`,
+        variant: "default",
+      });
+
       onConfirm();
-    }, 2000);
+    } catch (error) {
+      console.error("Failed to install app:", error);
+
+      toast({
+        icon: "❌",
+        title: "Installation Failed",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (

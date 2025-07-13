@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ReviewDialog } from "./review-dialog";
 import { ChevronLeft, Star, ExternalLink } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -10,13 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Toolbar } from "@/components/ui/toolbar";
 import { type MarketplaceApp, getMarketplaceApp } from "@/lib/api/marketplace";
+import { installApp, uninstallApp } from "@/lib/api/apps";
+import { toast } from "@/hooks/use-toast";
 import { useBreadcrumbStore } from "@/stores";
 import { MarketplaceBreadcrumb } from "./marketplace-breadcrumb";
 
 import { getAssetPath } from "@/lib/utils";
 import Image from "next/image";
 import remarkGfm from "remark-gfm";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Separator } from "@radix-ui/react-separator";
 
 interface AppDetailProps {
@@ -62,12 +64,101 @@ interface AppDetailProps {
 
 export function AppDetail({ appId, onBack }: AppDetailProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [app, setApp] = useState<MarketplaceApp | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isUninstalling, setIsUninstalling] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
+
+  const handleInstall = useCallback(async () => {
+    if (!app || !app.repository) {
+      toast({
+        icon: "❌",
+        title: "Installation Failed",
+        description: "App repository URL is not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Show loading toast
+      toast({
+        icon: app.icon || "📦",
+        title: "Installing app",
+        description: `Installing ${app.name}...`,
+      });
+
+      // Install app using repository URL
+      await installApp({
+        repoURL: app.repository,
+        branch: app.branch || "main",
+        force: false,
+      });
+
+      // Success toast
+      toast({
+        icon: "🎉",
+        title: "App Installed!",
+        description: `${app.name} has been successfully installed.`,
+        variant: "default",
+      });
+
+      setIsInstalled(true);
+    } catch (error) {
+      console.error("Failed to install app:", error);
+
+      toast({
+        icon: "❌",
+        title: "Installation Failed",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [app]);
+
+  const handleUninstall = useCallback(async () => {
+    if (!app) return;
+
+    setIsUninstalling(true);
+    const appName = app.name;
+
+    try {
+      toast({
+        icon: "🗑️",
+        title: "Uninstalling...",
+        description: `Uninstalling ${appName}...`,
+      });
+
+      await uninstallApp(app.id);
+
+      toast({
+        icon: "🗑️",
+        title: "App uninstalled",
+        description: `${appName} has been uninstalled.`,
+      });
+
+      setIsInstalled(false);
+    } catch (error) {
+      toast({
+        icon: "❌",
+        title: "Uninstall Failed",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUninstalling(false);
+    }
+  }, [app]);
 
   useEffect(() => {
     const fetchApp = async () => {
@@ -86,19 +177,17 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
   }, [appId]);
 
   useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "install" && app && !isInstalled && !isProcessing) {
+      // Automatically trigger installation
+      handleInstall();
+    }
+  }, [searchParams, app, isInstalled, isProcessing, handleInstall]);
+
+  useEffect(() => {
     setBreadcrumb(<MarketplaceBreadcrumb app={app} />);
     return () => clearBreadcrumb();
   }, [setBreadcrumb, clearBreadcrumb, app]);
-
-  const handleInstall = () => {
-    setIsProcessing(true);
-
-    // Simulate installation
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsInstalled(true);
-    }, 1500);
-  };
 
   if (isLoading) {
     return (
@@ -133,10 +222,18 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
             <Button
               variant="default"
               onClick={() => {
-                router.push(`/apps/${app.id}`);
+                router.push(`/apps/?id=${app.id}`);
               }}
             >
               Open App
+            </Button>
+            <Button
+              variant="outline"
+              className="border-destructive text-destructive hover:text-destructive hover:bg-none"
+              onClick={handleUninstall}
+              disabled={isUninstalling}
+            >
+              {isUninstalling ? "Uninstalling..." : "Uninstall App"}
             </Button>
           </div>
         )}

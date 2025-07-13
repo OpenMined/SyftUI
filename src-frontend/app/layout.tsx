@@ -47,8 +47,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         logger: (message: string) => Promise<void>,
       ) {
         const original = console[fnName];
-        console[fnName] = (message) => {
-          original(message);
+        console[fnName] = (...args) => {
+          original(...args);
+          // Convert all arguments to strings and join them
+          const message = args
+            .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
+            .join(" ");
           logger(message);
         };
       }
