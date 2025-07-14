@@ -7,13 +7,13 @@ v=$(git tag --list | sort -V | tail -n 1)
 prev_v=$(git tag --list | sort -V | tail -n 2 | head -n 1)
 
 # Collect SyftUI commits
-syftui_commits=$(git --no-pager log --pretty=format:'%s' "$prev_v".."$v")
+syftui_commits=$(git --no-pager log --pretty=format:'%B' "$prev_v".."$v")
 
 # Collect Daemon commit hashes and logs
 daemon_diff=$(git --no-pager diff "$prev_v".."$v" -- src-daemon)
 if [ -n "$daemon_diff" ]; then
     read h1 h2 < <(echo "$daemon_diff" | tail -n 2 | awk '{print $3}')
-    daemon_commits=$(cd src-daemon && git --no-pager log --pretty=format:'%s' "$h1".."$h2")
+    daemon_commits=$(cd src-daemon && git --no-pager log --pretty=format:'%B' "$h1".."$h2")
 else
     daemon_commits=""
 fi
@@ -90,17 +90,51 @@ if [ -z "$OPENROUTER_API_KEY" ]; then
 fi
 
 # Call OpenRouter API with prompt
+# Create a temporary file for the JSON payload to avoid escaping issues
+json_payload=$(cat << EOF
+{
+    "model": "openai/gpt-4-turbo",
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a release note generator for a desktop application project called SyftBox."
+        },
+        {
+            "role": "user",
+            "content": $(echo "$prompt_template" | jq -Rs .)
+        }
+    ]
+}
+EOF
+)
+
 response=$(curl -s https://openrouter.ai/api/v1/chat/completions \
     -H "Authorization: Bearer $OPENROUTER_API_KEY" \
     -H "Content-Type: application/json" \
-    -d '{
-    "model": "openai/gpt-4-turbo",
-    "messages": [
-      { "role": "system", "content": "You are a release note generator for a desktop application project called SyftBox." },
-      { "role": "user", "content": "'"${prompt_template//$'\n'/\\n}"'" }
-    ]
-}')
+    -d "$json_payload")
 
 # Extract and print content
 echo -e "\n\033[1;36mGenerated release notes:\033[0m" >&2
-echo "$response" | jq -r '.choices[0].message.content'
+
+# Debug: Check if response is valid JSON
+if ! echo "$response" | jq empty 2>/dev/null; then
+    echo "Error: Invalid JSON response from API" >&2
+    echo "Response: $response" >&2
+    exit 1
+fi
+
+# Check if there's an error in the response
+if echo "$response" | jq -e '.error' >/dev/null 2>&1; then
+    echo "API Error: $(echo "$response" | jq -r '.error.message')" >&2
+    exit 1
+fi
+
+# Extract and print content
+content=$(echo "$response" | jq -r '.choices[0].message.content // empty')
+if [ -z "$content" ]; then
+    echo "Error: No content in API response" >&2
+    echo "Full response: $response" >&2
+    exit 1
+fi
+
+echo "$content"
