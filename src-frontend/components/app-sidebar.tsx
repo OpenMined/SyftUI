@@ -44,6 +44,7 @@ import {
   LogOut,
   Power,
   ScrollText,
+  ShoppingBag,
   Star,
   X,
 } from "lucide-react";
@@ -154,14 +155,19 @@ export function AppSidebar() {
         router.push("/apps/");
       },
     },
-    // {
-    //   icon: ShoppingBag,
-    //   label: "Marketplace",
-    //   action: () => {
-    //     setActiveItem("Marketplace");
-    //     router.push("/marketplace/");
-    //   },
-    // },
+    // Only show Marketplace for @openmined.org users for now
+    ...(email.endsWith("@openmined.org")
+      ? [
+          {
+            icon: ShoppingBag,
+            label: "Marketplace",
+            action: () => {
+              setActiveItem("Marketplace");
+              router.push("/marketplace/");
+            },
+          },
+        ]
+      : []),
     {
       icon: ScrollText,
       label: "Logs",

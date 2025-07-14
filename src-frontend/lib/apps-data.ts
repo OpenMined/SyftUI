@@ -16,7 +16,7 @@ export const marketplaceApps: MarketplaceApp[] = [
     branch: "main",
   },
 ];
-// export const marketplaceApps: App[] = [
+// export const marketplaceApps: MarketplaceApp[] = [
 //   {
 //     id: "1",
 //     name: "Inbox",
