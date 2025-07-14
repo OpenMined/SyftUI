@@ -1,9 +1,18 @@
 export interface DeepLinkRoute {
-  type: "datasite" | "workspace" | "apps" | "marketplace";
+  type: "datasite" | "workspace" | "marketplace";
   email?: string;
   path?: string;
   action?: string;
   params?: Record<string, string>;
+}
+
+function normalizePath(pathname: string): string {
+  // Remove leading slash and trailing slash
+  let normalizedPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+  normalizedPath = normalizedPath.endsWith("/")
+    ? normalizedPath.slice(0, -1)
+    : normalizedPath;
+  return normalizedPath;
 }
 
 export function parseDeepLink(url: string): DeepLinkRoute | null {
@@ -25,7 +34,7 @@ export function parseDeepLink(url: string): DeepLinkRoute | null {
       return {
         type: "datasite",
         email: email,
-        path: pathname.startsWith("/") ? pathname.slice(1) : pathname,
+        path: normalizePath(pathname),
         params: searchParams,
       };
     }
@@ -35,7 +44,7 @@ export function parseDeepLink(url: string): DeepLinkRoute | null {
       return {
         type: "datasite",
         email: host,
-        path: pathname.startsWith("/") ? pathname.slice(1) : pathname,
+        path: normalizePath(pathname),
         params: searchParams,
       };
     }
@@ -44,23 +53,9 @@ export function parseDeepLink(url: string): DeepLinkRoute | null {
     if (host === "workspace") {
       return {
         type: "workspace",
-        path: pathname.startsWith("/") ? pathname.slice(1) : pathname,
+        path: normalizePath(pathname),
         params: searchParams,
       };
-    }
-
-    // Handle apps commands
-    if (host === "apps") {
-      const pathParts = pathname.split("/").filter(Boolean);
-      const action = pathParts[0];
-
-      if (action === "install") {
-        return {
-          type: "apps",
-          action: "install",
-          params: searchParams,
-        };
-      }
     }
 
     // Handle marketplace commands

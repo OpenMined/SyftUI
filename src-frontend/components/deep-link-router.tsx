@@ -6,7 +6,6 @@ import { toast } from "@/hooks/use-toast";
 import { parseDeepLink } from "@/lib/deep-links/parser";
 import { createDeepLinkRouter } from "@/lib/deep-links/router";
 import { createWorkspaceHandler } from "@/lib/deep-links/handlers/workspace";
-import { createAppsHandler } from "@/lib/deep-links/handlers/apps";
 import { createMarketplaceHandler } from "@/lib/deep-links/handlers/marketplace";
 
 const INITIAL_DEEP_LINKS_PROCESSED_KEY = "syft_initial_deep_links_processed";
@@ -21,28 +20,22 @@ export function DeepLinkRouter() {
 
         // Create handlers with dependencies
         const workspaceHandler = createWorkspaceHandler({ router });
-        const appsHandler = createAppsHandler({ router });
         const marketplaceHandler = createMarketplaceHandler({ router });
 
         // Create the router
         const deepLinkRouter = createDeepLinkRouter({
           workspaceHandler,
-          appsHandler,
           marketplaceHandler,
         });
 
         const processUrls = async (urls: string[]) => {
-          console.log("Processing deep links:", urls);
-
           for (const url of urls) {
             try {
               const route = parseDeepLink(url);
 
               if (route) {
-                console.log("Parsed deep link route:", route);
                 await deepLinkRouter(route);
               } else {
-                console.warn("Failed to parse deep link:", url);
                 toast({
                   title: "Invalid deep link",
                   description: `Unable to handle link: ${url}`,
@@ -72,11 +65,16 @@ export function DeepLinkRouter() {
           try {
             const initialUrls = await getCurrent();
             if (initialUrls && initialUrls.length > 0) {
-              console.log("Processing initial launch URLs:", initialUrls);
-              await processUrls(initialUrls);
+              // Add a delay to ensure router and app are ready
+              setTimeout(async () => {
+                await processUrls(initialUrls);
+              }, 1000);
             }
           } catch (error) {
-            console.log("No initial URLs or failed to get them:", error);
+            console.info(
+              "No initial deeplink URLs or failed to get them:",
+              error,
+            );
           }
         }
 

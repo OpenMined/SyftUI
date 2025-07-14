@@ -24,13 +24,19 @@ export function createMarketplaceHandler(deps: MarketplaceHandlerDeps) {
 
     // Navigate to marketplace app detail page
     const marketplaceUrl = `/marketplace?id=${appId}`;
+    const targetUrl =
+      action === "install"
+        ? `${marketplaceUrl}&action=install`
+        : marketplaceUrl;
 
-    if (action === "install") {
-      // Add install action parameter for the marketplace component to handle
-      router.push(`${marketplaceUrl}&action=install`);
+    // Check if we're on the home page (initial load)
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      // Redirect through home page with next parameter
+      const nextUrl = `/?next=${encodeURIComponent(targetUrl)}`;
+      router.push(nextUrl);
     } else {
-      // Just view the app
-      router.push(marketplaceUrl);
+      // Direct navigation if already in the app
+      router.push(targetUrl);
     }
   };
 }

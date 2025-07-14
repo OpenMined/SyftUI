@@ -16,7 +16,17 @@ export function createWorkspaceHandler(deps: WorkspaceHandlerDeps) {
       const pathParam = route.path
         ? `?path=${encodeURIComponent(route.path)}`
         : "";
-      router.push(`/workspace${pathParam}`);
+      const workspaceUrl = `/workspace${pathParam}`;
+
+      // Check if we're on the home page (initial load)
+      if (window.location.pathname === "/" || window.location.pathname === "") {
+        // Redirect through home page with next parameter
+        const nextUrl = `/?next=${encodeURIComponent(workspaceUrl)}`;
+        router.push(nextUrl);
+      } else {
+        // Direct navigation if already in the app
+        router.push(workspaceUrl);
+      }
     } else if (route.type === "datasite") {
       // Navigate to datasite workspace
       const datasitePath = route.email
@@ -26,8 +36,17 @@ export function createWorkspaceHandler(deps: WorkspaceHandlerDeps) {
         ? `${datasitePath}/${route.path}`
         : datasitePath;
       const pathParam = `?path=${encodeURIComponent(fullPath)}`;
+      const workspaceUrl = `/workspace${pathParam}`;
 
-      router.push(`/workspace${pathParam}`);
+      // Check if we're on the home page (initial load)
+      if (window.location.pathname === "/" || window.location.pathname === "") {
+        // Redirect through home page with next parameter
+        const nextUrl = `/?next=${encodeURIComponent(workspaceUrl)}`;
+        router.push(nextUrl);
+      } else {
+        // Direct navigation if already in the app
+        router.push(workspaceUrl);
+      }
     }
   };
 }
