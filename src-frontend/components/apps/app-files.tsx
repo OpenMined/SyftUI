@@ -4,6 +4,7 @@ import { getWorkspaceItems } from "@/lib/api/workspace";
 import { Layers, FileText, ChevronLeft, Database } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { FilePreview } from "../workspace/file-preview";
+import type { FileSystemItem } from "@/lib/types";
 
 export function AppFiles({ appPath }: { appPath: string }) {
   const router = useRouter();

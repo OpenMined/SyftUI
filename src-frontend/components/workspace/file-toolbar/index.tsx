@@ -89,7 +89,9 @@ export function FileToolbar({ onSearch }: FileToolbarProps) {
             placeholder="Search files..."
             className="w-full pr-8 pl-8"
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleSearch(e.target.value)
+            }
           />
           <Button
             variant="ghost"

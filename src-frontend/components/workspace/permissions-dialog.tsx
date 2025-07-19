@@ -252,7 +252,9 @@ export function PermissionsDialog({
                   type="email"
                   autoComplete="off"
                   value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewEmail(e.target.value)
+                  }
                   className="h-9"
                 />
               </div>
@@ -307,7 +309,7 @@ export function PermissionsDialog({
                       id="maxStorage"
                       placeholder="e.g., 1GB"
                       value={limits.maxStorage}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setLimits({ ...limits, maxStorage: e.target.value })
                       }
                     />
@@ -333,7 +335,7 @@ export function PermissionsDialog({
                       type="number"
                       placeholder="e.g., 100"
                       value={limits.maxFiles || ""}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setLimits({
                           ...limits,
                           maxFiles:
@@ -366,7 +368,7 @@ export function PermissionsDialog({
                       id="maxFileSize"
                       placeholder="e.g., 50MB"
                       value={limits.maxFileSize}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setLimits({ ...limits, maxFileSize: e.target.value })
                       }
                     />
@@ -393,7 +395,7 @@ export function PermissionsDialog({
                       type="number"
                       placeholder="e.g., 5"
                       value={limits.folderDepth || ""}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setLimits({
                           ...limits,
                           folderDepth:
@@ -427,7 +429,9 @@ export function PermissionsDialog({
                     value={
                       limits.fileTypeRestrictions?.allowed?.join("\n") || ""
                     }
-                    onChange={(e) => updateAllowedFileTypes(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      updateAllowedFileTypes(e.target.value)
+                    }
                     className="min-h-[80px]"
                   />
                 </div>
@@ -457,7 +461,9 @@ export function PermissionsDialog({
                     value={
                       limits.fileTypeRestrictions?.disallowed?.join("\n") || ""
                     }
-                    onChange={(e) => updateDisallowedFileTypes(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      updateDisallowedFileTypes(e.target.value)
+                    }
                     className="min-h-[80px]"
                   />
                 </div>

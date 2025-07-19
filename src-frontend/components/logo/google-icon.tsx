@@ -1,6 +1,13 @@
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
+interface GoogleIconProps {
+  className?: string;
+  width?: string | number;
+  height?: string | number;
+  "aria-label"?: string;
+}
+
 /**
  * GoogleIcon displays the Google logo
  *
@@ -9,15 +16,20 @@ import { memo } from "react";
  */
 export const GoogleIcon = memo(function GoogleIcon({
   className = "h-full w-auto",
-}) {
+  width,
+  height,
+  "aria-label": ariaLabel = "Google Logo",
+}: GoogleIconProps) {
   return (
     <svg
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 48 48"
       xmlnsXlink="http://www.w3.org/1999/xlink"
+      width={width}
+      height={height}
       className={cn("block", className)}
-      aria-label="Google Logo"
+      aria-label={ariaLabel}
       role="img"
     >
       <path

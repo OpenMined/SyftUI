@@ -46,7 +46,9 @@ export function FileConflictDialog() {
                 {currentConflict.existingItem.name}
               </p>
               <p className="text-muted-foreground text-sm">
-                {formatFileSize(currentConflict.existingItem.size)}
+                {currentConflict.existingItem.size !== undefined
+                  ? formatFileSize(currentConflict.existingItem.size)
+                  : "Unknown size"}
               </p>
             </div>
           </div>

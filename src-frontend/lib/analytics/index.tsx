@@ -26,7 +26,7 @@ type AnalyticsContextType = {
     category: EventCategory,
     action: EventAction,
     detail: string,
-    props?: Record<string, unknown>,
+    props?: Record<string, string | number | boolean>,
   ) => void;
 };
 
@@ -44,7 +44,10 @@ export function AnalyticsProvider({
 }) {
   // If we want to replace Aptabase in the future, we'd modify this component
   return (
-    <AptabaseProvider appKey={appKey} options={{ appVersion: APP_VERSION }}>
+    <AptabaseProvider
+      appKey={appKey || ""}
+      options={{ appVersion: APP_VERSION }}
+    >
       <AnalyticsConsumer>{children}</AnalyticsConsumer>
     </AptabaseProvider>
   );

@@ -3,14 +3,14 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getLogs, type LogsResponse } from "@/lib/api/logs";
+import { getLogs, type ParsedLogResponse } from "@/lib/api/logs";
 import { Badge } from "@/components/ui/badge";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 const MAX_LOGS = 5000; // Limit logs for app view
 
 export function AppLogs({ appId }: { appId: string }) {
-  const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
+  const [logs, setLogs] = useState<ParsedLogResponse["logs"]>([]);
   const [nextToken, setNextToken] = useState<number>(1);
   const [isAutoScroll, setIsAutoScroll] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);

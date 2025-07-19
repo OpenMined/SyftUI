@@ -53,7 +53,7 @@ function MarketplaceBreadcrumbContent({
 }
 
 interface MarketplaceBreadcrumbProps {
-  app?: MarketplaceApp | null;
+  app: MarketplaceApp | null;
 }
 
 export function MarketplaceBreadcrumb({ app }: MarketplaceBreadcrumbProps) {

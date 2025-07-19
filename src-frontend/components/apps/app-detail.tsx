@@ -269,7 +269,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
     }
   };
 
-  const updateActiveTab = (tab: string) => {
+  const updateActiveTab = (tab: string): void => {
     setActiveTab(tab);
     fetchApp();
   };

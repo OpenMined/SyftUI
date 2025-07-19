@@ -78,7 +78,7 @@ export const Hint = React.memo(
           </AnimatedGradientText>
           {showCloseButton && onClose && (
             <button
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 onClose();
               }}

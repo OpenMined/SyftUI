@@ -1,6 +1,7 @@
 import { ExternalLink, Play, RefreshCcw, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import { App } from "@/lib/api/apps";
 
 interface AppInterfaceProps {
   app: App;

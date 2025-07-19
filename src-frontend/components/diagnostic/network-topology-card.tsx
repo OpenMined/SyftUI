@@ -118,15 +118,15 @@ export function NetworkTopologyCard({
       setCurrentConnections((prevConnections) => {
         const isAllConnected = Math.random() < 0.5; // 50% chance for all connections to be connected
         return prevConnections.map((conn) => {
-          const randomStatus = isAllConnected
+          const randomStatus: ConnectionStatus = isAllConnected
             ? "connected"
-            : ["connected", "connecting", "disconnected", "degraded"][
-                Math.floor(Math.random() * 4)
-              ];
+            : ((
+                ["connected", "connecting", "disconnected", "degraded"] as const
+              )[Math.floor(Math.random() * 4)] as ConnectionStatus);
           const randomLatency =
             randomStatus === "connected"
               ? Math.floor(Math.random() * 100) + 1
-              : null;
+              : undefined;
           return {
             ...conn,
             status: randomStatus,
@@ -270,6 +270,7 @@ interface ConnectionLineProps {
     status: ConnectionStatus;
     latency?: number;
   };
+  isLast?: boolean;
 }
 
 function ConnectionLine({ connection }: ConnectionLineProps) {

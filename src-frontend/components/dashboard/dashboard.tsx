@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
+import type { Layout, Layouts } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { v4 as uuidv4 } from "uuid";
@@ -27,7 +28,7 @@ import { toast } from "@/hooks/use-toast";
 const DASHBOARD_LAYOUT_KEY = "syftui-dashboard-layout";
 
 // Apply width provider to the responsive grid layout
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const ResponsiveGridLayout = WidthProvider(Responsive) as typeof Responsive;
 
 // Breakpoints for responsive layout
 const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
@@ -126,45 +127,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [storageAvailable]);
 
   // Save layout on changes
-  const saveLayout = async (
-    layout: DashboardLayout,
-    updateOriginal: boolean = false,
-  ) => {
-    try {
-      // Save to localStorage if available
-      if (storageAvailable) {
-        localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout));
+  const saveLayout = useCallback(
+    async (layout: DashboardLayout, updateOriginal: boolean = false) => {
+      try {
+        // Save to localStorage if available
+        if (storageAvailable) {
+          localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout));
+        }
+
+        // Also save to mock backend for demonstration
+        await saveDashboardLayout(layout);
+
+        // Update original layout if specified (typically after a successful save)
+        if (updateOriginal) {
+          setOriginalLayout(JSON.parse(JSON.stringify(layout)));
+        }
+
+        toast({
+          title: "Success",
+          description: "Dashboard layout saved",
+          icon: "✅",
+        });
+      } catch (error) {
+        console.error("Failed to save dashboard layout:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to save dashboard layout",
+          icon: "❌",
+        });
       }
-
-      // Also save to mock backend for demonstration
-      await saveDashboardLayout(layout);
-
-      // Update original layout if specified (typically after a successful save)
-      if (updateOriginal) {
-        setOriginalLayout(JSON.parse(JSON.stringify(layout)));
-      }
-
-      toast({
-        title: "Success",
-        description: "Dashboard layout saved",
-        icon: "✅",
-      });
-    } catch (error) {
-      console.error("Failed to save dashboard layout:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save dashboard layout",
-        icon: "❌",
-      });
-    }
-  };
+    },
+    [storageAvailable],
+  );
 
   // Handle layout change
-  const handleLayoutChange = (
-    layout: ReactGridLayout.Layout,
-    layouts: ReactGridLayout.Layouts,
-  ) => {
+  const handleLayoutChange = (layout: Layout[], layouts: Layouts) => {
     if (!dashboardLayout || !layouts) return;
 
     const updatedLayout: DashboardLayout = {
@@ -288,18 +286,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   // Handle toggling edit mode
-  const toggleEditMode = (shouldSave = true) => {
-    if (isEditing && shouldSave) {
-      // Save layout when exiting edit mode with visible notification
-      if (dashboardLayout) {
-        saveLayout(dashboardLayout, true); // Update original layout after saving
+  const toggleEditMode = useCallback(
+    (shouldSave = true) => {
+      if (isEditing && shouldSave) {
+        // Save layout when exiting edit mode with visible notification
+        if (dashboardLayout) {
+          saveLayout(dashboardLayout, true); // Update original layout after saving
+        }
       }
-    }
-    setIsEditing(!isEditing);
-  };
+      setIsEditing(!isEditing);
+    },
+    [isEditing, dashboardLayout, saveLayout],
+  );
 
   // Handle canceling edit mode
-  const cancelEditMode = () => {
+  const cancelEditMode = useCallback(() => {
     // Restore original layout
     if (originalLayout) {
       setDashboardLayout(JSON.parse(JSON.stringify(originalLayout)));
@@ -311,10 +312,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       description: "Edit changes have been discarded",
       icon: "ℹ️",
     });
-  };
+  }, [originalLayout, toggleEditMode]);
 
   // Handle resetting dashboard to default
-  const resetDashboard = async () => {
+  const resetDashboard = useCallback(async () => {
     try {
       // Load default layout from backend
       const defaultLayout = await loadDashboardLayout();
@@ -345,7 +346,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         icon: "❌",
       });
     }
-  };
+  }, [storageAvailable]);
 
   // Expose dashboard controls to parent components
   useEffect(() => {

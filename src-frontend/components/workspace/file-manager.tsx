@@ -276,12 +276,17 @@ export function FileManager() {
               transition={{ duration: 0.2 }}
               className="border-border hidden overflow-hidden border-l md:block"
             >
-              <FileDetails
-                item={detailsItem || getCurrentDirectoryInfo()}
-                onClose={handleCloseDetails}
-                setDetailsItem={handleSetDetailsItem}
-                selectedCount={selectedItems.length}
-              />
+              {(() => {
+                const item = detailsItem || getCurrentDirectoryInfo();
+                return item ? (
+                  <FileDetails
+                    item={item}
+                    onClose={handleCloseDetails}
+                    setDetailsItem={handleSetDetailsItem}
+                    selectedCount={selectedItems.length}
+                  />
+                ) : null;
+              })()}
             </motion.div>
           )}
         </AnimatePresence>

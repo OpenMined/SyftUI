@@ -35,7 +35,7 @@ export function AppList({ onSelectApp }: AppListProps) {
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   useEffect(() => {
-    setBreadcrumb(<MarketplaceBreadcrumb />);
+    setBreadcrumb(<MarketplaceBreadcrumb app={null} />);
     return () => clearBreadcrumb();
   }, [setBreadcrumb, clearBreadcrumb]);
 

@@ -13,7 +13,7 @@ import {
   getLogs,
   logLevels,
   downloadLogs,
-  type LogsResponse,
+  type ParsedLog,
 } from "@/lib/api/logs";
 import {
   Select,
@@ -28,7 +28,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 const MAX_LOGS = 10000; // Limit logs to prevent memory issues
 
 export function Logs() {
-  const [logs, setLogs] = useState<LogsResponse["logs"]>([]);
+  const [logs, setLogs] = useState<ParsedLog[]>([]);
   const [appId, setAppId] = useState("system");
   const [nextToken, setNextToken] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);

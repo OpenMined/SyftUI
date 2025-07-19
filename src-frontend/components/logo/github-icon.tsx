@@ -1,6 +1,13 @@
 import { cn } from "@/lib/utils";
 import { memo } from "react";
 
+interface GithubIconProps {
+  className?: string;
+  width?: string | number;
+  height?: string | number;
+  "aria-label"?: string;
+}
+
 /**
  * GithubIcon displays the Github logo
  *
@@ -9,15 +16,20 @@ import { memo } from "react";
  */
 export const GithubIcon = memo(function GithubIcon({
   className = "h-full w-auto",
-}) {
+  width,
+  height,
+  "aria-label": ariaLabel = "Github Logo",
+}: GithubIconProps) {
   return (
     <svg
       version="1.0"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 240 240"
       xmlnsXlink="http://www.w3.org/1999/xlink"
+      width={width}
+      height={height}
       className={cn("block", className)}
-      aria-label="Github Logo"
+      aria-label={ariaLabel}
       role="img"
       preserveAspectRatio="xMidYMid meet"
     >

@@ -1,6 +1,6 @@
 import { useConnectionStore } from "@/stores/useConnectionStore";
 
-interface cpuTimesStat {
+export interface CpuTimesStat {
   user: number;
   system: number;
   idle: number;
@@ -23,7 +23,7 @@ interface MemoryInfoStat {
   swap: number;
 }
 
-interface ConnectionStat {
+export interface ConnectionStat {
   fd: number;
   family: number;
   type: number;
@@ -40,9 +40,9 @@ interface ConnectionStat {
   pid: number;
 }
 
-type AppStatus = "running" | "stopped";
+export type AppStatus = "running" | "stopped";
 
-interface ProcessStats {
+export interface ProcessStats {
   processName: string;
   pid: number;
   status: string[];
@@ -56,7 +56,7 @@ interface ProcessStats {
   username: string;
   connections: ConnectionStat[];
   cpuPercent: number;
-  cpuTimes: cpuTimesStat | null;
+  cpuTimes: CpuTimesStat | null;
   numThreads: number;
   memoryPercent: number;
   memoryInfo: MemoryInfoStat | null;
@@ -64,16 +64,17 @@ interface ProcessStats {
   children: ProcessStats[];
 }
 
-interface AppInfo {
+export interface AppInfo {
   id: string;
   name: string;
   path: string;
   source: string;
   sourceURI: string;
+  branch?: string;
   installedOn: string;
 }
 
-interface App {
+export interface App {
   id: string;
   name: string;
   path: string;
@@ -84,13 +85,13 @@ interface App {
   processStats?: ProcessStats;
 }
 
-interface AppInstallRequest {
+export interface AppInstallRequest {
   repoURL: string;
   branch?: string;
   force?: boolean;
 }
 
-interface AppListResponse {
+export interface AppListResponse {
   apps: App[];
 }
 

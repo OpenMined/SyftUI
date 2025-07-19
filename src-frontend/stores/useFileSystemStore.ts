@@ -105,12 +105,12 @@ interface FileSystemState {
   handleRename: (itemId: string, newName: string) => void;
   moveItems: (
     itemIds: string[],
-    targetPath: string,
+    targetPath: string | string[],
     overwrite?: boolean,
   ) => Promise<void>;
   copyItems: (
     itemIds: string[],
-    targetPath: string,
+    targetPath: string | string[],
     overwrite?: boolean,
   ) => Promise<void>;
   updatePermissions: (itemId: string, permissions: Permission[]) => void;
@@ -122,7 +122,7 @@ interface FileSystemState {
   updateDetailsWithDirectory: () => void;
 }
 
-export const useFileSystemStore = create<FileSystemState>(
+export const useFileSystemStore = create<FileSystemState>()(
   persist(
     (set, get) => ({
       // Initial state
@@ -457,9 +457,10 @@ export const useFileSystemStore = create<FileSystemState>(
             const realName = name.split("/").pop();
             const optimisticFolder: FileSystemItem = {
               id: folderPath,
-              name: realName,
+              name: realName || name,
               type: "folder",
               path: folderPath,
+              absolutePath: folderPath,
               createdAt: new Date().toISOString(),
               modifiedAt: new Date().toISOString(),
               syncStatus: "pending",
@@ -557,6 +558,7 @@ export const useFileSystemStore = create<FileSystemState>(
               name,
               type: "file",
               path: filePath,
+              absolutePath: filePath,
               createdAt: new Date().toISOString(),
               modifiedAt: new Date().toISOString(),
               syncStatus: "syncing",
@@ -674,7 +676,20 @@ export const useFileSystemStore = create<FileSystemState>(
       handleRename: async (itemId, newName) => {
         try {
           const { findItemById, findItemByPath, refreshFileSystem } = get();
-          const itemPath = findItemById(itemId)?.path;
+          const item = findItemById(itemId);
+
+          if (!item) {
+            toast({
+              icon: "⚠️",
+              title: "Item not found",
+              description:
+                "The item you're trying to rename could not be found.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          const itemPath = item.path;
           const parentPath = itemPath.split("/").slice(0, -1).join("/");
           const destinationPath = parentPath + `/${newName}`;
           console.info(`Renaming ${itemPath} to ${destinationPath}`);
@@ -714,8 +729,11 @@ export const useFileSystemStore = create<FileSystemState>(
           const { refreshFileSystem } = state;
 
           // Convert target path array to string path
-          const targetDirString =
-            targetDir.length > 0 ? `/${targetDir.join("/")}` : "/";
+          const targetDirString = Array.isArray(targetDir)
+            ? targetDir.length > 0
+              ? `/${targetDir.join("/")}`
+              : "/"
+            : targetDir;
 
           // Find all items to move
           const itemsToMove: FileSystemItem[] = [];
@@ -739,7 +757,14 @@ export const useFileSystemStore = create<FileSystemState>(
 
           for (const item of itemsToMove) {
             const baseName = item.name;
-            const newPath = targetDirString.trimEnd("/") + "/" + baseName;
+            const newPath = targetDirString.replace(/\/$/, "") + "/" + baseName;
+
+            // Skip if trying to move an item to its current location
+            if (item.path === newPath) {
+              console.log(`Skipping move: item already at ${newPath}`);
+              continue;
+            }
+
             const { item: result, isConflict } = await moveWorkspaceItem(
               item.path,
               newPath,
@@ -838,8 +863,11 @@ export const useFileSystemStore = create<FileSystemState>(
           const { refreshFileSystem } = state;
 
           // Convert target path array to string path
-          const targetDirString =
-            targetDir.length > 0 ? `/${targetDir.join("/")}` : "/";
+          const targetDirString = Array.isArray(targetDir)
+            ? targetDir.length > 0
+              ? `/${targetDir.join("/")}`
+              : "/"
+            : targetDir;
 
           // Find all items to copy
           const itemsToCopy: FileSystemItem[] = [];
@@ -863,7 +891,14 @@ export const useFileSystemStore = create<FileSystemState>(
 
           for (const item of itemsToCopy) {
             const baseName = item.name;
-            const newPath = `${targetDirString}/${baseName}`;
+            const newPath = `${targetDirString.replace(/\/$/, "")}/${baseName}`;
+
+            // Skip if trying to copy an item to its current location
+            if (item.path === newPath) {
+              console.log(`Skipping copy: item already at ${newPath}`);
+              continue;
+            }
+
             const { item: result, isConflict } = await copyWorkspaceItem(
               item.path,
               newPath,
@@ -1051,6 +1086,8 @@ export const useFileSystemStore = create<FileSystemState>(
             id: "/",
             name: "Workspace",
             type: "folder" as const,
+            path: "/",
+            absolutePath: "/",
             children: getCurrentItems(),
             createdAt: new Date().toISOString(),
             modifiedAt: new Date().toISOString(),
@@ -1084,7 +1121,10 @@ export const useFileSystemStore = create<FileSystemState>(
           const { currentPath, setCurrentPath, setPreviewFile } = get();
 
           // Always get the parent path in the memory
-          const path = currentPath.slice(0, -1).join("/") || "/";
+          const path =
+            currentPath && currentPath.length > 0
+              ? currentPath.slice(0, -1).join("/") || "/"
+              : "/";
           const items = await getWorkspaceItems(path, 1);
 
           const isRoot = currentPath.length === 0;
@@ -1133,6 +1173,6 @@ export const initializeFileSystemStore = async (initialPath: string[] = []) => {
   const store = useFileSystemStore.getState();
 
   // Initialize state
-  store.setCurrentPath(initialPath?.split("/") || []);
+  store.setCurrentPath(initialPath);
   await store.refreshFileSystem();
 };

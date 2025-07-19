@@ -1,14 +1,16 @@
 import { memo } from "react";
 
+interface BackgroundGradientsProps {
+  width?: string | number;
+  height?: string | number;
+  className?: string;
+}
+
 export const BackgroundGradients = memo(function BackgroundGradients({
   width = "100%",
   height = "100%",
   className,
-}: {
-  width?: number;
-  height?: number;
-  className?: string;
-}) {
+}: BackgroundGradientsProps) {
   return (
     <svg
       width={width}

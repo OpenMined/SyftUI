@@ -17,23 +17,10 @@ export interface WidgetDefinition {
   minHeight?: number;
 }
 
-export interface Layout {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  minW?: number;
-  minH?: number;
-}
+import type { Layouts } from "react-grid-layout";
 
 export interface DashboardLayout {
-  layouts: {
-    lg: Layout[];
-    md: Layout[];
-    sm: Layout[];
-    xs: Layout[];
-  };
+  layouts: Layouts;
   widgets: WidgetDefinition[];
 }
 
@@ -111,6 +98,13 @@ export const defaultDashboardLayout: DashboardLayout = {
       { i: "widget-5", x: 1, y: 5, w: 1, h: 2, minW: 1, minH: 1 },
     ],
     xs: [
+      { i: "widget-1", x: 0, y: 0, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-2", x: 0, y: 2, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-3", x: 0, y: 4, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-4", x: 0, y: 6, w: 1, h: 2, minW: 1, minH: 1 },
+      { i: "widget-5", x: 0, y: 8, w: 1, h: 2, minW: 1, minH: 1 },
+    ],
+    xxs: [
       { i: "widget-1", x: 0, y: 0, w: 1, h: 2, minW: 1, minH: 1 },
       { i: "widget-2", x: 0, y: 2, w: 1, h: 2, minW: 1, minH: 1 },
       { i: "widget-3", x: 0, y: 4, w: 1, h: 2, minW: 1, minH: 1 },

@@ -42,7 +42,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({
     const fetchWidgetContent = async () => {
       setIsLoading(true);
       try {
-        const widgetType = widget.contentUrl.split("/").pop().split(".")[0];
+        const widgetType = widget.contentUrl.split("/").pop()?.split(".")[0];
 
         // Fetch the widget HTML
         const widgetPath = getAssetPath(`/widgets/${widgetType}.html`);
@@ -91,7 +91,7 @@ export const IframeWidget: React.FC<IframeWidgetProps> = ({
         metaTags.forEach(({ name, content }) => {
           const existingMeta = doc.querySelector(`meta[name="${name}"]`);
           if (existingMeta) {
-            existingMeta.content = content;
+            (existingMeta as HTMLMetaElement).content = content;
           } else {
             const meta = doc.createElement("meta");
             meta.name = name;

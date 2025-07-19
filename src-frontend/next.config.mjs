@@ -14,10 +14,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // TODO: Remove this once all the build errors are fixed
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,

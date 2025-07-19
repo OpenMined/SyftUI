@@ -70,9 +70,9 @@ export function FileDetails({
 }: FileDetailsProps) {
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState();
-  const [fileType, setFileType] = useState();
-  const [fileExtension, setFileExtension] = useState();
+  const [newName, setNewName] = useState<string>("");
+  const [fileType, setFileType] = useState<string>("");
+  const [fileExtension, setFileExtension] = useState<string>("");
 
   // Get file operations from the store
   const { handleDelete, handleRename } = useFileSystemStore();
@@ -87,7 +87,7 @@ export function FileDetails({
   }, [item]);
 
   const handleRenameSubmit = () => {
-    if (newName.trim() && newName !== item.name) {
+    if (newName && newName.trim() && newName !== item.name) {
       handleRename(item.id, newName.trim());
     }
     setIsRenaming(false);
@@ -178,7 +178,7 @@ export function FileDetails({
                 <div className="flex w-full items-center gap-2">
                   <input
                     type="text"
-                    value={newName}
+                    value={newName || ""}
                     onChange={(e) => setNewName(e.target.value)}
                     className="w-full rounded border px-2 py-1"
                     autoFocus
@@ -215,7 +215,7 @@ export function FileDetails({
                   <span>{fileType}</span>
 
                   <span className="text-muted-foreground">Size:</span>
-                  <span>{formatFileSize(item.size)}</span>
+                  <span>{formatFileSize(item.size || 0)}</span>
 
                   <span className="text-muted-foreground">Location:</span>
                   <span className="truncate">

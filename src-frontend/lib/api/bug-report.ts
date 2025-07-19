@@ -24,9 +24,9 @@ export interface BugReportResponse {
 export async function submitBugReport(
   request: BugReportRequest,
 ): Promise<BugReportResponse> {
-  const {
-    datasite: { email },
-  } = useConnectionStore.getState();
+  const { datasite } = useConnectionStore.getState();
+
+  const email = datasite?.email || "";
 
   // Create FormData and append all fields
   const formData = new FormData();

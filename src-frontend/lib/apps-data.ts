@@ -14,6 +14,7 @@ export const marketplaceApps: MarketplaceApp[] = [
     icon: "🌱",
     repository: "https://github.com/OpenMined/organic-coop",
     branch: "main",
+    installed: false,
   },
 ];
 // export const marketplaceApps: MarketplaceApp[] = [

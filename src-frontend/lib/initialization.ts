@@ -1,5 +1,9 @@
 // lib/initialization.ts
-import { useConnectionStore, useSidebarStore } from "@/stores";
+import {
+  useConnectionStore,
+  useSidebarStore,
+  type FavoriteItem,
+} from "@/stores";
 
 const FIRST_RUN_DONE_KEY = "syftui_first_run_done_20250628";
 
@@ -84,12 +88,12 @@ export const initializationService = {
     if (typeof window === "undefined") return;
     const { setFavorites } = useSidebarStore.getState();
 
-    const favorites = [
+    const favorites: FavoriteItem[] = [
       {
         id: "dir-datasites",
         name: "Datasites",
         path: ["datasites"],
-        type: "folder",
+        type: "folder" as const,
       },
     ];
 
@@ -100,7 +104,7 @@ export const initializationService = {
         id: "dir-my-datasite",
         name: "My datasite",
         path: ["datasites", email],
-        type: "folder",
+        type: "folder" as const,
       });
     }
 

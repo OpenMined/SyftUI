@@ -221,11 +221,17 @@ export function AppSidebar() {
         const item = JSON.parse(data);
         const { addFavorite } = useSidebarStore.getState();
         if (item.type === "folder") {
+          // Convert string path to array format expected by FavoriteItem
+          // FileSystemItem.path is a string like "/apps" or "/folder/subfolder"
+          const pathArray = item.path
+            ? item.path.split("/").filter(Boolean)
+            : [];
+
           addFavorite({
             id: item.id,
             name: item.name,
             type: "folder",
-            path: [...item.path, item.name],
+            path: pathArray,
           });
         } else if (item.type === "app") {
           addFavorite({

@@ -34,7 +34,7 @@ export function NotificationBell() {
     }
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: Date): string => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -47,7 +47,7 @@ export function NotificationBell() {
     return `${diffDays}d ago`;
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string): string => {
     switch (type) {
       case "info":
         return "bg-blue-500";
@@ -109,7 +109,7 @@ export function NotificationBell() {
                     "flex cursor-default flex-col items-start gap-1 p-3",
                     !notification.read && "bg-accent/50",
                   )}
-                  onSelect={(e) => {
+                  onSelect={(e: Event) => {
                     e.preventDefault();
                     markAsRead(notification.id);
                   }}
@@ -136,7 +136,7 @@ export function NotificationBell() {
                       variant="ghost"
                       size="sm"
                       className="h-auto px-2 py-0 text-xs"
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         clearNotification(notification.id);
                       }}
@@ -154,7 +154,7 @@ export function NotificationBell() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="justify-center text-sm"
-              onSelect={(e) => {
+              onSelect={(e: Event) => {
                 e.preventDefault();
                 clearAllNotifications();
               }}

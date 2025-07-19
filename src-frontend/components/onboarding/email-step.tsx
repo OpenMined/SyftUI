@@ -76,7 +76,7 @@ export function EmailStep({ onNext, onBack, isLoading }: EmailStepProps) {
         });
         return;
       }
-      onNext();
+      onNext(getValues("email"));
     } finally {
       setIsSendingCode(false);
     }

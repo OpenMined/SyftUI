@@ -8,20 +8,20 @@ interface Log {
   message: string;
 }
 
-interface LogsResponse {
+export interface LogsResponse {
   logs: Log[];
   nextToken: number;
   hasMore: boolean;
 }
 
-interface ParsedLog {
+export interface ParsedLog {
   lineNumber: number;
   timestamp: string;
   level: (typeof logLevels)[number];
   message: string;
 }
 
-interface ParsedLogResponse {
+export interface ParsedLogResponse {
   logs: ParsedLog[];
   nextToken: number;
   hasMore: boolean;

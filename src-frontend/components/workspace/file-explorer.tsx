@@ -52,10 +52,11 @@ interface BackgroundContextMenuContentProps {
     direction: "asc" | "desc";
   }) => void;
   setViewMode?: (mode: "grid" | "list") => void;
+  viewMode?: "grid" | "list";
   getCurrentDirectoryInfo: () => FileSystemItem | null;
   handleCreateFolder?: (name: string) => void;
   handleCreateFile?: (name: string) => void;
-  isRefreshing: bool;
+  isRefreshing: boolean;
   refreshFileSystem: () => void;
   toggleSyncPause?: () => void;
   syncPaused?: boolean;
@@ -92,15 +93,15 @@ function BackgroundContextMenuContent({
   const [showNewFileDialog, setShowNewFileDialog] = useState(false);
   const [newFileName, setNewFileName] = useState("");
 
-  const handleCreateNewFolder = () => {
+  const handleCreateNewFolder = (): void => {
     setShowNewFolderDialog(true);
   };
 
-  const handleCreateNewFile = () => {
+  const handleCreateNewFile = (): void => {
     setShowNewFileDialog(true);
   };
 
-  const submitNewFolder = () => {
+  const submitNewFolder = (): void => {
     if (handleCreateFolder && newFolderName.trim()) {
       handleCreateFolder(newFolderName.trim());
       setNewFolderName("");
@@ -108,7 +109,7 @@ function BackgroundContextMenuContent({
     setShowNewFolderDialog(false);
   };
 
-  const submitNewFile = () => {
+  const submitNewFile = (): void => {
     if (handleCreateFile && newFileName.trim()) {
       handleCreateFile(newFileName.trim());
       setNewFileName("");
@@ -117,14 +118,14 @@ function BackgroundContextMenuContent({
   };
 
   // Handler for adding current directory to favorites
-  const handleAddToFavorites = () => {
+  const handleAddToFavorites = (): void => {
     // For root directory
     if (currentPath.length === 0) {
       addFavorite({
         id: "root", // Using "root" as ID for root directory
         name: "Workspace",
         type: "folder",
-        path: [],
+        path: ["/"],
       });
       return;
     }
@@ -204,7 +205,7 @@ function BackgroundContextMenuContent({
           <ContextMenuSubContent>
             <ContextMenuRadioGroup
               value={viewMode}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setViewMode && setViewMode(value as "grid" | "list")
               }
             >
@@ -220,7 +221,7 @@ function BackgroundContextMenuContent({
           <ContextMenuSubContent className="w-48">
             <ContextMenuRadioGroup
               value={sortConfig.sortBy}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setSortConfig({
                   ...sortConfig,
                   sortBy: value as "name" | "date" | "size" | "type",
@@ -237,7 +238,7 @@ function BackgroundContextMenuContent({
             <ContextMenuSeparator />
             <ContextMenuRadioGroup
               value={sortConfig.direction}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setSortConfig({
                   ...sortConfig,
                   direction: value as "asc" | "desc",
@@ -261,11 +262,13 @@ function BackgroundContextMenuContent({
           </DialogHeader>
           <Input
             value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setNewFolderName(e.target.value)
+            }
             placeholder="Folder name"
             className="mt-4"
             autoFocus
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") submitNewFolder();
             }}
           />
@@ -289,11 +292,13 @@ function BackgroundContextMenuContent({
           </DialogHeader>
           <Input
             value={newFileName}
-            onChange={(e) => setNewFileName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setNewFileName(e.target.value)
+            }
             placeholder="File name"
             className="mt-4"
             autoFocus
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") submitNewFile();
             }}
           />
@@ -339,10 +344,16 @@ interface FileExplorerItemProps {
   currentPath: string[];
   handleItemClick: (item: FileSystemItem, event: React.MouseEvent) => void;
   handleItemDoubleClick: (item: FileSystemItem) => void;
-  handleDragStart: (e: React.DragEvent, item: FileSystemItem) => void;
-  handleDragOver: (e: React.DragEvent, targetId?: string) => void;
+  handleDragStart: (
+    e: React.DragEvent<HTMLDivElement>,
+    item: FileSystemItem,
+  ) => void;
+  handleDragOver: (
+    e: React.DragEvent<HTMLDivElement>,
+    targetId?: string,
+  ) => void;
   handleDragLeave: () => void;
-  handleDrop: (e: React.DragEvent, targetId?: string) => void;
+  handleDrop: (e: React.DragEvent<HTMLDivElement>, targetId?: string) => void;
   dropTarget: string | null;
   cutItemsToClipboard: (ids: string[]) => void;
   copyItemsToClipboard: (ids: string[]) => void;
@@ -391,13 +402,14 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   }, []);
 
   // Handler for opening item in file manager
-  const openInFileManager = async (item: FileSystemItem) => {
+  const openInFileManager = async (item: FileSystemItem): Promise<void> => {
     if (platform === "web") return;
 
     try {
       if (typeof window !== "undefined" && window.__TAURI__) {
         const { openPath } = window.__TAURI__.opener;
-        const { sep } = window.__TAURI__.path;
+        // Use platform-specific path separator
+        const sep = platform === "windows" ? "\\" : "/";
 
         if (item.type === "file") {
           // For files, open the parent directory
@@ -459,16 +471,25 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
           transition={{ duration: 0.2 }}
           layout
           className={itemClasses}
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
             e.stopPropagation(); // Prevent event from bubbling to background
             handleItemClick(item, e);
           }}
           onDoubleClick={() => handleItemDoubleClick(item)}
           draggable
-          onDragStart={(e) => handleDragStart(e, item)}
-          onDragOver={(e) => handleDragOver(e, item.id)}
+          onDragStart={(e) =>
+            handleDragStart(
+              e as unknown as React.DragEvent<HTMLDivElement>,
+              item,
+            )
+          }
+          onDragOver={(e: React.DragEvent<HTMLDivElement>) =>
+            handleDragOver(e, item.id)
+          }
           onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, item.id)}
+          onDrop={(e: React.DragEvent<HTMLDivElement>) =>
+            handleDrop(e, item.id)
+          }
         >
           <div className={contentClasses}>
             <div className={iconClasses}>
@@ -555,7 +576,9 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
                 id: item.id,
                 name: item.name,
                 type: "folder",
-                path: [...currentPath, item.name],
+                path: (typeof item.path === "string"
+                  ? [item.path]
+                  : item.path) || [...currentPath, item.name],
               })
             }
           >
@@ -605,10 +628,12 @@ const RenameDialog = React.memo(
           </DialogHeader>
           <Input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setName(e.target.value)
+            }
             className="mt-4"
             autoFocus
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") onSubmit();
             }}
           />
@@ -924,13 +949,13 @@ export function FileExplorer({
   }, [renameItem, newName, handleRename, setRenameItem]);
 
   const handleDragStart = useCallback(
-    (e: React.DragEvent, item: FileSystemItem) => {
+    (e: React.DragEvent<HTMLDivElement>, item: FileSystemItem) => {
       setDraggedItem(item);
 
       // Add path information to the dragged item for sidebar favorites
       const itemWithPath = {
         ...item,
-        path: currentPath,
+        path: item.path || `/${[...currentPath, item.name].join("/")}`,
       };
 
       e.dataTransfer.setData("application/json", JSON.stringify(itemWithPath));
@@ -940,7 +965,7 @@ export function FileExplorer({
   );
 
   const handleDragOver = useCallback(
-    (e: React.DragEvent, targetId?: string) => {
+    (e: React.DragEvent<HTMLDivElement>, targetId?: string) => {
       e.preventDefault();
 
       // Only allow dropping on folders
@@ -971,7 +996,7 @@ export function FileExplorer({
   }, [setDropTarget]);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent, targetId?: string) => {
+    (e: React.DragEvent<HTMLDivElement>, targetId?: string) => {
       e.preventDefault();
       setDropTarget(null);
 
@@ -1049,8 +1074,10 @@ export function FileExplorer({
         <ContextMenuTrigger asChild>
           <div
             className="text-muted-foreground flex h-full w-full flex-col items-center justify-center"
-            onDragOver={(e) => handleDragOver(e)}
-            onDrop={(e) => handleDrop(e)}
+            onDragOver={(e: React.DragEvent<HTMLDivElement>) =>
+              handleDragOver(e)
+            }
+            onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e)}
             onClick={handleBackgroundClick}
             onContextMenu={handleBackgroundContextMenu}
           >
@@ -1072,13 +1099,27 @@ export function FileExplorer({
                     id: `dir-${currentPath[currentPath.length - 1]}`,
                     name: currentPath[currentPath.length - 1],
                     type: "folder" as const,
+                    path: currentPath.join("/"),
+                    absolutePath: currentPath.join("/"),
+                    createdAt: new Date().toISOString(),
+                    modifiedAt: new Date().toISOString(),
                   }
-                : { id: "root", name: "Workspace", type: "folder" as const };
+                : {
+                    id: "root",
+                    name: "Workspace",
+                    type: "folder" as const,
+                    path: "/",
+                    absolutePath: "/",
+                    createdAt: new Date().toISOString(),
+                    modifiedAt: new Date().toISOString(),
+                  };
             }
             return getCurrentDirectoryInfo();
           }}
           handleCreateFolder={handleCreateFolder}
           handleCreateFile={handleCreateFile}
+          isRefreshing={isRefreshing}
+          refreshFileSystem={refreshFileSystem}
           toggleSyncPause={toggleSyncPause}
           syncPaused={syncPaused}
           clipboard={clipboard}
@@ -1096,6 +1137,8 @@ export function FileExplorer({
       viewMode,
       handleCreateFolder,
       handleCreateFile,
+      isRefreshing,
+      refreshFileSystem,
       toggleSyncPause,
       syncPaused,
       clipboard,
@@ -1117,8 +1160,10 @@ export function FileExplorer({
           <div
             className="h-full w-full"
             onClick={handleBackgroundClick}
-            onDragOver={(e) => handleDragOver(e)}
-            onDrop={(e) => handleDrop(e)}
+            onDragOver={(e: React.DragEvent<HTMLDivElement>) =>
+              handleDragOver(e)
+            }
+            onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e)}
             onContextMenu={handleBackgroundContextMenu}
           >
             {/* Show search hint when there are more than 50 items */}
@@ -1184,8 +1229,20 @@ export function FileExplorer({
                     id: `dir-${currentPath[currentPath.length - 1]}`,
                     name: currentPath[currentPath.length - 1],
                     type: "folder" as const,
+                    path: currentPath.join("/"),
+                    absolutePath: currentPath.join("/"),
+                    createdAt: new Date().toISOString(),
+                    modifiedAt: new Date().toISOString(),
                   }
-                : { id: "root", name: "Workspace", type: "folder" as const };
+                : {
+                    id: "root",
+                    name: "Workspace",
+                    type: "folder" as const,
+                    path: "/",
+                    absolutePath: "/",
+                    createdAt: new Date().toISOString(),
+                    modifiedAt: new Date().toISOString(),
+                  };
             }
             return getCurrentDirectoryInfo();
           }}

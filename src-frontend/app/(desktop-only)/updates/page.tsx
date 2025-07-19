@@ -57,7 +57,10 @@ export default function UpdatePage() {
     let unlisten: (() => void) | undefined;
 
     const updateWindowStateListener = async () => {
-      if (typeof window !== "undefined") {
+      if (
+        typeof window !== "undefined" &&
+        typeof window.__TAURI__ !== "undefined"
+      ) {
         // Get initial state
         const initialState =
           await window.__TAURI__.core.invoke<UpdateWindowState>(
@@ -70,7 +73,7 @@ export default function UpdatePage() {
           window.__TAURI__.webviewWindow.getCurrentWebviewWindow();
         unlisten = await appWebview.listen<UpdateWindowState>(
           "update-window-state",
-          (event) => {
+          (event: { payload: UpdateWindowState }) => {
             setState(event.payload);
           },
         );
@@ -94,22 +97,35 @@ export default function UpdatePage() {
     }
   }, [state.progress, state.updateWindowType]);
 
-  const onUpdate = () => {
+  const onUpdate = (): void => {
     setState((prev) => ({ ...prev, updateWindowType: Type.downloading }));
-    window.__TAURI__.core.invoke("update_window_response", {
-      installUpdate: true,
-    });
+    if (
+      typeof window !== "undefined" &&
+      typeof window.__TAURI__ !== "undefined"
+    ) {
+      window.__TAURI__.core.invoke("update_window_response", {
+        installUpdate: true,
+      });
+    }
   };
 
-  const onLater = () => {
-    window.__TAURI__.core.invoke("update_window_response", {
-      installUpdate: false,
-    });
+  const onLater = (): void => {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.__TAURI__ !== "undefined"
+    ) {
+      window.__TAURI__.core.invoke("update_window_response", {
+        installUpdate: false,
+      });
+    }
     closeHandler();
   };
 
-  const closeHandler = () => {
-    if (window.__TAURI__) {
+  const closeHandler = (): void => {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.__TAURI__ !== "undefined"
+    ) {
       window.__TAURI__.window.getCurrentWindow().close();
     }
   };
@@ -323,16 +339,19 @@ export default function UpdatePage() {
                   <Markdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                      a: ({ href, children }) => (
+                      a: (props: {
+                        href?: string;
+                        children?: React.ReactNode;
+                      }) => (
                         <a
                           href="#"
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                             e.preventDefault();
-                            if (href) openPath(href);
+                            if (props.href) openPath(props.href);
                           }}
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                          {children}
+                          {props.children}
                         </a>
                       ),
                     }}

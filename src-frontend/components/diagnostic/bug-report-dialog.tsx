@@ -135,7 +135,9 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
               <Input
                 id="bug-title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setTitle(e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Brief description of the issue"
                 required
@@ -148,7 +150,9 @@ export function BugReportDialog({ trigger }: BugReportDialogProps) {
               <Textarea
                 id="bug-description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setDescription(e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Please include steps to reproduce the issue and any error messages you may have seen"
                 rows={5}

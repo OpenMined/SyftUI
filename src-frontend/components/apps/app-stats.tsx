@@ -17,7 +17,12 @@ import {
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getApp } from "@/lib/api/apps";
-import type { App, ProcessStats, ConnectionStat } from "@/lib/api/apps";
+import type {
+  App,
+  ProcessStats,
+  ConnectionStat,
+  CpuTimesStat,
+} from "@/lib/api/apps";
 import { cn } from "@/lib/utils";
 
 const formatBytes = (bytes: number): string => {
@@ -78,29 +83,32 @@ function formatType(type: number): string {
   }
 }
 
-const flattenObjectProperty = <T extends object>(
-  obj: T | null | undefined,
+const flattenObjectProperty = <T extends object, K>(
+  obj: T | undefined,
   property: string,
   childrenKey: keyof T,
-): Array<unknown> => {
-  // Handle null or undefined objects
+): Array<K | undefined> => {
+  // Handle undefined objects
   if (!obj) {
     return [];
   }
 
-  const getNestedValue = (obj: object, path: string): unknown => {
-    return path
-      .split(".")
-      .reduce((acc, part) => acc?.[part as keyof typeof acc], obj);
+  const getNestedValue = (obj: object, path: string): K | undefined => {
+    return path.split(".").reduce((acc: unknown, part) => {
+      if (acc && typeof acc === "object" && part in acc) {
+        return (acc as Record<string, unknown>)[part];
+      }
+      return undefined;
+    }, obj) as K | undefined;
   };
 
   const value = getNestedValue(obj, property);
-  const result: Array<unknown> = [value];
+  const result: Array<K | undefined> = [value];
 
   const children = obj[childrenKey] as Array<T> | undefined;
   if (children?.length) {
     for (const child of children) {
-      result.push(...flattenObjectProperty(child, property, childrenKey));
+      result.push(...flattenObjectProperty<T, K>(child, property, childrenKey));
     }
   }
   return result;
@@ -278,18 +286,18 @@ export function AppStats({ appId }: { appId: string }) {
   const stats = app.processStats;
 
   // Calculate CPU times percentages if available
-  const allCpuTimes = flattenObjectProperty(
+  const allCpuTimes = flattenObjectProperty<ProcessStats, CpuTimesStat>(
     stats,
     "cpuTimes",
     "children",
-  ) as (cpuTimesStat | null)[];
+  );
   let userPercent = 0;
   let systemPercent = 0;
   let idlePercent = 0;
 
   // Sum up CPU times across all processes
   const totalCpuTimes = allCpuTimes.reduce(
-    (acc, curr) => {
+    (acc: { user: number; system: number; idle: number }, curr) => {
       if (!curr) return acc;
       return {
         user: acc.user + curr.user,
@@ -313,50 +321,50 @@ export function AppStats({ appId }: { appId: string }) {
     idlePercent = (totalCpuTimes.idle / totalCpuTime) * 100;
   }
 
-  const cumulativeCpuPercent = flattenObjectProperty(
+  const cumulativeCpuPercent = flattenObjectProperty<ProcessStats, number>(
     stats,
     "cpuPercent",
     "children",
-  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
+  ).reduce((acc: number, curr) => acc + (curr || 0), 0);
 
-  const cumulativeNumThreads = flattenObjectProperty(
+  const cumulativeNumThreads = flattenObjectProperty<ProcessStats, number>(
     stats,
     "numThreads",
     "children",
-  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
+  ).reduce((acc: number, curr) => acc + (curr || 0), 0);
 
   const totalMemory =
     ((stats.memoryInfo?.rss ?? 0) / stats.memoryPercent) * 100;
 
-  const cumulativeMemoryPercent = flattenObjectProperty(
+  const cumulativeMemoryPercent = flattenObjectProperty<ProcessStats, number>(
     stats,
     "memoryPercent",
     "children",
-  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
+  ).reduce((acc: number, curr) => acc + (curr || 0), 0);
 
-  const cumulativeMemoryRSS = flattenObjectProperty(
+  const cumulativeMemoryRSS = flattenObjectProperty<ProcessStats, number>(
     stats,
     "memoryInfo.rss",
     "children",
-  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
+  ).reduce((acc: number, curr) => acc + (curr || 0), 0);
 
   const cumulativeMemoryVMS =
-    flattenObjectProperty(stats, "memoryInfo.vms", "children").reduce(
-      (acc, curr) => acc + ((curr as number) || 0),
-      0,
-    ) / 1000;
+    flattenObjectProperty<ProcessStats, number>(
+      stats,
+      "memoryInfo.vms",
+      "children",
+    ).reduce((acc: number, curr) => acc + (curr || 0), 0) / 1000;
 
-  const cumulativeMemorySwap = flattenObjectProperty(
+  const cumulativeMemorySwap = flattenObjectProperty<ProcessStats, number>(
     stats,
     "memoryInfo.swap",
     "children",
-  ).reduce((acc, curr) => acc + ((curr as number) || 0), 0);
+  ).reduce((acc: number, curr) => acc + (curr || 0), 0);
 
-  const allConnections: ConnectionStat[] = flattenObjectProperty(
-    stats,
-    "connections",
-    "children",
-  )
+  const allConnections: ConnectionStat[] = flattenObjectProperty<
+    ProcessStats,
+    ConnectionStat[]
+  >(stats, "connections", "children")
     .flat()
     .filter(Boolean) as ConnectionStat[];
 

@@ -35,7 +35,7 @@ function AppBreadcrumbContent({ app }: AppBreadcrumbContentProps) {
         <span>Apps</span>
       </button>
 
-      {selectedApp && app && (
+      {selectedApp && app != null && (
         <>
           <ChevronRight className="text-muted-foreground mx-1 h-4 w-4" />
           <button
@@ -51,7 +51,7 @@ function AppBreadcrumbContent({ app }: AppBreadcrumbContentProps) {
 }
 
 interface AppBreadcrumbProps {
-  app?: App | null;
+  app: App | null;
 }
 
 export function AppBreadcrumb({ app }: AppBreadcrumbProps) {

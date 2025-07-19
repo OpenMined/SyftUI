@@ -103,7 +103,9 @@ function ToolbarInternal({
               type="search"
               placeholder={searchPlaceholder}
               className="w-40 md:w-64"
-              onChange={(e) => onSearch && onSearch(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onSearch && onSearch(e.target.value)
+              }
             />
           </div>
         )}

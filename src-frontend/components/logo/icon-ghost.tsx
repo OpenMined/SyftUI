@@ -1,14 +1,16 @@
 import { memo } from "react";
 
+interface IconGhostProps {
+  width?: string | number;
+  height?: string | number;
+  className?: string;
+}
+
 export const IconGhost = memo(function IconGhost({
   width = "100%",
   height = "100%",
   className,
-}: {
-  width?: number;
-  height?: number;
-  className?: string;
-}) {
+}: IconGhostProps) {
   return (
     <svg
       width={width}

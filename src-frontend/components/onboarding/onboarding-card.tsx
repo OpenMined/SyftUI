@@ -71,15 +71,21 @@ export function OnboardingCard({ onComplete }: OnboardingCardProps) {
         result = await connect();
       }
 
-      if (!result.success) {
+      if (!result?.success) {
         setStep("connect");
         return;
       }
 
-      if (["UNPROVISIONED", "ERROR"].includes(datasite?.status)) {
+      if (
+        datasite?.status &&
+        ["UNPROVISIONED", "ERROR"].includes(datasite.status)
+      ) {
         setStep("configure");
-      } else if (["PROVISIONING", "PROVISIONED"].includes(datasite?.status)) {
-        onComplete();
+      } else if (
+        datasite?.status &&
+        ["PROVISIONING", "PROVISIONED"].includes(datasite.status)
+      ) {
+        onComplete(false);
       }
     };
     attemptConnection();

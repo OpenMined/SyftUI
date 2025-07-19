@@ -94,7 +94,7 @@ export const useConnectionStore = create<ConnectionState>()(
 
         // Convert zod errors to our error format
         const errors: ConnectionErrors = {};
-        result.error.errors.forEach((err) => {
+        result.error.issues.forEach((err: z.ZodIssue) => {
           const path = err.path[0] as keyof ConnectionErrors;
           errors[path] = err.message;
         });

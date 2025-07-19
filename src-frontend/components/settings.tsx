@@ -41,7 +41,7 @@ export function Settings() {
     client_timeout: 5.0,
   });
 
-  const handleDirectorySelect = () => {
+  const handleDirectorySelect = (): void => {
     toast({
       icon: "🐱",
       title: "Feature Coming Soon!",
@@ -61,7 +61,7 @@ export function Settings() {
     });
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = (): void => {
     setIsLoading(true);
 
     // Simulate saving settings
@@ -93,7 +93,9 @@ export function Settings() {
             <Input
               id="client-url"
               value={settings.client_url}
-              onChange={(e) => handleInputChange("client_url", e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleInputChange("client_url", e.target.value)
+              }
             />
           </div>
           <div className="space-y-2">
@@ -103,7 +105,9 @@ export function Settings() {
                 id="token"
                 type={showToken ? "text" : "password"}
                 value={settings.token}
-                onChange={(e) => handleInputChange("token", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange("token", e.target.value)
+                }
               />
               <Button
                 type="button"
@@ -128,7 +132,7 @@ export function Settings() {
               type="number"
               step="0.1"
               value={settings.client_timeout}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 handleInputChange(
                   "client_timeout",
                   Number.parseFloat(e.target.value),
@@ -153,7 +157,9 @@ export function Settings() {
               <Input
                 id="data-dir"
                 value={settings.data_dir}
-                onChange={(e) => handleInputChange("data_dir", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange("data_dir", e.target.value)
+                }
               />
               <Button
                 variant="outline"
@@ -170,7 +176,9 @@ export function Settings() {
             <Input
               id="server-url"
               value={settings.server_url}
-              onChange={(e) => handleInputChange("server_url", e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleInputChange("server_url", e.target.value)
+              }
             />
           </div>
         </CardContent>
@@ -189,7 +197,9 @@ export function Settings() {
             <Input
               id="email"
               value={settings.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleInputChange("email", e.target.value)
+              }
               autoComplete="off"
             />
           </div>
@@ -200,7 +210,7 @@ export function Settings() {
                 id="access-token"
                 type={showAccessToken ? "text" : "password"}
                 value={settings.access_token}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleInputChange("access_token", e.target.value)
                 }
               />

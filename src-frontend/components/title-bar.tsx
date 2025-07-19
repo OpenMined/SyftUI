@@ -41,10 +41,10 @@ export default function TitleBar({
         return;
       }
 
-      const { listen } = window.__TAURI__.event;
+      const { listen } = window.__TAURI__!.event;
       unlisten = await listen("tauri://resize", async () => {
-        const fullscreen = await window.__TAURI__.window
-          .getCurrentWindow()
+        const fullscreen = await window
+          .__TAURI__!.window.getCurrentWindow()
           .isFullscreen();
         setIsFullscreen(fullscreen);
       });

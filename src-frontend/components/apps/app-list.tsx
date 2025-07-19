@@ -64,9 +64,9 @@ import { AppBreadcrumb } from "./apps-breadcrumb";
 const installFormSchema = z.object({
   repoURL: z.string().url("Must be a valid Git repository URL"),
   branch: z.string(),
-  force: z.boolean().default(false),
+  force: z.boolean(),
 });
-// Install form type
+// Install form type - inferred from schema
 type InstallFormValues = z.infer<typeof installFormSchema>;
 
 interface AppListProps {
@@ -97,7 +97,7 @@ export function AppList({ onSelectApp }: AppListProps) {
   });
 
   useEffect(() => {
-    setBreadcrumb(<AppBreadcrumb />);
+    setBreadcrumb(<AppBreadcrumb app={null} />);
     return () => clearBreadcrumb();
   }, [setBreadcrumb, clearBreadcrumb]);
 

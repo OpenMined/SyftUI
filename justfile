@@ -91,9 +91,7 @@ check-frontend:
     try:
         subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--check', '.'], check=True)
         subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint'], check=True)
-
-        # TODO: Uncomment this once the type errors are fixed.
-        # subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'tsc', '--noEmit'], check=True)
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'tsc', '--noEmit'], check=True)
 
         print(f"\n{{ _green }}Frontend code quality check completed successfully.{{ _nc }}\n")
     except subprocess.CalledProcessError as e:
@@ -157,6 +155,10 @@ tidy-frontend:
     try:
         subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'prettier', '--write', '.'], check=True)
         subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'lint', '--fix'], check=True)
+
+        # This doesn't fix the type errors, but it's good to ensure it returns 0 (success).
+        subprocess.run(['bun', 'run', '--cwd', 'src-frontend', 'tsc', '--noEmit'], check=True)
+
         print(f"\n{{ _green }}Frontend code tidied up successfully.{{ _nc }}\n")
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)

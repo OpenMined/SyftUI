@@ -2,6 +2,10 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { memo } from "react";
 
+interface LogoComponentProps {
+  className?: string;
+}
+
 /**
  * LogoComponent displays the brand logo with theme-aware rendering
  *
@@ -10,7 +14,7 @@ import { memo } from "react";
  */
 export const LogoComponent = memo(function LogoComponent({
   className = "h-full w-auto",
-}) {
+}: LogoComponentProps) {
   const { theme } = useTheme();
   const fillColor = theme === "dark" ? "#FCFCFD" : "#272532";
 

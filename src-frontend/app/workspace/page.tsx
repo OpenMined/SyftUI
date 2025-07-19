@@ -16,7 +16,7 @@ function FilesPageContent() {
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
 
   useEffect(() => {
-    initializeFileSystemStore(initialPath);
+    initializeFileSystemStore(initialPath ? initialPath.split("/") : []);
   }, [initialPath]);
 
   useEffect(() => {
