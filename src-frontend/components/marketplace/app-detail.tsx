@@ -13,6 +13,7 @@ import { Toolbar } from "@/components/ui/toolbar";
 import { type MarketplaceApp, getMarketplaceApp } from "@/lib/api/marketplace";
 import { installApp, uninstallApp } from "@/lib/api/apps";
 import { toast } from "@/hooks/use-toast";
+import { useOpenPath } from "@/hooks/use-open-path";
 import { useBreadcrumbStore } from "@/stores";
 import { MarketplaceBreadcrumb } from "./marketplace-breadcrumb";
 
@@ -73,6 +74,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
   const [isInstalled, setIsInstalled] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
+  const { openPath } = useOpenPath();
 
   const handleInstall = useCallback(async () => {
     if (!app || !app.repository) {
@@ -356,24 +358,20 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
                       <dt className="text-muted-foreground">Links</dt>
                       <dd className="flex flex-wrap gap-2">
                         {app.website && (
-                          <a
-                            href={app.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => openPath(app.website!)}
                             className="flex items-center text-blue-600 hover:underline"
                           >
                             Website <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
+                          </button>
                         )}
                         {app.repository && (
-                          <a
-                            href={app.repository}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => openPath(app.repository!)}
                             className="flex items-center text-blue-600 hover:underline"
                           >
                             Repository <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
+                          </button>
                         )}
                       </dd>
                     </>

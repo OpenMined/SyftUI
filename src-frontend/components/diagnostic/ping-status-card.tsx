@@ -131,7 +131,7 @@ export function PingStatusCard({
 
       // Update ping history by adding a new value at the current position
       setPingHistory((prevHistory) => {
-        const newHistory = [...prevHistory];
+        const newHistory = prevHistory.map((item) => ({ ...item }));
 
         // If we haven't filled the array yet, add the new ping at the current position
         if (dataCount < MAX_DATA_POINTS) {

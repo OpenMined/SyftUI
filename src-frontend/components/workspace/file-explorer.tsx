@@ -12,6 +12,7 @@ import type { FileSystemItem, ClipboardItem } from "@/lib/types";
 import { FileIcon } from "@/components/workspace/file-icon";
 import { SyncStatus } from "@/components/workspace/sync-status";
 import { PermissionsDialog } from "@/components/workspace/permissions-dialog";
+import { useOpenPath } from "@/hooks/use-open-path";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -390,6 +391,7 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
   isMobile,
 }: FileExplorerItemProps) {
   const { addFavorite } = useSidebarStore();
+  const { openPath } = useOpenPath();
   const [platform, setPlatform] = useState<string>("macos");
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 
@@ -407,7 +409,6 @@ const FileExplorerItem = React.memo(function FileExplorerItem({
 
     try {
       if (typeof window !== "undefined" && window.__TAURI__) {
-        const { openPath } = window.__TAURI__.opener;
         // Use platform-specific path separator
         const sep = platform === "windows" ? "\\" : "/";
 

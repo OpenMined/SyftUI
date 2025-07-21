@@ -36,6 +36,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ActivityHeatmap } from "./activity-heatmap";
 import { SocialConnectionButton } from "./social-connection-button";
+import { useOpenPath } from "@/hooks/use-open-path";
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, {
@@ -92,6 +93,7 @@ const defaultValues: Partial<ProfileFormValues> = {
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
+  const { openPath } = useOpenPath();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -392,14 +394,12 @@ export default function Profile() {
                   <div className="flex items-center gap-2">
                     <ExternalLink className="text-muted-foreground h-4 w-4" />
                     <span className="text-sm font-medium">Website:</span>
-                    <a
-                      href={defaultValues.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => openPath(defaultValues.website!)}
                       className="text-primary text-sm hover:underline"
                     >
                       {defaultValues.website.replace(/^https?:\/\//, "")}
-                    </a>
+                    </button>
                   </div>
                 )}
 
@@ -407,17 +407,15 @@ export default function Profile() {
                   <div className="flex items-center gap-2">
                     <Twitter className="text-muted-foreground h-4 w-4" />
                     <span className="text-sm font-medium">X:</span>
-                    <a
-                      href={defaultValues.xLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => openPath(defaultValues.xLink!)}
                       className="text-primary text-sm hover:underline"
                     >
                       {defaultValues.xLink.replace(
                         /^https?:\/\/(www\.)?x\.com\//,
                         "@",
                       )}
-                    </a>
+                    </button>
                   </div>
                 )}
 
@@ -425,17 +423,15 @@ export default function Profile() {
                   <div className="flex items-center gap-2">
                     <Linkedin className="text-muted-foreground h-4 w-4" />
                     <span className="text-sm font-medium">LinkedIn:</span>
-                    <a
-                      href={defaultValues.linkedinLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => openPath(defaultValues.linkedinLink!)}
                       className="text-primary text-sm hover:underline"
                     >
                       {defaultValues.linkedinLink.replace(
                         /^https?:\/\/(www\.)?linkedin\.com\/in\//,
                         "",
                       )}
-                    </a>
+                    </button>
                   </div>
                 )}
               </div>

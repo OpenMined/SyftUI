@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { MarketplaceApp } from "@/lib/api/marketplace";
 import { installApp } from "@/lib/api/apps";
 import { toast } from "@/hooks/use-toast";
+import { useOpenPath } from "@/hooks/use-open-path";
 
 interface InstallConfirmationDialogProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export function InstallConfirmationDialog({
   onCancel,
 }: InstallConfirmationDialogProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { openPath } = useOpenPath();
   const handleInstall = async () => {
     if (!app.repository) {
       toast({
@@ -102,23 +104,27 @@ export function InstallConfirmationDialog({
           </div>
           <AlertDialogDescription className="space-y-3 text-left md:ml-8">
             The app{" "}
-            <a
-              href={app.repository}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="m-0 inline-flex text-blue-600 hover:underline"
-            >
-              {app.name} <ExternalLink className="h-2 w-2 align-super" />
-            </a>
+            {app.repository ? (
+              <button
+                onClick={() => openPath(app.repository!)}
+                className="m-0 inline-flex text-blue-600 hover:underline"
+              >
+                {app.name} <ExternalLink className="h-2 w-2 align-super" />
+              </button>
+            ) : (
+              <span className="font-medium">{app.name}</span>
+            )}
             is added by{" "}
-            <a
-              href={app.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="m-0 inline-flex text-blue-600 hover:underline"
-            >
-              {app.author} <ExternalLink className="h-2 w-2 align-super" />
-            </a>
+            {app.website ? (
+              <button
+                onClick={() => openPath(app.website!)}
+                className="m-0 inline-flex text-blue-600 hover:underline"
+              >
+                {app.author} <ExternalLink className="h-2 w-2 align-super" />
+              </button>
+            ) : (
+              <span className="font-medium">{app.author}</span>
+            )}
             .
             <span className="my-3 flex items-center gap-2 text-sm">
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 p-1 dark:bg-slate-700">
@@ -136,14 +142,14 @@ export function InstallConfirmationDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between md:ml-8">
-            <Button
-              variant="outline"
-              onClick={() => {
-                window.open(app.repository, "_blank");
-              }}
-            >
-              View Source
-            </Button>
+            {app.repository && (
+              <Button
+                variant="outline"
+                onClick={() => openPath(app.repository!)}
+              >
+                View Source
+              </Button>
+            )}
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
               <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
               <Button

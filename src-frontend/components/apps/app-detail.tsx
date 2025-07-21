@@ -36,6 +36,7 @@ import {
 import { useConnectionStore, useBreadcrumbStore } from "@/stores";
 import { AppFiles, AppInterface, AppLogs, AppStats } from "@/components/apps";
 import { toast } from "@/hooks/use-toast";
+import { useOpenPath } from "@/hooks/use-open-path";
 import { AppBreadcrumb } from "./apps-breadcrumb";
 
 interface AppDetailProps {
@@ -58,11 +59,7 @@ export function AppDetail({ appId, onBack }: AppDetailProps) {
     settings: { url: daemonUrl },
   } = useConnectionStore();
   const { setBreadcrumb, clearBreadcrumb } = useBreadcrumbStore();
-
-  const { openPath } =
-    typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
-      ? window.__TAURI__.opener
-      : { openPath: (path: string) => window.open(path, "_blank") };
+  const { openPath } = useOpenPath();
 
   const fetchApp = useCallback(async () => {
     setIsLoading(true);

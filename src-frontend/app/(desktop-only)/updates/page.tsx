@@ -16,6 +16,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { BackgroundGradients } from "@/components/logo/background-gradients";
 import { IconGhost } from "@/components/logo/icon-ghost";
+import { useOpenPath } from "@/hooks/use-open-path";
 
 enum Type {
   checking = "checking",
@@ -47,11 +48,7 @@ const initialState: UpdateWindowState = {
 export default function UpdatePage() {
   const [state, setState] = useState<UpdateWindowState>(initialState);
   const [animatedProgress, setAnimatedProgress] = useState(0);
-
-  const { openPath } =
-    typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
-      ? window.__TAURI__.opener
-      : { openPath: (path: string) => window.open(path, "_blank") };
+  const { openPath } = useOpenPath();
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;

@@ -2,6 +2,7 @@
 
 import { Icon } from "@/components/logo/icon";
 import useHashParams from "@/hooks/use-hash-params";
+import { useOpenPath } from "@/hooks/use-open-path";
 import { timeAgo } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
@@ -16,10 +17,7 @@ export default function MacbookInfo() {
     daemon_hash,
     daemon_build,
   } = useHashParams();
-  const { openPath } =
-    typeof window !== "undefined" && typeof window.__TAURI__ !== "undefined"
-      ? window.__TAURI__.opener
-      : { openPath: (path: string) => window.open(path, "_blank") };
+  const { openPath } = useOpenPath();
 
   useEffect(() => {
     if (window.__TAURI__) {
